@@ -17,37 +17,49 @@
   v    Password verifier
 */
 
+import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
+import 'package:pointycastle/export.dart';
 
-class SRPClient {
-  SRPClient({required this.N, required this.g});
+class SRP {
+  SRP({required this.N, required this.g});
 
   final BigInt N;
   final BigInt g;
 
   BigInt s(int length) {
-    return bytesArrayToBigInt(SecretKeyData.random(length: length).bytes);
+    final secureRandom = genereateSecureRandom();
+
+    return secureRandom.nextBigInteger(length);
+  }
+
+  SecureRandom genereateSecureRandom() {
+    final random = Random.secure();
+    final bytes = Uint8List(32);
+
+    for (int i = 0; i < 32; i++) {
+      bytes[i] = random.nextInt(255);
+    }
+
+    return SecureRandom('Fortuna')..seed(KeyParameter(bytes));
   }
 
   Future<BigInt> x(String I, String p, BigInt s) async {
-    var sink = Sha512().newHashSink();
+    final digest = SHA512Digest();
+    final data = I + ':' + p;
+    var out = Uint8List(digest.digestSize);
 
-    sink.add(Uint8List.fromList((I + ':' + p).codeUnits));
-    sink.close();
+    digest.update(Uint8List.fromList(data.codeUnits), 0, data.length);
+    digest.doFinal(out, 0);
 
-    var hash = await sink.hash();
+    final _s = bigIntToBytesArray(s);
 
-    sink = Sha512().newHashSink();
+    digest.update(_s, 0, _s.length);
+    digest.update(out, 0, out.length);
+    digest.doFinal(out, 0);
 
-    sink.add(bigIntToBytesArray(s));
-    sink.add(hash.bytes);
-    sink.close();
-
-    hash = await sink.hash();
-
-    return bytesArrayToBigInt(hash.bytes);
+    return bytesArrayToBigInt(out);
   }
 
   BigInt S(
@@ -62,30 +74,31 @@ class SRPClient {
   }
 
   Future<BigInt> u(BigInt A, BigInt B) async {
+    final digest = SHA512Digest();
+    var out = Uint8List(digest.digestSize);
+
     final paddedA = _pad(A, N);
     final paddedB = _pad(B, N);
 
-    final sink = Sha512().newHashSink();
+    digest.update(paddedA, 0, paddedA.length);
+    digest.update(paddedB, 0, paddedB.length);
+    digest.doFinal(out, 0);
 
-    sink.add(paddedA);
-    sink.add(paddedB);
-    sink.close();
-
-    final hash = await sink.hash();
-
-    return bytesArrayToBigInt(hash.bytes);
+    return bytesArrayToBigInt(out);
   }
 
   Future<BigInt> k() async {
-    final sink = Sha512().newHashSink();
+    final digest = SHA512Digest();
+    var out = Uint8List(digest.digestSize);
 
-    sink.add(bigIntToBytesArray(N));
-    sink.add(_pad(g, N));
-    sink.close();
+    final _bytesN = bigIntToBytesArray(N);
+    final _padgN = _pad(g, N);
 
-    final hash = await sink.hash();
+    digest.update(_bytesN, 0, _bytesN.length);
+    digest.update(_padgN, 0, _padgN.length);
+    digest.doFinal(out, 0);
 
-    return bytesArrayToBigInt(hash.bytes);
+    return bytesArrayToBigInt(out);
   }
 
   BigInt v(BigInt x) {
@@ -93,19 +106,19 @@ class SRPClient {
   }
 
   Future<BigInt> a() async {
-    // final algorithm = AesGcm.with256bits();
-    // final secretKey = await algorithm.newSecretKey();
-
-    // final a = await secretKey.extractBytes();
-    // return bytesArrayToBigInt(a);
-
-    //var minBits = math.min(256, N.bitLength ~/ 2);
-    // var min = BigInt.one << (minBits - 1);
-    // var max = N - BigInt.one;
     BigInt bi;
 
+    final random = Random.secure();
+    final bytes = Uint8List(32);
+
+    for (int i = 0; i < 32; i++) {
+      bytes[i] = random.nextInt(255);
+    }
+
+    final secureRandom = SecureRandom('Fortuna')..seed(KeyParameter(bytes));
+
     do {
-      bi = bytesArrayToBigInt(SecretKeyData.random(length: 32).bytes) % N;
+      bi = secureRandom.nextBigInteger(32) % N;
     } while (bi == BigInt.zero);
 
     return bi;
@@ -116,37 +129,35 @@ class SRPClient {
   }
 
   Future<BigInt> proofServerM2(BigInt A, BigInt m1, BigInt S) async {
+    final digest = SHA512Digest();
+    var out = Uint8List(digest.digestSize);
+
     final paddedA = _pad(A, N);
     final paddedM1 = _pad(m1, N);
     final paddedS = _pad(S, N);
 
-    final sink = Sha512().newHashSink();
+    digest.update(paddedA, 0, paddedA.length);
+    digest.update(paddedM1, 0, paddedM1.length);
+    digest.update(paddedS, 0, paddedS.length);
+    digest.doFinal(out, 0);
 
-    sink.add(paddedA);
-    sink.add(paddedM1);
-    sink.add(paddedS);
-    sink.close();
-
-    final hash = await sink.hash();
-
-    return bytesArrayToBigInt(hash.bytes);
+    return bytesArrayToBigInt(out);
   }
 
   Future<BigInt> m1(BigInt A, BigInt B, BigInt S) async {
+    final digest = SHA512Digest();
+    var out = Uint8List(digest.digestSize);
+
     final paddedA = _pad(A, N);
     final paddedB = _pad(B, N);
     final paddedS = _pad(S, N);
 
-    final sink = Sha512().newHashSink();
+    digest.update(paddedA, 0, paddedA.length);
+    digest.update(paddedB, 0, paddedB.length);
+    digest.update(paddedS, 0, paddedS.length);
+    digest.doFinal(out, 0);
 
-    sink.add(paddedA);
-    sink.add(paddedB);
-    sink.add(paddedS);
-    sink.close();
-
-    final hash = await sink.hash();
-
-    return bytesArrayToBigInt(hash.bytes);
+    return bytesArrayToBigInt(out);
   }
 
   // utils
@@ -166,18 +177,16 @@ class SRPClient {
   }
 
   Uint8List bigIntToBytesArray(BigInt number) {
-    // Not handling negative numbers. Decide how you want to do that.
-    int bytes = (number.bitLength + 7) >> 3;
-    var b256 = new BigInt.from(256);
-    var result = new Uint8List(bytes);
-    for (int i = 0; i < bytes; i++) {
-      result[i] = number.remainder(b256).toInt();
+    var size = (number.bitLength + 7) >> 3;
+    var result = Uint8List(size);
+    for (var i = 0; i < size; i++) {
+      result[size - i - 1] = (number & BigInt.from(0xff)).toInt();
       number = number >> 8;
     }
     return result;
   }
 
-  BigInt bytesArrayToBigInt(List<int> bytes) {
+  BigInt bytesArrayToBigInt(Uint8List bytes) {
     var result = BigInt.from(0);
     for (var i = 0; i < bytes.length; i++) {
       result += BigInt.from(bytes[bytes.length - i - 1]) << (8 * i);

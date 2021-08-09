@@ -8,14 +8,16 @@ class LeftPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        margin: EdgeInsets.only(right: 15.0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.only(
-            topRight: Radius.circular(10.0),
-          ),
-          color: Colors.white,
+      margin: EdgeInsets.only(right: 15.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.only(
+          topRight: Radius.circular(10.0),
         ),
-        child: Column(
+        color: Colors.white,
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Column(
           children: [
             Padding(
               padding: const EdgeInsets.only(
@@ -44,7 +46,10 @@ class LeftPanel extends StatelessWidget {
                     },
                   ),
                   IconButton(
-                    onPressed: () => context.read<AuthCubit>().unauthenticate(),
+                    onPressed: () async {
+                      await context.read<AuthCubit>().unauthenticate();
+                      Navigator.of(context).pushReplacementNamed('/login');
+                    },
                     icon: Icon(Icons.logout),
                   ),
                 ],
@@ -94,6 +99,8 @@ class LeftPanel extends StatelessWidget {
               ),
             ),
           ],
-        ));
+        ),
+      ),
+    );
   }
 }

@@ -12,11 +12,10 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> init() async {
     try {
-      final token = await _authRepository.getToken();
+      final token = await _authRepository.getAccessToken();
 
       if (token != null) {
-        final data = await _authRepository.getUser();
-        final user = User.fromJson(data);
+        final user = await _authRepository.getUser();
 
         emit(state.copyWith(status: AuthStatus.authenticated, user: user));
       } else {
@@ -28,8 +27,7 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> authenticate() async {
-    final data = await _authRepository.getUser();
-    final user = User.fromJson(data);
+    final user = await _authRepository.getUser();
 
     emit(state.copyWith(status: AuthStatus.authenticated, user: user));
   }

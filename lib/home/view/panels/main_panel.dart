@@ -13,10 +13,8 @@ class MainPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      //padding: EdgeInsets.symmetric(horizontal: 0.0),
-      child: Padding(
+    return Scaffold(
+      body: Padding(
         padding: const EdgeInsets.all(15.0),
         child: Column(
           children: [

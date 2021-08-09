@@ -9,13 +9,11 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Scaffold(
-        body: SidePanels(
-          key: _sidePanelsKey,
-          leftPanel: LeftPanel(),
-          rightPanel: RightPanel(),
-          mainPanel: MainPanel(sidePanelsKey: _sidePanelsKey),
-        ),
+      child: SidePanels(
+        key: _sidePanelsKey,
+        leftPanel: LeftPanel(),
+        rightPanel: RightPanel(),
+        mainPanel: MainPanel(sidePanelsKey: _sidePanelsKey),
       ),
     );
   }

@@ -6,7 +6,7 @@ class ApiService {
     Dio _dio = new Dio();
     _dio.interceptors.add(new ApiInterceptors());
 
-    _dio.options.baseUrl = "https://1e9cc30aa085.ngrok.io";
+    _dio.options.baseUrl = "https://b5df6af73117.ngrok.io";
     return _dio;
   }
 }
@@ -19,7 +19,7 @@ class ApiInterceptors extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    final accessToken = await _storage.read(key: 'JWT_TOKEN');
+    final accessToken = await _storage.read(key: 'accessToken');
 
     if (accessToken != null) {
       options.headers["Authorization"] = 'Bearer $accessToken';

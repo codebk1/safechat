@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:safechat/app/app_bloc_observer.dart';
 import 'package:safechat/utils/utils.dart';
@@ -10,6 +11,8 @@ import 'package:safechat/auth/auth.dart';
 import 'package:safechat/app/app.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   Bloc.observer = AppBlocObserver();
   FlutterError.onError = (details) {
     log(details.exceptionAsString(), stackTrace: details.stack);
@@ -23,8 +26,17 @@ void main() async {
         systemNavigationBarIconBrightness: Brightness.dark),
   );
 
-  ApiService _apiService = new ApiService();
-  final authRepository = AuthRepository(_apiService.init());
+  final storage = FlutterSecureStorage();
+  final apiService = ApiService();
+  final encryptionService = EncryptionService();
 
-  runApp(App(authRepository: authRepository));
+  if (await storage.containsKey(key: 'publicKey'))
+    await encryptionService.init();
+
+  final authRepository = AuthRepository(apiService.init(), encryptionService);
+
+  runApp(App(
+    authRepository: authRepository,
+    encryptionService: encryptionService,
+  ));
 }
