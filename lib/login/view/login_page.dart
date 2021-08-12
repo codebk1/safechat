@@ -12,11 +12,7 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final AuthCubit _authCubit = BlocProvider.of<AuthCubit>(context);
 
-    return BlocProvider(
-      create: (context) =>
-          LoginCubit(_authCubit, context.read<AuthRepository>()),
-      child: LoginView(),
-    );
+    return LoginView();
   }
 }
 

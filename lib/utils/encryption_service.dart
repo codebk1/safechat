@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -10,6 +11,7 @@ import 'package:pointycastle/export.dart';
 class EncryptionService {
   RSAPublicKey? publicKey;
   RSAPrivateKey? privateKey;
+  Uint8List? sharedKey;
 
   Future<void> init() async {
     print('ENCRYPTION SERVICE INIT');
@@ -17,29 +19,38 @@ class EncryptionService {
 
     final publicKey = await storage.read(key: 'publicKey');
     final privateKey = await storage.read(key: 'privateKey');
+    final sharedKey = await storage.read(key: 'sharedKey');
 
-    this.publicKey = _parsePublicKeyFromPem(publicKey);
-    this.privateKey = _parsePrivateKeyFromPem(privateKey);
+    if (publicKey != null && privateKey != null && sharedKey != null) {
+      this.publicKey = parsePublicKeyFromPem(publicKey);
+      this.privateKey = parsePrivateKeyFromPem(privateKey);
+      this.sharedKey = base64.decode(sharedKey);
+    }
+
+    print('END INIT');
   }
 
-  String encrypt(String data) {
+  String rsaEncrypt(Uint8List data, [RSAPublicKey? key]) {
     final encryptor = OAEPEncoding(RSAEngine())
-      ..init(true, PublicKeyParameter<RSAPublicKey>(publicKey as RSAPublicKey));
+      ..init(
+        true,
+        PublicKeyParameter<RSAPublicKey>(key ?? this.publicKey as RSAPublicKey),
+      );
 
-    final encryptedData =
-        _processInBlocks(encryptor, Uint8List.fromList(data.codeUnits));
+    final encryptedData = _processInBlocks(encryptor, data);
 
     return base64.encode(encryptedData);
   }
 
-  String decrypt(String data) {
+  Uint8List rsaDecrypt(String data) {
     final decryptor = OAEPEncoding(RSAEngine())
       ..init(false,
           PrivateKeyParameter<RSAPrivateKey>(privateKey as RSAPrivateKey));
 
     final decryptedData = _processInBlocks(decryptor, base64.decode(data));
+    print(decryptedData);
 
-    return utf8.decode(decryptedData);
+    return decryptedData;
   }
 
   Uint8List argon2DeriveKey(String data, Uint8List salt) {
@@ -56,8 +67,8 @@ class EncryptionService {
   Uint8List chachaEncrypt(
     Uint8List data,
     Uint8List secretKey,
-    Uint8List nonce,
   ) {
+    final nonce = genereateSecureRandom().nextBytes(12);
     final parameters = AEADParameters(
       KeyParameter(secretKey),
       128,
@@ -81,15 +92,22 @@ class EncryptionService {
     );
 
     encryptor.doFinal(encryptedData, len);
+    final encryptedDataWithNonce = BytesBuilder()
+      ..add(nonce)
+      ..add(encryptedData);
 
-    return encryptedData;
+    return encryptedDataWithNonce.takeBytes();
   }
 
   Uint8List chachaDecrypt(
-    Uint8List data,
+    String data,
     Uint8List secretKey,
-    Uint8List nonce,
   ) {
+    Uint8List decodedData = base64.decode(data);
+
+    final nonce = decodedData.sublist(0, 12);
+    final encryptedData = decodedData.sublist(12, decodedData.length);
+
     final parameters = AEADParameters(
       KeyParameter(secretKey),
       128,
@@ -105,9 +123,9 @@ class EncryptionService {
     );
 
     final len = decryptor.processBytes(
-      data,
+      encryptedData,
       0,
-      data.length,
+      encryptedData.length,
       decryptedData,
       0,
     );
@@ -117,7 +135,18 @@ class EncryptionService {
     return decryptedData;
   }
 
-  RSAPublicKey _parsePublicKeyFromPem(pemString) {
+  SecureRandom genereateSecureRandom() {
+    final random = Random.secure();
+    final bytes = Uint8List(32);
+
+    for (int i = 0; i < 32; i++) {
+      bytes[i] = random.nextInt(255);
+    }
+
+    return SecureRandom('Fortuna')..seed(KeyParameter(bytes));
+  }
+
+  RSAPublicKey parsePublicKeyFromPem(pemString) {
     Uint8List publicKeyDER = base64.decode(pemString);
 
     var parser = ASN1Parser(publicKeyDER);
@@ -133,7 +162,7 @@ class EncryptionService {
     return rsaPublicKey;
   }
 
-  RSAPrivateKey _parsePrivateKeyFromPem(pemString) {
+  RSAPrivateKey parsePrivateKeyFromPem(pemString) {
     Uint8List privateKeyDER = base64.decode(pemString);
     var asn1Parser = new ASN1Parser(privateKeyDER);
     var topLevelSeq = asn1Parser.nextObject() as ASN1Sequence;

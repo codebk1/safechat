@@ -6,8 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:safechat/app/app_bloc_observer.dart';
-import 'package:safechat/utils/utils.dart';
-import 'package:safechat/auth/auth.dart';
 import 'package:safechat/app/app.dart';
 
 void main() async {
@@ -26,17 +24,14 @@ void main() async {
         systemNavigationBarIconBrightness: Brightness.dark),
   );
 
-  final storage = FlutterSecureStorage();
-  final apiService = ApiService();
-  final encryptionService = EncryptionService();
+  // final storage = FlutterSecureStorage();
+  // final apiService = ApiService();
+  // final encryptionService = EncryptionService();
 
-  if (await storage.containsKey(key: 'publicKey'))
-    await encryptionService.init();
+  // if (await storage.containsKey(key: 'publicKey'))
+  //   await encryptionService.init();
 
-  final authRepository = AuthRepository(apiService.init(), encryptionService);
+  // final authRepository = AuthRepository(apiService.init(), encryptionService);
 
-  runApp(App(
-    authRepository: authRepository,
-    encryptionService: encryptionService,
-  ));
+  runApp(App());
 }

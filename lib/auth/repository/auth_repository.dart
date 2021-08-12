@@ -94,36 +94,33 @@ class AuthRepository {
       _srpClient.bigIntToBytesArray(s),
     );
 
-    Uint8List decodedKey = base64.decode(proof.data['keys']['privateKey']);
-
-    final nonce = decodedKey.sublist(0, 12);
-    final encryptedPrivateKey = decodedKey.sublist(12, decodedKey.length);
-
-    // final parameters = AEADParameters(
-    //   KeyParameter(secretKey),
-    //   128,
-    //   nonce,
-    //   Uint8List(0),
-    // );
-
-    // var chaChaEngineDecrypt = ChaCha20Poly1305(ChaCha7539Engine(), Poly1305())
-    //   ..init(false, parameters);
-
-    // final dec = Uint8List(
-    //     chaChaEngineDecrypt.getOutputSize(encryptedPrivateKey.length));
-    // final len = chaChaEngineDecrypt.processBytes(
-    //     encryptedPrivateKey, 0, encryptedPrivateKey.length, dec, 0);
-    // chaChaEngineDecrypt.doFinal(dec, len);
-
     final decryptedPrivateKey = _encryptionService.chachaDecrypt(
-      encryptedPrivateKey,
+      proof.data['keys']['privateKey'],
       secretKey,
-      nonce,
     );
 
     await _storage.write(
       key: 'privateKey',
       value: base64.encode(decryptedPrivateKey),
+    );
+
+    final parsedPrivateKey = _encryptionService.parsePrivateKeyFromPem(
+      base64.encode(decryptedPrivateKey),
+    );
+
+    final decryptor = OAEPEncoding(RSAEngine())
+      ..init(
+        false,
+        PrivateKeyParameter<RSAPrivateKey>(parsedPrivateKey),
+      );
+
+    final decryptedSharedKey = decryptor.process(
+      base64.decode(proof.data['keys']['sharedKey']),
+    );
+
+    await _storage.write(
+      key: 'sharedKey',
+      value: base64.encode(decryptedSharedKey),
     );
 
     _encryptionService.init();
@@ -142,7 +139,6 @@ class AuthRepository {
     String password,
   ) async {
     final s = _srpClient.s(64);
-    print(s);
     final x = await _srpClient.x(email, password, s);
     final v = _srpClient.v(x);
 
@@ -150,16 +146,16 @@ class AuthRepository {
     final publicKey = pair.publicKey as RSAPublicKey;
     final privateKey = pair.privateKey as RSAPrivateKey;
 
-    final encryptor = OAEPEncoding(RSAEngine())
-      ..init(true, PublicKeyParameter<RSAPublicKey>(publicKey));
+    // final encryptor = OAEPEncoding(RSAEngine())
+    //   ..init(true, PublicKeyParameter<RSAPublicKey>(publicKey));
 
-    final encryptedFirstName = encryptor.process(
-      Uint8List.fromList(firstName.codeUnits),
-    );
+    // final encryptedFirstName = encryptor.process(
+    //   Uint8List.fromList(utf8.encode(firstName)),
+    // );
 
-    final encryptedLastName = encryptor.process(
-      Uint8List.fromList(lastName.codeUnits),
-    );
+    // final encryptedLastName = encryptor.process(
+    //   Uint8List.fromList(utf8.encode(lastName)),
+    // );
 
     final asn1PublicKey = ASN1Sequence()
       ..add(ASN1Integer(publicKey.modulus))
@@ -178,25 +174,41 @@ class AuthRepository {
       _srpClient.bigIntToBytesArray(s),
     );
 
-    final nonce = _srpClient.genereateSecureRandom().nextBytes(12);
-
     final encryptedPrivateKey = _encryptionService.chachaEncrypt(
       encodedPrivateKey,
       secretKey,
-      nonce,
     );
 
-    final bb = BytesBuilder()..add(nonce)..add(encryptedPrivateKey);
-    final encryptedPrivateKeyWithNonce = bb.takeBytes();
+    final sharedKey = _srpClient.genereateSecureRandom().nextBytes(32);
+
+    final encryptor = OAEPEncoding(RSAEngine())
+      ..init(true, PublicKeyParameter<RSAPublicKey>(publicKey));
+
+    final encryptedSharedKey = encryptor.process(sharedKey);
+
+    final encryptedFirstName = _encryptionService.chachaEncrypt(
+      Uint8List.fromList(utf8.encode(firstName)),
+      sharedKey,
+    );
+
+    final encryptedLastName = _encryptionService.chachaEncrypt(
+      Uint8List.fromList(utf8.encode(lastName)),
+      sharedKey,
+    );
 
     await _apiService.post('/auth/signup', data: {
-      'firstName': base64.encode(encryptedFirstName),
-      'lastName': base64.encode(encryptedLastName),
-      'email': email,
-      'salt': base64.encode(_srpClient.bigIntToBytesArray(s)),
-      'verifier': base64.encode(_srpClient.bigIntToBytesArray(v)),
-      'publicKey': base64.encode(asn1PublicKey.encode()),
-      'privateKey': base64.encode(encryptedPrivateKeyWithNonce),
+      'profile': {
+        'firstName': base64.encode(encryptedFirstName),
+        'lastName': base64.encode(encryptedLastName),
+      },
+      'user': {
+        'email': email,
+        'salt': base64.encode(_srpClient.bigIntToBytesArray(s)),
+        'verifier': base64.encode(_srpClient.bigIntToBytesArray(v)),
+        'publicKey': base64.encode(asn1PublicKey.encode()),
+        'privateKey': base64.encode(encryptedPrivateKey),
+        'sharedKey': base64.encode(encryptedSharedKey),
+      }
     });
   }
 
@@ -204,14 +216,25 @@ class AuthRepository {
     await _storage.deleteAll();
   }
 
-  Future<dynamic> getUser() async {
-    final res = await _apiService.get('/auth/profile');
+  Future<User> getUser() async {
+    final res = await _apiService.get('/user/profile');
     final user = User.fromJson(res.data);
 
     return User(
-      firstName: _encryptionService.decrypt(user.firstName),
-      lastName: _encryptionService.decrypt(user.lastName),
+      id: user.id,
       email: user.email,
+      firstName: utf8.decode(
+        _encryptionService.chachaDecrypt(
+          user.firstName,
+          _encryptionService.sharedKey!,
+        ),
+      ),
+      lastName: utf8.decode(
+        _encryptionService.chachaDecrypt(
+          user.lastName,
+          _encryptionService.sharedKey!,
+        ),
+      ),
     );
   }
 

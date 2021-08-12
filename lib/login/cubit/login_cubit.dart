@@ -9,10 +9,10 @@ import 'package:safechat/auth/auth.dart';
 part 'login_state.dart';
 
 class LoginCubit extends Cubit<LoginState> {
+  LoginCubit(this._authCubit, this._authRepository) : super(LoginState());
+
   final AuthCubit _authCubit;
   final AuthRepository _authRepository;
-
-  LoginCubit(this._authCubit, this._authRepository) : super(LoginState());
 
   Future<void> submit() async {
     try {

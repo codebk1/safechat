@@ -6,7 +6,7 @@ class ApiService {
     Dio _dio = new Dio();
     _dio.interceptors.add(new ApiInterceptors());
 
-    _dio.options.baseUrl = "https://b5df6af73117.ngrok.io";
+    _dio.options.baseUrl = "https://56644d597ed0.ngrok.io";
     return _dio;
   }
 }
