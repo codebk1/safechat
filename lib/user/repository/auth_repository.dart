@@ -7,7 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:pointycastle/asn1/primitives/asn1_integer.dart';
 import 'package:pointycastle/asn1/primitives/asn1_sequence.dart';
 import 'package:pointycastle/export.dart';
-import 'package:safechat/auth/models/user.dart';
+import 'package:safechat/utils/api_service.dart';
 import 'package:safechat/utils/encryption_service.dart';
 
 import 'package:safechat/utils/srp/srp.dart';
@@ -26,7 +26,7 @@ AsymmetricKeyPair<PublicKey, PrivateKey> getRsaKeyPair(
 }
 
 class AuthRepository {
-  AuthRepository(this._apiService, this._encryptionService);
+  AuthRepository();
 
   final SRP _srpClient = SRP(
     N: PrimeGroups.prime_1024,
@@ -34,8 +34,8 @@ class AuthRepository {
   );
 
   final FlutterSecureStorage _storage = FlutterSecureStorage();
-  final Dio _apiService;
-  final EncryptionService _encryptionService;
+  final Dio _apiService = ApiService().init();
+  final EncryptionService _encryptionService = EncryptionService()..init();
 
   Future<void> login(String email, String password) async {
     final res = await _apiService.post('/auth/challenge', data: {
@@ -108,14 +108,14 @@ class AuthRepository {
       base64.encode(decryptedPrivateKey),
     );
 
-    final decryptor = OAEPEncoding(RSAEngine())
-      ..init(
-        false,
-        PrivateKeyParameter<RSAPrivateKey>(parsedPrivateKey),
-      );
+    final decryptedSharedKey = _encryptionService.rsaDecrypt(
+      proof.data['keys']['sharedKey'],
+      parsedPrivateKey,
+    );
 
-    final decryptedSharedKey = decryptor.process(
-      base64.decode(proof.data['keys']['sharedKey']),
+    _encryptionService.rsaDecrypt(
+      proof.data['keys']['sharedKey'],
+      parsedPrivateKey,
     );
 
     await _storage.write(
@@ -146,17 +146,6 @@ class AuthRepository {
     final publicKey = pair.publicKey as RSAPublicKey;
     final privateKey = pair.privateKey as RSAPrivateKey;
 
-    // final encryptor = OAEPEncoding(RSAEngine())
-    //   ..init(true, PublicKeyParameter<RSAPublicKey>(publicKey));
-
-    // final encryptedFirstName = encryptor.process(
-    //   Uint8List.fromList(utf8.encode(firstName)),
-    // );
-
-    // final encryptedLastName = encryptor.process(
-    //   Uint8List.fromList(utf8.encode(lastName)),
-    // );
-
     final asn1PublicKey = ASN1Sequence()
       ..add(ASN1Integer(publicKey.modulus))
       ..add(ASN1Integer(publicKey.exponent));
@@ -180,19 +169,18 @@ class AuthRepository {
     );
 
     final sharedKey = _srpClient.genereateSecureRandom().nextBytes(32);
-
-    final encryptor = OAEPEncoding(RSAEngine())
-      ..init(true, PublicKeyParameter<RSAPublicKey>(publicKey));
-
-    final encryptedSharedKey = encryptor.process(sharedKey);
+    final encryptedSharedKey = _encryptionService.rsaEncrypt(
+      sharedKey,
+      publicKey,
+    );
 
     final encryptedFirstName = _encryptionService.chachaEncrypt(
-      Uint8List.fromList(utf8.encode(firstName)),
+      Uint8List.fromList(utf8.encode(firstName.trim())),
       sharedKey,
     );
 
     final encryptedLastName = _encryptionService.chachaEncrypt(
-      Uint8List.fromList(utf8.encode(lastName)),
+      Uint8List.fromList(utf8.encode(lastName.trim())),
       sharedKey,
     );
 
@@ -207,35 +195,13 @@ class AuthRepository {
         'verifier': base64.encode(_srpClient.bigIntToBytesArray(v)),
         'publicKey': base64.encode(asn1PublicKey.encode()),
         'privateKey': base64.encode(encryptedPrivateKey),
-        'sharedKey': base64.encode(encryptedSharedKey),
+        'sharedKey': encryptedSharedKey,
       }
     });
   }
 
   Future<void> logout() async {
     await _storage.deleteAll();
-  }
-
-  Future<User> getUser() async {
-    final res = await _apiService.get('/user/profile');
-    final user = User.fromJson(res.data);
-
-    return User(
-      id: user.id,
-      email: user.email,
-      firstName: utf8.decode(
-        _encryptionService.chachaDecrypt(
-          user.firstName,
-          _encryptionService.sharedKey!,
-        ),
-      ),
-      lastName: utf8.decode(
-        _encryptionService.chachaDecrypt(
-          user.lastName,
-          _encryptionService.sharedKey!,
-        ),
-      ),
-    );
   }
 
   Future<String?> getAccessToken() async {

@@ -1,29 +1,16 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/auth/cubit/auth_cubit.dart';
 
-import 'package:safechat/friends/cubit/friends_cubit.dart';
-import 'package:safechat/friends/repository/friends_repository.dart';
-import 'package:safechat/utils/api_service.dart';
+import 'package:safechat/user/user.dart';
+import 'package:safechat/contacts/contacts.dart';
 
-class AddFriendPage extends StatelessWidget {
-  AddFriendPage({Key? key}) : super(key: key);
-
-  final apiService = ApiService();
-
+class AddContactPage extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return AddFriendView();
-  }
+  _AddContactPageState createState() => _AddContactPageState();
 }
 
-class AddFriendView extends StatefulWidget {
-  @override
-  _AddFriendViewState createState() => _AddFriendViewState();
-}
-
-class _AddFriendViewState extends State<AddFriendView> {
+class _AddContactPageState extends State<AddContactPage> {
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -31,10 +18,30 @@ class _AddFriendViewState extends State<AddFriendView> {
     final bool _keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
     final Orientation _orientation = MediaQuery.of(context).orientation;
 
-    return BlocConsumer<FriendsCubit, FriendsState>(
+    return BlocConsumer<ContactsCubit, ContactsState>(
       listener: (context, state) {
         if (state.status.isSuccess) {
           Navigator.of(context).pop();
+
+          // ScaffoldMessenger.of(context)
+          //   ..hideCurrentSnackBar()
+          //   ..showSnackBar(
+          //     SnackBar(
+          //       duration: Duration(seconds: 1),
+          //       content: Row(
+          //         children: <Widget>[
+          //           Icon(
+          //             Icons.check_circle,
+          //             color: Colors.white,
+          //           ),
+          //           SizedBox(
+          //             width: 10.0,
+          //           ),
+          //           Text('Wysłano zaproszenie.'),
+          //         ],
+          //       ),
+          //     ),
+          //   );
         }
 
         if (state.status.isFailure) {
@@ -66,10 +73,6 @@ class _AddFriendViewState extends State<AddFriendView> {
       builder: (context, state) {
         return Scaffold(
           appBar: AppBar(
-            // title: Text(
-            //   'Dodaj znajomego',
-            //   style: TextStyle(color: Colors.grey.shade800),
-            // ),
             backgroundColor: Colors.white,
             elevation: 0,
             iconTheme: IconThemeData(
@@ -100,47 +103,54 @@ class _AddFriendViewState extends State<AddFriendView> {
                 SizedBox(
                   height: 20.0,
                 ),
-                _EmailTextFormField(),
-                SizedBox(
-                  height: 15.0,
-                ),
-                Ink(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor,
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: BlocBuilder<FriendsCubit, FriendsState>(
-                    builder: (context, state) {
-                      return InkWell(
-                        borderRadius: BorderRadius.circular(5.0),
-                        onTap: () {
-                          //if (_formKey.currentState!.validate()) {
-                          context.read<FriendsCubit>().submit(
-                                context.read<AuthCubit>().state.user,
-                              );
-                          //}
-                        },
-                        child: SizedBox(
-                          height: 60.0,
-                          child: Center(
-                            child: state.status.isLoading
-                                ? CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2.0,
-                                  )
-                                : Text(
-                                    'Wyślij zaproszenie',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headline6!
-                                        .copyWith(
-                                          color: Colors.white,
-                                        ),
-                                  ),
-                          ),
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      _EmailTextFormField(),
+                      SizedBox(
+                        height: 15.0,
+                      ),
+                      Ink(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).primaryColor,
+                          borderRadius: BorderRadius.circular(5),
                         ),
-                      );
-                    },
+                        child: BlocBuilder<ContactsCubit, ContactsState>(
+                          builder: (context, state) {
+                            return InkWell(
+                              borderRadius: BorderRadius.circular(5.0),
+                              onTap: () {
+                                if (_formKey.currentState!.validate()) {
+                                  context.read<ContactsCubit>().addContact(
+                                        context.read<UserCubit>().state.user,
+                                      );
+                                }
+                              },
+                              child: SizedBox(
+                                height: 60.0,
+                                child: Center(
+                                  child: state.status.isLoading
+                                      ? CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2.0,
+                                        )
+                                      : Text(
+                                          'Wyślij zaproszenie',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .headline6!
+                                              .copyWith(
+                                                color: Colors.white,
+                                              ),
+                                        ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -155,12 +165,12 @@ class _AddFriendViewState extends State<AddFriendView> {
 class _EmailTextFormField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<FriendsCubit, FriendsState>(
+    return BlocBuilder<ContactsCubit, ContactsState>(
       buildWhen: (previous, current) => previous.email != current.email,
       builder: (context, state) {
         return TextFormField(
           onChanged: (value) =>
-              context.read<FriendsCubit>().emailChanged(value),
+              context.read<ContactsCubit>().emailChanged(value),
           autovalidateMode: AutovalidateMode.onUserInteraction,
           decoration: InputDecoration(
             labelText: 'Email',

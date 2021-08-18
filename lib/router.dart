@@ -1,20 +1,21 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/auth/auth.dart';
-import 'package:safechat/friends/cubit/friends_cubit.dart';
-import 'package:safechat/friends/repository/friends_repository.dart';
+import 'package:safechat/profile/cubit/profile_cubit.dart';
+import 'package:safechat/profile/view/edit_profile_page.dart';
 
+import 'package:safechat/user/user.dart';
+import 'package:safechat/contacts/contacts.dart';
+import 'package:safechat/profile/view/profile_page.dart';
 import 'package:safechat/splash_screen.dart';
 import 'package:safechat/login/login.dart';
 import 'package:safechat/signup/signup.dart';
 import 'package:safechat/home/home.dart';
-import 'package:safechat/friends/view/add_friend_page.dart';
-import 'package:safechat/utils/api_service.dart';
-import 'package:safechat/utils/encryption_service.dart';
 
 class AppRouter {
   Route? onGenerateRoute(RouteSettings routeSettings) {
+    final _contactsCubit = ContactsCubit();
+
     switch (routeSettings.name) {
       case '/':
         return PageRouteBuilder(
@@ -24,7 +25,9 @@ class AppRouter {
         return PageRouteBuilder(
           pageBuilder: (context, __, ___) => BlocProvider(
             create: (_) => LoginCubit(
-                context.read<AuthCubit>(), context.read<AuthRepository>()),
+              context.read<UserCubit>(),
+              context.read<AuthRepository>(),
+            ),
             child: LoginPage(),
           ),
         );
@@ -34,30 +37,36 @@ class AppRouter {
         );
       case '/home':
         return PageRouteBuilder(
-          pageBuilder: (_, __, ___) => RepositoryProvider(
-            create: (context) => FriendsRepository(
-              context.read<ApiService>().init(),
-              context.read<EncryptionService>(),
-            ),
-            child: BlocProvider(
-              create: (context) =>
-                  FriendsCubit(context.read<FriendsRepository>()),
-              child: HomePage(),
-            ),
+          pageBuilder: (_, __, ___) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: _contactsCubit),
+            ],
+            child: HomePage(),
           ),
         );
-      case '/add-friend':
+      case '/contacts/add':
         return PageRouteBuilder(
-          pageBuilder: (_, __, ___) => RepositoryProvider(
-            create: (context) => FriendsRepository(
-              context.read<ApiService>().init(),
-              context.read<EncryptionService>(),
+          pageBuilder: (_, __, ___) => BlocProvider.value(
+            value: _contactsCubit,
+            child: AddContactPage(),
+          ),
+        );
+      case '/profile':
+        return PageRouteBuilder(
+          pageBuilder: (_, __, ___) => BlocProvider(
+            create: (context) => ProfileCubit(
+              context.read<UserCubit>(),
             ),
-            child: BlocProvider(
-              create: (context) =>
-                  FriendsCubit(context.read<FriendsRepository>()),
-              child: AddFriendPage(),
-            ),
+            child: ProfilePage(),
+          ),
+        );
+      case '/profile/edit':
+        return PageRouteBuilder(
+          pageBuilder: (_, __, ___) => BlocProvider(
+            create: (context) => ProfileCubit(
+              context.read<UserCubit>(),
+            )..initForm(),
+            child: EditProfilePage(),
           ),
         );
       default:

@@ -4,14 +4,14 @@ import 'package:dio/dio.dart';
 
 import 'package:safechat/utils/utils.dart';
 import 'package:safechat/common/models/models.dart';
-import 'package:safechat/auth/auth.dart';
+import 'package:safechat/user/user.dart';
 
 part 'login_state.dart';
 
 class LoginCubit extends Cubit<LoginState> {
-  LoginCubit(this._authCubit, this._authRepository) : super(LoginState());
+  LoginCubit(this._userCubit, this._authRepository) : super(LoginState());
 
-  final AuthCubit _authCubit;
+  final UserCubit _userCubit;
   final AuthRepository _authRepository;
 
   Future<void> submit() async {
@@ -19,10 +19,11 @@ class LoginCubit extends Cubit<LoginState> {
       emit(state.copyWith(status: FormStatus.loading()));
 
       await _authRepository.login(state.email.value, state.password.value);
-      await _authCubit.authenticate();
+      await _userCubit.authenticate();
 
       emit(state.copyWith(status: FormStatus.success()));
     } on DioError catch (e) {
+      print(e);
       emit(state.copyWith(
         status: FormStatus.failure(e.response?.data['message']),
       ));

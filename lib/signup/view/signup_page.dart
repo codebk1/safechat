@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
-import 'package:safechat/auth/auth.dart';
+import 'package:safechat/user/user.dart';
 import 'package:safechat/signup/signup.dart';
 
 class SignupPage extends StatelessWidget {
@@ -31,16 +31,16 @@ class _SignupViewState extends State<SignupView> {
     return BlocConsumer<SignupCubit, SignupState>(
       listener: (context, state) {
         if (state.status.isSuccess) {
-          Navigator.of(context).pushReplacementNamed('/login');
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
               SnackBar(
-                action: SnackBarAction(
-                  onPressed: () =>
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar(),
-                  label: 'Zamknij',
-                ),
+                // action: SnackBarAction(
+                //   onPressed: () =>
+                //       ScaffoldMessenger.of(context).hideCurrentSnackBar(),
+                //   label: 'Zamknij',
+                // ),
+                duration: Duration(seconds: 1),
                 content: Row(
                   children: <Widget>[
                     Icon(
@@ -50,11 +50,13 @@ class _SignupViewState extends State<SignupView> {
                     SizedBox(
                       width: 10.0,
                     ),
-                    Text('Pomyślnie zarejestrowano'),
+                    Text('Pomyślnie zarejestrowano.'),
                   ],
                 ),
               ),
             );
+
+          Navigator.of(context).pushReplacementNamed('/login');
         }
 
         if (state.status.isFailure) {

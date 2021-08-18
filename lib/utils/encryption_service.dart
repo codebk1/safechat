@@ -9,6 +9,14 @@ import 'package:pointycastle/asn1/primitives/asn1_sequence.dart';
 import 'package:pointycastle/export.dart';
 
 class EncryptionService {
+  static final EncryptionService _singleton = EncryptionService._internal();
+
+  factory EncryptionService() {
+    return _singleton;
+  }
+
+  EncryptionService._internal();
+
   RSAPublicKey? publicKey;
   RSAPrivateKey? privateKey;
   Uint8List? sharedKey;
@@ -42,13 +50,15 @@ class EncryptionService {
     return base64.encode(encryptedData);
   }
 
-  Uint8List rsaDecrypt(String data) {
+  Uint8List rsaDecrypt(String data, [RSAPrivateKey? key]) {
     final decryptor = OAEPEncoding(RSAEngine())
-      ..init(false,
-          PrivateKeyParameter<RSAPrivateKey>(privateKey as RSAPrivateKey));
+      ..init(
+          false,
+          PrivateKeyParameter<RSAPrivateKey>(
+            key ?? privateKey as RSAPrivateKey,
+          ));
 
     final decryptedData = _processInBlocks(decryptor, base64.decode(data));
-    print(decryptedData);
 
     return decryptedData;
   }
@@ -106,7 +116,7 @@ class EncryptionService {
     Uint8List decodedData = base64.decode(data);
 
     final nonce = decodedData.sublist(0, 12);
-    final encryptedData = decodedData.sublist(12, decodedData.length);
+    final encryptedData = decodedData.sublist(12);
 
     final parameters = AEADParameters(
       KeyParameter(secretKey),
@@ -119,7 +129,7 @@ class EncryptionService {
       ..init(false, parameters);
 
     final decryptedData = Uint8List(
-      decryptor.getOutputSize(data.length),
+      decryptor.getOutputSize(encryptedData.length),
     );
 
     final len = decryptor.processBytes(

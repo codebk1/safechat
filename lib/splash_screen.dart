@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
-import 'auth/cubit/auth_cubit.dart';
+import 'package:safechat/user/user.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthCubit, AuthState>(
+    return BlocListener<UserCubit, UserState>(
       listener: (context, state) {
         if (state.status == AuthStatus.authenticated) {
           Navigator.of(context).pushNamedAndRemoveUntil(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/auth/auth.dart';
+import 'package:safechat/user/user.dart';
 
 class LeftPanel extends StatelessWidget {
   const LeftPanel({Key? key}) : super(key: key);
@@ -28,7 +28,7 @@ class LeftPanel extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  BlocSelector<AuthCubit, AuthState, User>(
+                  BlocSelector<UserCubit, UserState, User>(
                     selector: (state) {
                       return state.user;
                     },
@@ -36,8 +36,35 @@ class LeftPanel extends StatelessWidget {
                       return Flex(
                         direction: Axis.horizontal,
                         children: [
-                          CircleAvatar(
-                            child: Icon(Icons.person),
+                          Stack(
+                            children: [
+                              CircleAvatar(
+                                backgroundColor: Colors.grey.shade200,
+                                child: state.avatar != null
+                                    ? ClipOval(
+                                        child: Image.file(state.avatar!),
+                                      )
+                                    : Icon(
+                                        Icons.person,
+                                      ),
+                              ),
+                              Positioned(
+                                right: 0,
+                                bottom: 0,
+                                child: Container(
+                                  height: 14,
+                                  width: 14,
+                                  decoration: BoxDecoration(
+                                    color: Colors.green,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      width: 2,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                           SizedBox(width: 15.0),
                           Text('${state.firstName} ${state.lastName}')
@@ -47,7 +74,7 @@ class LeftPanel extends StatelessWidget {
                   ),
                   IconButton(
                     onPressed: () async {
-                      await context.read<AuthCubit>().unauthenticate();
+                      await context.read<UserCubit>().unauthenticate();
                       Navigator.of(context).pushReplacementNamed('/login');
                     },
                     icon: Icon(Icons.logout),
@@ -57,45 +84,54 @@ class LeftPanel extends StatelessWidget {
             ),
             Divider(),
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: Column(
-                  children: [
-                    ListTile(
-                      title: Text(
-                        "Status",
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      leading: Icon(Icons.online_prediction_sharp),
+              child: Column(
+                children: [
+                  ListTile(
+                    title: Text(
+                      "Status",
+                      style: TextStyle(fontSize: 16),
                     ),
-                    ListTile(
-                      title: Text(
-                        "Ustawienia",
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      leading: Icon(Icons.settings),
+                    leading: Icon(Icons.online_prediction_sharp),
+                    onTap: () {},
+                  ),
+                  ListTile(
+                    title: Text(
+                      "Moje konto",
+                      style: TextStyle(fontSize: 16),
                     ),
-                    Expanded(
-                      child: new Align(
-                        alignment: Alignment.bottomCenter,
-                        child: new Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Icon(
-                              Icons.copyright_sharp,
-                              color: Colors.grey,
-                            ),
-                            SizedBox(width: 10.0),
-                            Text(
-                              "Bartek Kaczmarek",
-                              style: Theme.of(context).textTheme.subtitle2,
-                            ),
-                          ],
-                        ),
+                    leading: Icon(Icons.account_box),
+                    onTap: () {
+                      Navigator.of(context).pushNamed('/profile');
+                    },
+                  ),
+                  ListTile(
+                    title: Text(
+                      "Ustawienia",
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    leading: Icon(Icons.settings),
+                    onTap: () {},
+                  ),
+                  Expanded(
+                    child: new Align(
+                      alignment: Alignment.bottomCenter,
+                      child: new Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Icon(
+                            Icons.copyright_sharp,
+                            color: Colors.grey,
+                          ),
+                          SizedBox(width: 10.0),
+                          Text(
+                            "Bartek Kaczmarek",
+                            style: Theme.of(context).textTheme.subtitle2,
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ],

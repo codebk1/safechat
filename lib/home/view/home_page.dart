@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:safechat/friends/friends.dart';
+import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/home/view/panels/panels.dart';
 
 class HomePage extends StatelessWidget {
@@ -13,7 +13,7 @@ class HomePage extends StatelessWidget {
       child: SidePanels(
         key: _sidePanelsKey,
         leftPanel: LeftPanel(),
-        rightPanel: FriendsPanel(),
+        rightPanel: ContactsPanel(),
         mainPanel: MainPanel(sidePanelsKey: _sidePanelsKey),
       ),
     );

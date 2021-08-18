@@ -4,7 +4,7 @@ import 'package:dio/dio.dart';
 
 import 'package:safechat/utils/utils.dart';
 import 'package:safechat/common/models/models.dart';
-import 'package:safechat/auth/auth.dart';
+import 'package:safechat/user/user.dart';
 
 part 'signup_state.dart';
 

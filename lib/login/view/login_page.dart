@@ -2,26 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
-import 'package:safechat/auth/auth.dart';
 import 'package:safechat/login/login.dart';
 
-class LoginPage extends StatelessWidget {
-  const LoginPage({Key? key}) : super(key: key);
+// class LoginPage extends StatelessWidget {
+//   const LoginPage({Key? key}) : super(key: key);
 
+//   @override
+//   Widget build(BuildContext context) {
+//     final AuthCubit _authCubit = BlocProvider.of<AuthCubit>(context);
+
+//     return LoginView();
+//   }
+// }
+
+class LoginPage extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    final AuthCubit _authCubit = BlocProvider.of<AuthCubit>(context);
-
-    return LoginView();
-  }
+  _LoginPageState createState() => _LoginPageState();
 }
 
-class LoginView extends StatefulWidget {
-  @override
-  _LoginViewState createState() => _LoginViewState();
-}
-
-class _LoginViewState extends State<LoginView> {
+class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
 
   @override
