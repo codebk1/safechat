@@ -28,7 +28,7 @@ class App extends StatelessWidget {
             create: (context) => UserCubit(
               context.read<AuthRepository>(),
               context.read<UserRepository>(),
-            )..init(),
+            )..authenticate(),
           ),
         ],
         child: MaterialApp(

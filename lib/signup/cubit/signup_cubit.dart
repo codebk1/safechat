@@ -26,9 +26,9 @@ class SignupCubit extends Cubit<SignupState> {
 
       emit(state.copyWith(status: FormStatus.success()));
     } on DioError catch (e) {
-      print(e);
-      //emit(state.copyWith(
-      //status: FormStatus.failure(e.response!.data['message'])));
+      emit(state.copyWith(
+        status: FormStatus.failure(e.response!.data['message']),
+      ));
     }
   }
 

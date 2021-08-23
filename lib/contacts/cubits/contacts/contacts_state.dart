@@ -13,13 +13,13 @@ class ContactsState extends Equatable {
   final Email email;
   final FormStatus status;
   final ListStatus listStatus;
-  final List<Contact> contacts;
+  final List<ContactState> contacts;
 
   int get pendingContacts =>
-      this.contacts.where((e) => e.state == ContactState.PENDING).length;
+      this.contacts.where((e) => e.currentState == CurrentState.PENDING).length;
 
   int get newContacts =>
-      this.contacts.where((e) => e.state == ContactState.NEW).length;
+      this.contacts.where((e) => e.currentState == CurrentState.NEW).length;
 
   // Map<String, List<Contact>> get sortedContacts {
   //   return this.contacts.fold<Map<String, List<Contact>>>(
@@ -35,7 +35,7 @@ class ContactsState extends Equatable {
     Email? email,
     FormStatus? status,
     ListStatus? listStatus,
-    List<Contact>? contacts,
+    List<ContactState>? contacts,
   }) {
     return ContactsState(
       email: email ?? this.email,

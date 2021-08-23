@@ -1,26 +1,26 @@
 part of 'user_cubit.dart';
 
-enum AuthStatus { unknow, authenticated, unauthenticated }
+enum AuthState { unknow, authenticated, unauthenticated }
 
 class UserState extends Equatable {
   const UserState({
-    this.status = AuthStatus.unknow,
+    this.authState = AuthState.unknow,
     this.user = User.empty,
   });
 
-  final AuthStatus status;
+  final AuthState authState;
   final User user;
 
   UserState copyWith({
-    AuthStatus? status,
+    AuthState? authState,
     User? user,
   }) {
     return UserState(
-      status: status ?? this.status,
+      authState: authState ?? this.authState,
       user: user ?? this.user,
     );
   }
 
   @override
-  List<Object> get props => [status, user];
+  List<Object> get props => [authState, user];
 }

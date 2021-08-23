@@ -55,7 +55,9 @@ class LeftPanel extends StatelessWidget {
                                   height: 14,
                                   width: 14,
                                   decoration: BoxDecoration(
-                                    color: Colors.green,
+                                    color: state.status == Status.ONLINE
+                                        ? Colors.green
+                                        : Colors.grey,
                                     shape: BoxShape.circle,
                                     border: Border.all(
                                       width: 2,

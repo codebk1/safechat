@@ -14,7 +14,7 @@ class ContactsRepository {
   final Dio _apiService = ApiService().init();
   final EncryptionService _encryptionService = EncryptionService();
 
-  Future<List<Contact>> getContacts() async {
+  Future<List<ContactState>> getContacts() async {
     final res = await _apiService.get('/user/contacts');
     final contactsData = res.data as List;
     final directory = await getApplicationDocumentsDirectory();
@@ -48,13 +48,17 @@ class ContactsRepository {
         }
       }
 
-      return Contact.fromJson(value);
+      return ContactState(
+        contact: User.fromJson(value),
+        currentState: CurrentState.values
+            .firstWhere((e) => e.toString().split('.').last == value['state']!),
+      );
     });
 
     return contacts.toList();
   }
 
-  Future<Contact> addContact(User user, String contactEmail) async {
+  Future<ContactState> addContact(User user, String contactEmail) async {
     final encodedContactEmail = base64.encode(utf8.encode(contactEmail));
 
     final contactPublicKeyRes = await _apiService.get(
@@ -78,18 +82,20 @@ class ContactsRepository {
       'contactEmail': contactEmail,
     });
 
-    return Contact(
-      id: res.data['id'],
-      firstName: '',
-      lastName: '',
-      state: ContactState.PENDING,
-      email: res.data['email'],
+    return ContactState(
+      contact: User(
+        id: res.data['id'],
+        email: res.data['email'],
+        firstName: '',
+        lastName: '',
+      ),
+      currentState: CurrentState.PENDING,
     );
   }
 
-  Future<void> acceptInvitation(Contact contact) async {
+  Future<void> acceptInvitation(String contactId) async {
     final contactUser = await _apiService.get(
-      '/user/contacts/${contact.id}/user/public-key',
+      '/user/contacts/$contactId/user/public-key',
     );
 
     final decodedPublicKey = _encryptionService.parsePublicKeyFromPem(
@@ -103,14 +109,14 @@ class ContactsRepository {
     );
 
     await _apiService.post('/user/contacts/accept-invitation', data: {
-      'contactId': contact.id,
+      'contactId': contactId,
       'sharedKey': encryptedSharedKey,
     });
   }
 
-  Future<void> cancelInvitation(String id) async {
+  Future<void> cancelInvitation(String contactId) async {
     await _apiService.post('/user/contacts/cancel-invitation', data: {
-      'contactId': id,
+      'contactId': contactId,
     });
   }
 }

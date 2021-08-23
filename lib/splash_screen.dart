@@ -12,14 +12,14 @@ class SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<UserCubit, UserState>(
       listener: (context, state) {
-        if (state.status == AuthStatus.authenticated) {
+        if (state.authState == AuthState.authenticated) {
           Navigator.of(context).pushNamedAndRemoveUntil(
             '/home',
             (route) => false,
           );
         }
 
-        if (state.status == AuthStatus.unauthenticated) {
+        if (state.authState == AuthState.unauthenticated) {
           Navigator.of(context).pushNamedAndRemoveUntil(
             '/login',
             (route) => false,

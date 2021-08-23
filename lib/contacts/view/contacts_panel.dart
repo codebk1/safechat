@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:safechat/contacts/contacts.dart';
+import 'package:safechat/user/models/user.dart';
 
 class ContactsPanel extends StatelessWidget {
   const ContactsPanel({Key? key}) : super(key: key);
@@ -34,12 +35,15 @@ class ContactsPanel extends StatelessWidget {
                 children: [
                   const Text(
                     'Znajomi',
-                    style:
-                        TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   IconButton(
-                    onPressed: () =>
-                        Navigator.of(context).pushNamed('/contacts/add'),
+                    onPressed: () {
+                      Navigator.of(context).pushNamed('/contacts/add');
+                    },
                     icon: Icon(Icons.person_add),
                   ),
                 ],
@@ -87,73 +91,92 @@ class ContactsPanel extends StatelessWidget {
                                           BuildContext context,
                                           int index,
                                         ) {
-                                          final contact = state.contacts[index];
+                                          final contactState =
+                                              state.contacts[index];
 
-                                          return ListTile(
-                                            onLongPress: () {
-                                              var newContacts =
-                                                  state.contacts.toList();
-
-                                              newContacts[index] = state
-                                                  .contacts[index]
-                                                  .copyWith(
-                                                      state: ContactState
-                                                          .DELETING);
-
-                                              context
-                                                  .read<ContactsCubit>()
-                                                  .emit(state.copyWith(
-                                                      contacts: newContacts));
-                                            },
-                                            leading: Stack(
-                                              children: [
-                                                CircleAvatar(
-                                                  child: contact.avatar != null
-                                                      ? ClipOval(
-                                                          child: Image.file(
-                                                              contact.avatar!),
-                                                        )
-                                                      : Icon(
-                                                          Icons.person,
-                                                          color: Colors
-                                                              .grey.shade50,
-                                                        ),
-                                                  backgroundColor:
-                                                      Colors.grey.shade300,
-                                                ),
-                                                if (contact.state !=
-                                                        ContactState.NEW &&
-                                                    contact.state !=
-                                                        ContactState.PENDING)
-                                                  Positioned(
-                                                    right: 0,
-                                                    bottom: 0,
-                                                    child: Container(
-                                                      height: 14,
-                                                      width: 14,
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.orange,
-                                                        shape: BoxShape.circle,
-                                                        border: Border.all(
-                                                          width: 2,
-                                                          color: Colors.white,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                              ],
+                                          return BlocProvider(
+                                            create: (context) => ContactCubit(
+                                              contact: contactState.contact,
+                                              currentState:
+                                                  contactState.currentState,
                                             ),
-                                            title: contact.state ==
-                                                    ContactState.PENDING
-                                                ? Text(
-                                                    '${contact.email}',
-                                                  )
-                                                : Text(
-                                                    '${contact.firstName} ${contact.lastName}',
+                                            child: BlocBuilder<ContactCubit,
+                                                ContactState>(
+                                              builder: (context, state) {
+                                                return ListTile(
+                                                  onLongPress: () {
+                                                    context
+                                                        .read<ContactCubit>()
+                                                        .emit(state.copyWith(
+                                                            currentState:
+                                                                CurrentState
+                                                                    .DELETING));
+                                                  },
+                                                  leading: Stack(
+                                                    children: [
+                                                      CircleAvatar(
+                                                        child: state.contact
+                                                                    .avatar !=
+                                                                null
+                                                            ? ClipOval(
+                                                                child: Image
+                                                                    .file(state
+                                                                        .contact
+                                                                        .avatar!),
+                                                              )
+                                                            : Icon(
+                                                                Icons.person,
+                                                                color: Colors
+                                                                    .grey
+                                                                    .shade50,
+                                                              ),
+                                                        backgroundColor: Colors
+                                                            .grey.shade300,
+                                                      ),
+                                                      if (state.currentState !=
+                                                              CurrentState
+                                                                  .NEW &&
+                                                          state.currentState !=
+                                                              CurrentState
+                                                                  .PENDING)
+                                                        Positioned(
+                                                          right: 0,
+                                                          bottom: 0,
+                                                          child: Container(
+                                                            height: 14,
+                                                            width: 14,
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              color: state.contact
+                                                                          .status ==
+                                                                      Status
+                                                                          .ONLINE
+                                                                  ? Colors.green
+                                                                  : Colors.grey,
+                                                              shape: BoxShape
+                                                                  .circle,
+                                                              border:
+                                                                  Border.all(
+                                                                width: 2,
+                                                                color: Colors
+                                                                    .white,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                    ],
                                                   ),
-                                            trailing: _ContactActions(
-                                              contact: contact,
-                                              state: contact.state,
+                                                  title: state.currentState ==
+                                                          CurrentState.PENDING
+                                                      ? Text(
+                                                          '${state.contact.email}',
+                                                        )
+                                                      : Text(
+                                                          '${state.contact.firstName} ${state.contact.lastName}',
+                                                        ),
+                                                  trailing: _ContactActions(),
+                                                );
+                                              },
                                             ),
                                           );
                                         }),
@@ -172,26 +195,17 @@ class ContactsPanel extends StatelessWidget {
 }
 
 class _ContactActions extends StatelessWidget {
-  const _ContactActions({
-    Key? key,
-    required this.contact,
-    required this.state,
-  }) : super(key: key);
-
-  final Contact contact;
-  final ContactState state;
-
   @override
   Widget build(BuildContext context) {
-    return Builder(builder: (_) {
-      switch (state) {
-        case ContactState.NEW:
+    return BlocBuilder<ContactCubit, ContactState>(builder: (context, state) {
+      switch (state.currentState) {
+        case CurrentState.NEW:
           return Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
                 onPressed: () {
-                  context.read<ContactsCubit>().acceptInvitation(contact);
+                  context.read<ContactCubit>().acceptInvitation();
                 },
                 icon: Icon(
                   Icons.check_circle,
@@ -200,7 +214,9 @@ class _ContactActions extends StatelessWidget {
               ),
               IconButton(
                 onPressed: () {
-                  context.read<ContactsCubit>().cancelInvitation(contact.id);
+                  context.read<ContactsCubit>().cancelInvitation(
+                        state.contact.id,
+                      );
                 },
                 icon: Icon(
                   Icons.cancel,
@@ -209,15 +225,17 @@ class _ContactActions extends StatelessWidget {
             ],
           );
 
-        case ContactState.PENDING:
+        case CurrentState.PENDING:
           return IconButton(
             onPressed: () {
-              context.read<ContactsCubit>().cancelInvitation(contact.id);
+              context.read<ContactsCubit>().cancelInvitation(
+                    state.contact.id,
+                  );
             },
             icon: Icon(Icons.cancel),
           );
 
-        case ContactState.ACCEPTED:
+        case CurrentState.ACCEPTED:
           return IconButton(
             onPressed: () {},
             icon: Icon(
@@ -225,13 +243,13 @@ class _ContactActions extends StatelessWidget {
             ),
           );
 
-        case ContactState.REJECTED:
+        case CurrentState.REJECTED:
           return IconButton(
             onPressed: () {},
             icon: Icon(Icons.done),
           );
 
-        case ContactState.DELETING:
+        case CurrentState.DELETING:
           return Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -243,7 +261,11 @@ class _ContactActions extends StatelessWidget {
                 ),
               ),
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  context.read<ContactCubit>().emit(state.copyWith(
+                        currentState: CurrentState.ACCEPTED,
+                      ));
+                },
                 icon: Icon(
                   Icons.cancel,
                 ),
