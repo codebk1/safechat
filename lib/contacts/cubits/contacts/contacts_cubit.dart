@@ -20,9 +20,11 @@ class ContactsCubit extends Cubit<ContactsState> {
 
       final contacts = await _contactsRepository.getContacts();
 
-      contacts.sort((a, b) => b.currentState.toString().compareTo(
-            a.currentState.toString(),
-          ));
+      contacts.sort(
+        (a, b) => b.currentState.toString().compareTo(
+              a.currentState.toString(),
+            ),
+      );
 
       emit(state.copyWith(contacts: contacts, listStatus: ListStatus.success));
     } on DioError catch (e) {

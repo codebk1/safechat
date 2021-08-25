@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:safechat/contacts/contacts.dart';
+import 'package:safechat/contacts/models/contact.dart';
+import 'package:safechat/user/cubit/user_cubit.dart';
 import 'package:safechat/user/models/user.dart';
 
 class ContactsPanel extends StatelessWidget {
@@ -237,7 +239,9 @@ class _ContactActions extends StatelessWidget {
 
         case CurrentState.ACCEPTED:
           return IconButton(
-            onPressed: () {},
+            onPressed: () {
+              context.read<ContactCubit>().createChat();
+            },
             icon: Icon(
               Icons.chat,
             ),

@@ -1,3 +1,3 @@
 export 'side_panels.dart';
-export 'main_panel.dart';
+export '../../../chats/view/chats_panel.dart';
 export 'left_panel.dart';

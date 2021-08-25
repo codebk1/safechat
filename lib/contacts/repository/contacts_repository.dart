@@ -3,14 +3,13 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:safechat/contacts/models/contact.dart';
 
 import 'package:safechat/user/user.dart';
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/utils/utils.dart';
 
 class ContactsRepository {
-  ContactsRepository();
-
   final Dio _apiService = ApiService().init();
   final EncryptionService _encryptionService = EncryptionService();
 
@@ -19,40 +18,8 @@ class ContactsRepository {
     final contactsData = res.data as List;
     final directory = await getApplicationDocumentsDirectory();
 
-    final contacts = contactsData.map((value) {
-      if (value['sharedKey'] != null) {
-        value['profile']['firstName'] = utf8.decode(
-          _encryptionService.chachaDecrypt(
-            value['profile']['firstName'],
-            _encryptionService.rsaDecrypt(value['sharedKey']),
-          ),
-        );
-
-        value['profile']['lastName'] = utf8.decode(
-          _encryptionService.chachaDecrypt(
-            value['profile']['lastName'],
-            _encryptionService.rsaDecrypt(value['sharedKey']),
-          ),
-        );
-
-        if (value['profile']['avatar'] != null) {
-          final decryptedAvatar = _encryptionService.chachaDecrypt(
-            value['profile']['avatar'],
-            _encryptionService.rsaDecrypt(value['sharedKey']),
-          );
-
-          final avatar = File('${directory.path}/${value["id"]}.jpg')
-            ..writeAsBytes(decryptedAvatar);
-
-          value['profile']['avatar'] = avatar;
-        }
-      }
-
-      return ContactState(
-        contact: User.fromJson(value),
-        currentState: CurrentState.values
-            .firstWhere((e) => e.toString().split('.').last == value['state']!),
-      );
+    final contacts = contactsData.map((contactData) {
+      return getContactState(contactData, directory);
     });
 
     return contacts.toList();
@@ -83,7 +50,7 @@ class ContactsRepository {
     });
 
     return ContactState(
-      contact: User(
+      contact: Contact(
         id: res.data['id'],
         email: res.data['email'],
         firstName: '',
@@ -95,7 +62,7 @@ class ContactsRepository {
 
   Future<void> acceptInvitation(String contactId) async {
     final contactUser = await _apiService.get(
-      '/user/contacts/$contactId/user/public-key',
+      '/user/key/public/id/$contactId',
     );
 
     final decodedPublicKey = _encryptionService.parsePublicKeyFromPem(
@@ -118,5 +85,42 @@ class ContactsRepository {
     await _apiService.post('/user/contacts/cancel-invitation', data: {
       'contactId': contactId,
     });
+  }
+
+  ContactState getContactState(contactData, Directory avatarsDirectory) {
+    if (contactData['sharedKey'] != null) {
+      contactData['profile']['firstName'] = utf8.decode(
+        _encryptionService.chachaDecrypt(
+          contactData['profile']['firstName'],
+          _encryptionService.rsaDecrypt(contactData['sharedKey']),
+        ),
+      );
+
+      contactData['profile']['lastName'] = utf8.decode(
+        _encryptionService.chachaDecrypt(
+          contactData['profile']['lastName'],
+          _encryptionService.rsaDecrypt(contactData['sharedKey']),
+        ),
+      );
+
+      if (contactData['profile']['avatar'] != null) {
+        final decryptedAvatar = _encryptionService.chachaDecrypt(
+          contactData['profile']['avatar'],
+          _encryptionService.rsaDecrypt(contactData['sharedKey']),
+        );
+
+        final avatar = File('${avatarsDirectory.path}/${contactData["id"]}.jpg')
+          ..writeAsBytes(decryptedAvatar);
+
+        contactData['profile']['avatar'] = avatar;
+      }
+    }
+
+    return ContactState(
+      contact: Contact.fromJson(contactData),
+      currentState: CurrentState.values.firstWhere(
+        (e) => e.toString().split('.').last == contactData['state']!,
+      ),
+    );
   }
 }

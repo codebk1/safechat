@@ -2,13 +2,16 @@ import 'dart:io';
 
 import 'package:equatable/equatable.dart';
 
-class User extends Equatable {
-  const User({
+enum Status { ONLINE, OFFLINE }
+
+class Contact extends Equatable {
+  const Contact({
     required this.id,
     required this.email,
     required this.firstName,
     required this.lastName,
     this.avatar,
+    this.status = Status.OFFLINE,
   });
 
   final String id;
@@ -16,37 +19,41 @@ class User extends Equatable {
   final String firstName;
   final String lastName;
   final File? avatar;
+  final Status status;
 
   @override
-  List<Object?> get props => [email, firstName, lastName, avatar];
+  List<Object?> get props => [email, firstName, lastName, avatar, status];
 
-  User.fromJson(Map<String, dynamic> json)
+  Contact.fromJson(Map<String, dynamic> json)
       : id = json['id']!,
         email = json['email']!,
         firstName = json['profile']['firstName']!,
         lastName = json['profile']['lastName']!,
-        avatar = json['profile']['avatar'];
+        avatar = json['profile']['avatar'],
+        status = json['online']! == 1 ? Status.ONLINE : Status.OFFLINE;
 
-  static const empty = User(
+  static const empty = Contact(
     id: '',
     email: '',
     firstName: '',
     lastName: '',
   );
 
-  User copyWith({
+  Contact copyWith({
     String? id,
     String? email,
     String? firstName,
     String? lastName,
     File? avatar,
+    Status? status,
   }) {
-    return User(
+    return Contact(
       id: id ?? this.id,
       email: email ?? this.email,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       avatar: avatar ?? this.avatar,
+      status: status ?? this.status,
     );
   }
 }

@@ -142,7 +142,9 @@ class AuthRepository {
     final x = await _srpClient.x(email, password, s);
     final v = _srpClient.v(x);
 
-    final pair = await computeRSAKeyPair(_srpClient.genereateSecureRandom());
+    final pair = await computeRSAKeyPair(
+      _encryptionService.genereateSecureRandom(),
+    );
     final publicKey = pair.publicKey as RSAPublicKey;
     final privateKey = pair.privateKey as RSAPrivateKey;
 
@@ -168,7 +170,7 @@ class AuthRepository {
       secretKey,
     );
 
-    final sharedKey = _srpClient.genereateSecureRandom().nextBytes(32);
+    final sharedKey = _encryptionService.genereateSecureRandom().nextBytes(32);
     final encryptedSharedKey = _encryptionService.rsaEncrypt(
       sharedKey,
       publicKey,

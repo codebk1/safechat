@@ -21,6 +21,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:pointycastle/export.dart';
+import 'package:safechat/utils/encryption_service.dart';
 
 class SRP {
   SRP({required this.N, required this.g});
@@ -28,21 +29,12 @@ class SRP {
   final BigInt N;
   final BigInt g;
 
+  final _encryptionService = EncryptionService();
+
   BigInt s(int length) {
-    final secureRandom = genereateSecureRandom();
+    final secureRandom = _encryptionService.genereateSecureRandom();
 
     return secureRandom.nextBigInteger(length);
-  }
-
-  SecureRandom genereateSecureRandom() {
-    final random = Random.secure();
-    final bytes = Uint8List(32);
-
-    for (int i = 0; i < 32; i++) {
-      bytes[i] = random.nextInt(255);
-    }
-
-    return SecureRandom('Fortuna')..seed(KeyParameter(bytes));
   }
 
   Future<BigInt> x(String I, String p, BigInt s) async {

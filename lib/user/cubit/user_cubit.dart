@@ -21,13 +21,13 @@ class UserCubit extends Cubit<UserState> {
 
     _wsService.socket.onConnectError((data) {
       print({'ERRRORRRRRRRR', data});
-      this.unauthenticate();
+      //this.unauthenticate();
     });
 
     _wsService.socket.onConnect((_) {
       print('connected: ${state.user.id}');
 
-      emit(state.copyWith(user: state.user.copyWith(status: Status.ONLINE)));
+      //emit(state.copyWith(user: state.user.copyWith(status: Status.ONLINE)));
       _wsService.socket.emit('online', state.user.id);
     });
 

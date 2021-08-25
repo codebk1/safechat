@@ -1,15 +1,16 @@
 import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
+import 'package:safechat/chats/repository/chats_repository.dart';
+import 'package:safechat/contacts/models/contact.dart';
 import 'package:safechat/contacts/repository/contacts_repository.dart';
-import 'package:safechat/user/user.dart';
 import 'package:safechat/utils/socket_service.dart';
 
 part 'contact_state.dart';
 
 class ContactCubit extends Cubit<ContactState> {
   ContactCubit({
-    required User contact,
+    required Contact contact,
     required CurrentState currentState,
   }) : super(ContactState(contact: contact, currentState: currentState)) {
     //_wsService.socket.emit('test', contact.email);
@@ -25,6 +26,23 @@ class ContactCubit extends Cubit<ContactState> {
 
   final SocketService _wsService = SocketService();
   final ContactsRepository _contactsRepository = ContactsRepository();
+  final ChatsRepository _chatsRepository = ChatsRepository();
+
+  Future<void> createChat() async {
+    try {
+      await _chatsRepository.createChat(state.contact.id);
+    } on DioError catch (e) {
+      print(e);
+      // emit(state.copyWith(
+      //   status: FormStatus.failure(e.response?.data['message']),
+      // ));
+    } catch (e) {
+      print(e);
+      // emit(state.copyWith(
+      //   status: FormStatus.failure(e.toString()),
+      // ));
+    }
+  }
 
   Future<void> acceptInvitation() async {
     try {

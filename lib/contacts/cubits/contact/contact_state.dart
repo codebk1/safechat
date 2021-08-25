@@ -4,15 +4,15 @@ enum CurrentState { NEW, PENDING, ACCEPTED, REJECTED, DELETING }
 
 class ContactState extends Equatable {
   const ContactState({
-    this.contact = User.empty,
+    this.contact = Contact.empty,
     this.currentState = CurrentState.NEW,
   });
 
-  final User contact;
+  final Contact contact;
   final CurrentState currentState;
 
   ContactState copyWith({
-    User? contact,
+    Contact? contact,
     CurrentState? currentState,
   }) {
     return ContactState(
