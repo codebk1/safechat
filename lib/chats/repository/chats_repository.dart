@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:safechat/chats/cubits/chat/cubit/chat_cubit.dart';
+import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/contacts/contacts.dart';
 
 import 'package:safechat/utils/utils.dart';
@@ -54,6 +55,13 @@ class ChatsRepository {
         sharedKey,
         _encryptionService.parsePublicKeyFromPem(participant.data['publicKey']),
       ),
+    });
+  }
+
+  Future<void> saveMessage(String chatId, Message message) async {
+    await _apiService.post('/chat/message', data: {
+      'id': chatId,
+      'message': message,
     });
   }
 }

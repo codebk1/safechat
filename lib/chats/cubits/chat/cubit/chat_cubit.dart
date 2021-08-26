@@ -15,15 +15,13 @@ class ChatCubit extends Cubit<ChatState> {
     _wsService.socket.emit('join-chat', id);
 
     _wsService.socket.on('msg', (message) {
-      print(message['senderId']);
-
       emit(state.copyWith(messages: [
-        ...state.messages,
         Message(
           sender: message['senderId'],
           type: MessageType.TEXT,
           data: message['data'],
-        )
+        ),
+        ...state.messages,
       ]));
     });
   }
@@ -31,11 +29,13 @@ class ChatCubit extends Cubit<ChatState> {
   final SocketService _wsService = SocketService();
 
   sendMessage() {
-    _wsService.socket.emit('message', {'room': state.id, 'msg': state.message});
+    final msg = state.message;
 
     emit(state.copyWith(
       message: '',
     ));
+
+    _wsService.socket.emit('message', {'room': state.id, 'msg': msg});
   }
 
   void messageChanged(String value) {

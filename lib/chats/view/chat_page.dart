@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:safechat/chats/cubits/chat/cubit/chat_cubit.dart';
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/contacts/models/contact.dart';
@@ -96,50 +99,120 @@ class ChatPage extends StatelessWidget {
               FocusManager.instance.primaryFocus!.unfocus();
             }
           },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                  child: 1 == 0
-                      ? Center(
-                          child: Text(
-                            'Brak wiadomości',
-                            style: Theme.of(context).textTheme.subtitle2,
-                          ),
-                        )
-                      : BlocBuilder<ChatCubit, ChatState>(
-                          builder: (context, state) {
-                            return ListView.builder(
-                                itemCount: state.messages.length,
-                                itemBuilder: (
-                                  BuildContext context,
-                                  int index,
-                                ) {
-                                  return MessageBubble(
-                                    isSender: state.messages[index].sender ==
-                                        context.read<UserCubit>().state.user.id,
-                                    message: state.messages[index].data,
-                                  );
-                                });
-                          },
-                        ),
-                ),
-              ),
-              ChatInputField()
-            ],
-          ),
+          child: MessagesSection(),
         ),
       ),
     );
   }
 }
 
-class ChatInputField extends StatelessWidget {
-  const ChatInputField({
+class MessagesSection extends StatefulWidget {
+  const MessagesSection({
     Key? key,
   }) : super(key: key);
+
+  @override
+  _MessagesSectionState createState() => _MessagesSectionState();
+}
+
+class _MessagesSectionState extends State<MessagesSection> {
+  ScrollController _scrollController = ScrollController();
+
+  void scrollToBottom() {
+    // WidgetsBinding.instance!.addPostFrameCallback((_) {
+    //   if (_scrollController.hasClients) {
+    //     _scrollController.animateTo(
+    //       _scrollController.position.maxScrollExtent,
+    //       duration: Duration(milliseconds: 1),
+    //       curve: Curves.easeInOut,
+    //     );
+    //   }
+    // });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    scrollToBottom();
+
+    final keyboardVisibilityController = KeyboardVisibilityController();
+
+    keyboardVisibilityController.onChange.listen((bool visible) {
+      if (visible) scrollToBottom();
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15.0),
+            child: BlocConsumer<ChatCubit, ChatState>(
+                listenWhen: (previous, current) =>
+                    current.message == '' &&
+                    previous.message == current.message,
+                listener: (context, state) {
+                  scrollToBottom();
+                },
+                builder: (context, state) {
+                  return state.messages.length == 0
+                      ? Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.forum,
+                              size: 100,
+                              color: Colors.grey.shade300,
+                            ),
+                            Text(
+                              'Brak wiadomości',
+                              style: Theme.of(context).textTheme.subtitle2,
+                            ),
+                          ],
+                        )
+                      : ListView.builder(
+                          controller: _scrollController,
+                          reverse: true,
+                          itemCount: state.messages.length,
+                          itemBuilder: (
+                            BuildContext context,
+                            int index,
+                          ) {
+                            return MessageBubble(
+                              isSender: state.messages[index].sender ==
+                                  context.read<UserCubit>().state.user.id,
+                              message: state.messages[index].data,
+                            );
+                          });
+                }),
+          ),
+        ),
+        MessageTextField(),
+      ],
+    );
+  }
+}
+
+class MessageTextField extends StatefulWidget {
+  const MessageTextField({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  _MessageTextFieldState createState() => _MessageTextFieldState();
+}
+
+class _MessageTextFieldState extends State<MessageTextField> {
+  TextEditingController _messageController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -160,6 +233,7 @@ class ChatInputField extends StatelessWidget {
           SizedBox(width: 15.0),
           Expanded(
             child: TextFormField(
+              controller: _messageController,
               onChanged: (value) =>
                   context.read<ChatCubit>().messageChanged(value),
               keyboardType: TextInputType.multiline,
@@ -175,6 +249,7 @@ class ChatInputField extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               context.read<ChatCubit>().sendMessage();
+              _messageController.clear();
             },
             child: Icon(Icons.send_outlined, color: Colors.white),
             style: ElevatedButton.styleFrom(
@@ -216,7 +291,7 @@ class MessageBubble extends StatelessWidget {
     // }
 
     return Padding(
-      padding: const EdgeInsets.only(top: 15.0),
+      padding: const EdgeInsets.only(top: 5.0),
       child: Row(
         mainAxisAlignment:
             isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
