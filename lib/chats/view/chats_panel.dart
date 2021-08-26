@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:safechat/chats/cubits/chat/cubit/chat_cubit.dart';
 import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/contacts/models/contact.dart';
 
@@ -79,12 +80,18 @@ class MainPanel extends StatelessWidget {
                             : ListView.builder(
                                 itemCount: state.chats.length,
                                 itemBuilder: (context, index) {
-                                  final chatState = state.chats[index];
-
-                                  final chatCubit = ChatCubit(
-                                    id: chatState.id,
-                                    participants: chatState.participants,
+                                  final chatState = state.chats[index].copyWith(
+                                    newMessage: Message.empty.copyWith(
+                                      sender: context
+                                          .read<UserCubit>()
+                                          .state
+                                          .user
+                                          .id,
+                                    ),
                                   );
+
+                                  final chatCubit =
+                                      ChatCubit(chatState: chatState);
 
                                   final contactCubit = ContactCubit(
                                     contact: chatState.participants[0].contact,
@@ -94,9 +101,7 @@ class MainPanel extends StatelessWidget {
 
                                   return MultiBlocProvider(
                                     providers: [
-                                      BlocProvider.value(
-                                        value: chatCubit,
-                                      ),
+                                      BlocProvider.value(value: chatCubit),
                                       BlocProvider.value(value: contactCubit),
                                     ],
                                     child: BlocBuilder<ChatCubit, ChatState>(

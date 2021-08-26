@@ -15,4 +15,18 @@ class Message extends Equatable {
 
   @override
   List<Object?> get props => [sender, type, data];
+
+  static const empty = Message(sender: '', type: MessageType.TEXT, data: '');
+
+  Message copyWith({
+    String? sender,
+    MessageType? type,
+    dynamic data,
+  }) {
+    return Message(
+      sender: sender ?? this.sender,
+      type: type ?? this.type,
+      data: data ?? this.data,
+    );
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:safechat/chats/cubits/chat/cubit/chat_cubit.dart';
 import 'package:safechat/chats/models/message.dart';
@@ -18,15 +19,32 @@ class ChatsRepository {
 
     final chats = chatsData.map((chatData) {
       final participantsData = chatData['participants'] as List;
+      final messagesData = chatData['messages'] as List;
 
-      final participants = participantsData.map((participantData) {
+      final participants = participantsData.map((participant) {
         return _contactsRepository.getContactState(
-          participantData,
+          participant,
           directory,
         );
-      });
+      }).toList();
 
-      return ChatState(id: chatData['id'], participants: participants.toList());
+      print(messagesData);
+
+      final messages = messagesData.map((message) {
+        return Message(
+          sender: message['sender'],
+          type: MessageType.values.firstWhere(
+            (e) => describeEnum(e) == message['type'],
+          ),
+          data: message['data'],
+        );
+      }).toList();
+
+      return ChatState(
+        id: chatData['id'],
+        participants: participants,
+        messages: messages.reversed.toList(),
+      );
     });
 
     return chats.toList();
@@ -58,10 +76,14 @@ class ChatsRepository {
     });
   }
 
-  Future<void> saveMessage(String chatId, Message message) async {
-    await _apiService.post('/chat/message', data: {
+  Future<void> addMessage(String chatId, Message message) async {
+    await _apiService.post('/chat/messages', data: {
       'id': chatId,
-      'message': message,
+      'message': {
+        'sender': message.sender,
+        'type': describeEnum(message.type),
+        'data': message.data,
+      }
     });
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:safechat/chats/cubits/chat/cubit/chat_cubit.dart';
+import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/contacts/models/contact.dart';
 import 'package:safechat/user/user.dart';
@@ -106,49 +107,7 @@ class ChatPage extends StatelessWidget {
   }
 }
 
-class MessagesSection extends StatefulWidget {
-  const MessagesSection({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  _MessagesSectionState createState() => _MessagesSectionState();
-}
-
-class _MessagesSectionState extends State<MessagesSection> {
-  ScrollController _scrollController = ScrollController();
-
-  void scrollToBottom() {
-    // WidgetsBinding.instance!.addPostFrameCallback((_) {
-    //   if (_scrollController.hasClients) {
-    //     _scrollController.animateTo(
-    //       _scrollController.position.maxScrollExtent,
-    //       duration: Duration(milliseconds: 1),
-    //       curve: Curves.easeInOut,
-    //     );
-    //   }
-    // });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    scrollToBottom();
-
-    final keyboardVisibilityController = KeyboardVisibilityController();
-
-    keyboardVisibilityController.onChange.listen((bool visible) {
-      if (visible) scrollToBottom();
-    });
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
+class MessagesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -156,44 +115,36 @@ class _MessagesSectionState extends State<MessagesSection> {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15.0),
-            child: BlocConsumer<ChatCubit, ChatState>(
-                listenWhen: (previous, current) =>
-                    current.message == '' &&
-                    previous.message == current.message,
-                listener: (context, state) {
-                  scrollToBottom();
-                },
-                builder: (context, state) {
-                  return state.messages.length == 0
-                      ? Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.forum,
-                              size: 100,
-                              color: Colors.grey.shade300,
-                            ),
-                            Text(
-                              'Brak wiadomości',
-                              style: Theme.of(context).textTheme.subtitle2,
-                            ),
-                          ],
-                        )
-                      : ListView.builder(
-                          controller: _scrollController,
-                          reverse: true,
-                          itemCount: state.messages.length,
-                          itemBuilder: (
-                            BuildContext context,
-                            int index,
-                          ) {
-                            return MessageBubble(
-                              isSender: state.messages[index].sender ==
-                                  context.read<UserCubit>().state.user.id,
-                              message: state.messages[index].data,
-                            );
-                          });
-                }),
+            child: BlocBuilder<ChatCubit, ChatState>(builder: (context, state) {
+              return state.messages.length == 0
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.forum,
+                          size: 100,
+                          color: Colors.grey.shade300,
+                        ),
+                        Text(
+                          'Brak wiadomości',
+                          style: Theme.of(context).textTheme.subtitle2,
+                        ),
+                      ],
+                    )
+                  : ListView.builder(
+                      reverse: true,
+                      itemCount: state.messages.length,
+                      itemBuilder: (
+                        BuildContext context,
+                        int index,
+                      ) {
+                        return MessageBubble(
+                          isSender: state.messages[index].sender ==
+                              context.read<UserCubit>().state.user.id,
+                          message: state.messages[index].data,
+                        );
+                      });
+            }),
           ),
         ),
         MessageTextField(),
@@ -234,11 +185,12 @@ class _MessageTextFieldState extends State<MessageTextField> {
           Expanded(
             child: TextFormField(
               controller: _messageController,
-              onChanged: (value) =>
-                  context.read<ChatCubit>().messageChanged(value),
+              onChanged: (value) {
+                context.read<ChatCubit>().textMessageChanged(value);
+              },
               keyboardType: TextInputType.multiline,
               minLines: 1,
-              maxLines: 10,
+              maxLines: 15,
               decoration: InputDecoration(
                 hintText: "Napisz wiadomość...",
                 border: InputBorder.none,
@@ -248,7 +200,9 @@ class _MessageTextFieldState extends State<MessageTextField> {
           ),
           ElevatedButton(
             onPressed: () {
+              //context.read<ChatCubit>().setMessageType(MessageType.TEXT);
               context.read<ChatCubit>().sendMessage();
+
               _messageController.clear();
             },
             child: Icon(Icons.send_outlined, color: Colors.white),
@@ -336,6 +290,9 @@ class TextMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * 0.7,
+      ),
       padding: const EdgeInsets.all(10.0),
       decoration: BoxDecoration(
         color: Colors.blue.shade800.withOpacity(isSender ? 1 : 0.1),

@@ -5,28 +5,28 @@ class ChatState extends Equatable {
     required this.id,
     this.participants = const [],
     this.messages = const [],
-    this.message = '',
+    this.newMessage = Message.empty,
   });
 
   final String id;
   final List<ContactState> participants;
   final List<Message> messages;
-  final dynamic message;
+  final Message newMessage;
 
   @override
-  List<Object> get props => [participants, messages, message!];
+  List<Object> get props => [participants, messages, newMessage];
 
   ChatState copyWith({
     String? id,
     List<ContactState>? participants,
     List<Message>? messages,
-    dynamic message,
+    Message? newMessage,
   }) {
     return ChatState(
       id: id ?? this.id,
       participants: participants ?? this.participants,
       messages: messages ?? this.messages,
-      message: message ?? this.message,
+      newMessage: newMessage ?? this.newMessage,
     );
   }
 }

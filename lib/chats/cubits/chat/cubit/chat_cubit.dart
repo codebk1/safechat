@@ -1,24 +1,25 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:safechat/chats/models/message.dart';
+import 'package:safechat/chats/repository/chats_repository.dart';
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/utils/utils.dart';
 
 part 'chat_state.dart';
 
 class ChatCubit extends Cubit<ChatState> {
-  ChatCubit({
-    required String id,
-    required List<ContactState> participants,
-  }) : super(ChatState(id: id, participants: participants)) {
+  ChatCubit({required ChatState chatState}) : super(chatState) {
     print('INIT CHAT');
-    _wsService.socket.emit('join-chat', id);
+    _wsService.socket.emit('join-chat', state.id);
 
     _wsService.socket.on('msg', (message) {
       emit(state.copyWith(messages: [
         Message(
-          sender: message['senderId'],
-          type: MessageType.TEXT,
+          sender: message['sender'],
+          type: MessageType.values.firstWhere(
+            (e) => describeEnum(e) == message['type'],
+          ),
           data: message['data'],
         ),
         ...state.messages,
@@ -27,20 +28,37 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   final SocketService _wsService = SocketService();
+  final ChatsRepository _chatsRepository = ChatsRepository();
 
-  sendMessage() {
-    final msg = state.message;
+  sendMessage() async {
+    final msg = state.newMessage;
 
     emit(state.copyWith(
-      message: '',
+      messages: state.messages..insert(0, msg),
+      newMessage: state.newMessage.copyWith(data: ''),
     ));
 
-    _wsService.socket.emit('message', {'room': state.id, 'msg': msg});
+    await this._chatsRepository.addMessage(state.id, msg);
+
+    this._wsService.socket.emit('msg', {
+      'room': state.id,
+      'msg': {
+        'sender': msg.sender,
+        'type': describeEnum(msg.type),
+        'data': msg.data
+      }
+    });
   }
 
-  void messageChanged(String value) {
+  setMessageType(MessageType type) {
     emit(state.copyWith(
-      message: value,
+      newMessage: state.newMessage.copyWith(type: type),
+    ));
+  }
+
+  void textMessageChanged(String value) {
+    emit(state.copyWith(
+      newMessage: state.newMessage.copyWith(data: value),
     ));
   }
 }
