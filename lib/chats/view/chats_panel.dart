@@ -90,8 +90,9 @@ class MainPanel extends StatelessWidget {
                                     ),
                                   );
 
-                                  final chatCubit =
-                                      ChatCubit(chatState: chatState);
+                                  final chatCubit = ChatCubit(
+                                    chatState: chatState,
+                                  );
 
                                   final contactCubit = ContactCubit(
                                     contact: chatState.participants[0].contact,
@@ -162,7 +163,13 @@ class MainPanel extends StatelessWidget {
                                           title: Text(
                                             '${state.participants[0].contact.firstName} ${state.participants[0].contact.lastName}',
                                           ),
-                                          subtitle: Text('Co tam słychać? :)'),
+                                          subtitle: Text(
+                                            state.messages.length > 0
+                                                ? state.messages[0].data
+                                                : 'Wyślij pierwszą wiadomość',
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                          ),
                                         );
                                       },
                                     ),

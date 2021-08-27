@@ -177,7 +177,7 @@ class AuthRepository {
     );
 
     final encryptedFirstName = _encryptionService.chachaEncrypt(
-      Uint8List.fromList(utf8.encode(firstName.trim())),
+      utf8.encode(firstName.trim()) as Uint8List,
       sharedKey,
     );
 

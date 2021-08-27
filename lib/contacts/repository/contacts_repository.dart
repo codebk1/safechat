@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
@@ -19,7 +20,8 @@ class ContactsRepository {
     final directory = await getApplicationDocumentsDirectory();
 
     final contacts = contactsData.map((contactData) {
-      return getContactState(contactData, directory);
+      final sharedKey = _encryptionService.rsaDecrypt(contactData['sharedKey']);
+      return getContactState(contactData, directory, sharedKey);
     });
 
     return contacts.toList();
@@ -87,26 +89,27 @@ class ContactsRepository {
     });
   }
 
-  ContactState getContactState(contactData, Directory avatarsDirectory) {
-    if (contactData['sharedKey'] != null) {
+  ContactState getContactState(
+      contactData, Directory avatarsDirectory, Uint8List? sharedKey) {
+    if (sharedKey != null) {
       contactData['profile']['firstName'] = utf8.decode(
         _encryptionService.chachaDecrypt(
           contactData['profile']['firstName'],
-          _encryptionService.rsaDecrypt(contactData['sharedKey']),
+          sharedKey,
         ),
       );
 
       contactData['profile']['lastName'] = utf8.decode(
         _encryptionService.chachaDecrypt(
           contactData['profile']['lastName'],
-          _encryptionService.rsaDecrypt(contactData['sharedKey']),
+          sharedKey,
         ),
       );
 
       if (contactData['profile']['avatar'] != null) {
         final decryptedAvatar = _encryptionService.chachaDecrypt(
           contactData['profile']['avatar'],
-          _encryptionService.rsaDecrypt(contactData['sharedKey']),
+          sharedKey,
         );
 
         final avatar = File('${avatarsDirectory.path}/${contactData["id"]}.jpg')

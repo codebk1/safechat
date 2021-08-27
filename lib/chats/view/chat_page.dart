@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rive/rive.dart';
 
 import 'package:safechat/chats/cubits/chat/cubit/chat_cubit.dart';
 import 'package:safechat/chats/models/message.dart';
@@ -110,13 +110,12 @@ class ChatPage extends StatelessWidget {
 class MessagesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15.0),
-            child: BlocBuilder<ChatCubit, ChatState>(builder: (context, state) {
-              return state.messages.length == 0
+    return BlocBuilder<ChatCubit, ChatState>(
+      builder: (context, state) {
+        return Column(
+          children: [
+            Expanded(
+              child: state.messages.length == 0
                   ? Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -138,17 +137,59 @@ class MessagesSection extends StatelessWidget {
                         BuildContext context,
                         int index,
                       ) {
-                        return MessageBubble(
-                          isSender: state.messages[index].sender ==
-                              context.read<UserCubit>().state.user.id,
-                          message: state.messages[index].data,
+                        final userId = context.read<UserCubit>().state.user.id;
+                        final isLastInSet = state
+                                    .messages[index == 0 ? index : index - 1]
+                                    .sender ==
+                                userId ||
+                            index == 0;
+
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                          child: MessageBubble(
+                            message: state.messages[index],
+                            isLastInSet: isLastInSet,
+                          ),
                         );
-                      });
-            }),
-          ),
-        ),
-        MessageTextField(),
-      ],
+                      }),
+            ),
+            if (state.typing.isNotEmpty)
+              Container(
+                margin: const EdgeInsets.only(top: 15.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15.0,
+                  vertical: 5.0,
+                ),
+                //color: Colors.grey.shade100,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      state.typing.join(', '),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: Theme.of(context)
+                          .textTheme
+                          .subtitle2!
+                          .copyWith(fontSize: 12.0),
+                    ),
+                    SizedBox(
+                      width: 5.0,
+                    ),
+                    Container(
+                      width: 30,
+                      height: 15,
+                      child: RiveAnimation.asset(
+                        'assets/typing_indicator.riv',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            MessageTextField(),
+          ],
+        );
+      },
     );
   }
 }
@@ -223,11 +264,11 @@ class MessageBubble extends StatelessWidget {
   const MessageBubble({
     Key? key,
     required this.message,
-    required this.isSender,
+    required this.isLastInSet,
   }) : super(key: key);
 
-  final String message;
-  final bool isSender;
+  final Message message;
+  final bool isLastInSet;
 
   @override
   Widget build(BuildContext context) {
@@ -244,6 +285,8 @@ class MessageBubble extends StatelessWidget {
     //   }
     // }
 
+    final isSender = message.sender == context.read<UserCubit>().state.user.id;
+
     return Padding(
       padding: const EdgeInsets.only(top: 5.0),
       child: Row(
@@ -252,21 +295,71 @@ class MessageBubble extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isSender) ...[
-            CircleAvatar(
-              radius: 14.0,
-              child: Icon(
-                Icons.person,
-                color: Colors.grey.shade50,
-              ),
-              backgroundColor: Colors.grey.shade300,
+            BlocBuilder<ChatCubit, ChatState>(
+              builder: (context, state) {
+                final contact = state.participants
+                    .firstWhere((p) => p.contact.id == message.sender);
+
+                return isLastInSet
+                    ? BlocProvider(
+                        create: (context) => ContactCubit(
+                            contact: contact.contact,
+                            currentState: contact.currentState),
+                        child: BlocBuilder<ContactCubit, ContactState>(
+                          builder: (context, state) {
+                            return Stack(
+                              children: [
+                                CircleAvatar(
+                                  radius: 14,
+                                  child: state.contact.avatar != null
+                                      ? ClipOval(
+                                          child:
+                                              Image.file(state.contact.avatar!),
+                                        )
+                                      : Icon(
+                                          Icons.person,
+                                          color: Colors.grey.shade50,
+                                        ),
+                                  backgroundColor: Colors.grey.shade300,
+                                ),
+                                Positioned(
+                                  right: 0,
+                                  bottom: 0,
+                                  child: Container(
+                                    height: 12,
+                                    width: 12,
+                                    decoration: BoxDecoration(
+                                      color:
+                                          state.contact.status == Status.ONLINE
+                                              ? Colors.green
+                                              : Colors.grey,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        width: 2,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      )
+                    : SizedBox(
+                        width: 28,
+                      );
+              },
             ),
             SizedBox(width: 10.0),
           ],
-          TextMessage(message: message, isSender: isSender),
+          TextMessage(message: message.data, isSender: isSender),
           if (isSender) ...[
             SizedBox(width: 2.0),
             Icon(
-              Icons.check_circle,
+              message.status == MessageStatus.SENDING
+                  ? Icons.check_circle_outline
+                  : Icons.check_circle,
               size: 15,
               color: Colors.blue.shade800,
             )

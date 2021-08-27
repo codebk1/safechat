@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
@@ -21,14 +24,23 @@ class ChatsRepository {
       final participantsData = chatData['participants'] as List;
       final messagesData = chatData['messages'] as List;
 
+      final decryptedChatSharedKey = _encryptionService.rsaDecrypt(
+        chatData['sharedKey'],
+      );
+
       final participants = participantsData.map((participant) {
+        // odszyfrowany klucz współdzielony członka czatu za pomocą klucza współdzielonego danego czatu
+        final sharedKey = _encryptionService.chachaDecrypt(
+          participant['sharedKey'],
+          decryptedChatSharedKey,
+        );
+
         return _contactsRepository.getContactState(
           participant,
           directory,
+          sharedKey,
         );
       }).toList();
-
-      print(messagesData);
 
       final messages = messagesData.map((message) {
         return Message(
@@ -36,12 +48,18 @@ class ChatsRepository {
           type: MessageType.values.firstWhere(
             (e) => describeEnum(e) == message['type'],
           ),
-          data: message['data'],
+          data: utf8.decode(
+            _encryptionService.chachaDecrypt(
+              message['data'],
+              decryptedChatSharedKey,
+            ),
+          ),
         );
       }).toList();
 
       return ChatState(
         id: chatData['id'],
+        sharedKey: decryptedChatSharedKey,
         participants: participants,
         messages: messages.reversed.toList(),
       );
@@ -51,28 +69,46 @@ class ChatsRepository {
   }
 
   Future<void> createChat(String participantId) async {
-    final sharedKey = _encryptionService.genereateSecureRandom().nextBytes(32);
+    final chatSharedKey =
+        _encryptionService.genereateSecureRandom().nextBytes(32);
 
     final chat = await _apiService.post('/chat', data: {
-      'sharedKey': _encryptionService.rsaEncrypt(
-        sharedKey,
+      'creatorSharedKey': base64.encode(
+        _encryptionService.chachaEncrypt(
+          _encryptionService.sharedKey!,
+          chatSharedKey,
+        ),
+      ),
+      'chatSharedKey': _encryptionService.rsaEncrypt(
+        chatSharedKey,
         _encryptionService.publicKey,
       ),
     });
 
-    print(chat.data['id']);
-
     final participant = await _apiService.get(
-      '/user/key/public/id/$participantId',
+      '/user/contacts/$participantId',
     );
 
+    print(participant);
+
     await _apiService.post('/chat/participants', data: {
-      'chatId': chat.data['id'],
-      'participantId': participantId,
-      'sharedKey': _encryptionService.rsaEncrypt(
-        sharedKey,
-        _encryptionService.parsePublicKeyFromPem(participant.data['publicKey']),
-      ),
+      'chat': {
+        'id': chat.data['id'],
+        'sharedKey': _encryptionService.rsaEncrypt(
+          chatSharedKey,
+          _encryptionService
+              .parsePublicKeyFromPem(participant.data['publicKey']),
+        ),
+      },
+      'participant': {
+        'id': participant.data['id'],
+        'sharedKey': base64.encode(
+          _encryptionService.chachaEncrypt(
+            _encryptionService.rsaDecrypt(participant.data['sharedKey']),
+            chatSharedKey,
+          ),
+        ),
+      }
     });
   }
 
@@ -82,7 +118,7 @@ class ChatsRepository {
       'message': {
         'sender': message.sender,
         'type': describeEnum(message.type),
-        'data': message.data,
+        'data': base64.encode(message.data),
       }
     });
   }
