@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
-import 'package:safechat/chats/cubits/chat/cubit/chat_cubit.dart';
+import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
 import 'package:safechat/chats/repository/chats_repository.dart';
 import 'package:safechat/contacts/contacts.dart';
 

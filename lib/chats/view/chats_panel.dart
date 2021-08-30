@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:safechat/chats/cubits/chat/cubit/chat_cubit.dart';
+import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
 import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/chats/models/message.dart';
@@ -23,6 +23,14 @@ class MainPanel extends StatelessWidget {
     context.read<ChatsCubit>().getChats();
 
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).pushNamed('/chats/create');
+        },
+        child: Icon(Icons.add_comment),
+        elevation: 0,
+        focusElevation: 0,
+      ),
       body: Column(
         children: [
           Padding(

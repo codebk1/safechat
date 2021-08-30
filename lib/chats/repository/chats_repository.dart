@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:safechat/chats/cubits/chat/cubit/chat_cubit.dart';
+import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
 import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/contacts/contacts.dart';
 
@@ -43,6 +43,7 @@ class ChatsRepository {
       }).toList();
 
       final messages = messagesData.map((message) {
+        print(message['unreadBy']);
         return Message(
           sender: message['sender'],
           type: MessageType.values.firstWhere(
@@ -54,6 +55,7 @@ class ChatsRepository {
               decryptedChatSharedKey,
             ),
           ),
+          unreadBy: List<String>.from(message['unreadBy']),
         );
       }).toList();
 
@@ -120,6 +122,12 @@ class ChatsRepository {
         'type': describeEnum(message.type),
         'data': base64.encode(message.data),
       }
+    });
+  }
+
+  Future<void> readAllMessages(String chatId) async {
+    await _apiService.post('/chat/messages/readall', data: {
+      'chatId': chatId,
     });
   }
 }

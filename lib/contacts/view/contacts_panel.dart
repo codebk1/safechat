@@ -4,16 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/contacts/models/contact.dart';
-import 'package:safechat/user/cubit/user_cubit.dart';
-import 'package:safechat/user/models/user.dart';
 
 class ContactsPanel extends StatelessWidget {
   const ContactsPanel({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    context.read<ContactsCubit>().getContacts();
-
     return Container(
       margin: EdgeInsets.only(left: 15.0),
       decoration: BoxDecoration(

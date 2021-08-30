@@ -1,9 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/chats/cubits/chat/cubit/chat_cubit.dart';
+import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
 import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
 import 'package:safechat/chats/view/chat_page.dart';
+import 'package:safechat/chats/view/create_chat_page.dart';
 import 'package:safechat/profile/cubit/profile_cubit.dart';
 import 'package:safechat/profile/view/edit_profile_page.dart';
 
@@ -44,7 +45,7 @@ class AppRouter {
           pageBuilder: (_, __, ___) => MultiBlocProvider(
             providers: [
               BlocProvider.value(value: _chatsCubit),
-              BlocProvider.value(value: _contactsCubit),
+              BlocProvider.value(value: _contactsCubit..getContacts()),
             ],
             child: HomePage(),
           ),
@@ -79,6 +80,16 @@ class AppRouter {
         return PageRouteBuilder(
           pageBuilder: (_, __, ___) => ChatPage(
             chatCubit: args,
+          ),
+        );
+      case '/chats/create':
+        return PageRouteBuilder(
+          pageBuilder: (_, __, ___) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: _chatsCubit),
+              BlocProvider.value(value: _contactsCubit..getContacts()),
+            ],
+            child: CreateChatPage(),
           ),
         );
       default:

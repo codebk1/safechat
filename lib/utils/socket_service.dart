@@ -9,7 +9,7 @@ class SocketService {
 
   SocketService._internal() {
     socket = io(
-      'https://84d6-31-1-115-118.ngrok.io',
+      'https://171c-46-76-232-203.ngrok.io',
       OptionBuilder().disableAutoConnect().setTransports(['websocket']).build(),
     );
   }

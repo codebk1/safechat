@@ -3,21 +3,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rive/rive.dart';
 
-import 'package:safechat/chats/cubits/chat/cubit/chat_cubit.dart';
+import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
 import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/contacts/models/contact.dart';
 import 'package:safechat/user/user.dart';
 
-class ChatPage extends StatelessWidget {
+class ChatPage extends StatefulWidget {
   const ChatPage({Key? key, required this.chatCubit}) : super(key: key);
 
   final ChatCubit chatCubit;
 
   @override
+  _ChatPageState createState() => _ChatPageState();
+}
+
+class _ChatPageState extends State<ChatPage> {
+  @override
+  void initState() {
+    widget.chatCubit.readAllMessages();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
-      value: chatCubit,
+      value: widget.chatCubit..readAllMessages(),
       child: Scaffold(
         appBar: AppBar(
           actions: [
@@ -30,12 +41,12 @@ class ChatPage extends StatelessWidget {
           titleSpacing: 0,
           elevation: 0,
           iconTheme: IconThemeData(
-            color: Colors.grey.shade800, //change your color here
+            color: Colors.grey.shade800,
           ),
           title: BlocProvider(
             create: (context) => ContactCubit(
-              contact: chatCubit.state.participants[0].contact,
-              currentState: chatCubit.state.participants[0].currentState,
+              contact: widget.chatCubit.state.participants[0].contact,
+              currentState: widget.chatCubit.state.participants[0].currentState,
             ),
             child: BlocBuilder<ContactCubit, ContactState>(
               builder: (context, state) {
@@ -165,7 +176,10 @@ class MessagesSection extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Text(
-                      state.typing.join(', '),
+                      state.participants.map((e) {
+                        if (state.typing.contains(e.contact.id))
+                          return e.contact.firstName;
+                      }).join(', '),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                       style: Theme.of(context)
@@ -207,6 +221,12 @@ class _MessageTextFieldState extends State<MessageTextField> {
   TextEditingController _messageController = TextEditingController();
 
   @override
+  void dispose() {
+    _messageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -224,18 +244,28 @@ class _MessageTextFieldState extends State<MessageTextField> {
           ),
           SizedBox(width: 15.0),
           Expanded(
-            child: TextFormField(
-              controller: _messageController,
-              onChanged: (value) {
-                context.read<ChatCubit>().textMessageChanged(value);
+            child: Focus(
+              onFocusChange: (hasFocus) {
+                final userId = context.read<UserCubit>().state.user.id;
+                if (hasFocus) {
+                  context.read<ChatCubit>().startTyping(userId);
+                } else {
+                  context.read<ChatCubit>().stopTyping(userId);
+                }
               },
-              keyboardType: TextInputType.multiline,
-              minLines: 1,
-              maxLines: 15,
-              decoration: InputDecoration(
-                hintText: "Napisz wiadomość...",
-                border: InputBorder.none,
-                focusedBorder: InputBorder.none,
+              child: TextFormField(
+                controller: _messageController,
+                onChanged: (value) {
+                  context.read<ChatCubit>().textMessageChanged(value);
+                },
+                keyboardType: TextInputType.multiline,
+                minLines: 1,
+                maxLines: 15,
+                decoration: InputDecoration(
+                  hintText: "Napisz wiadomość...",
+                  border: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                ),
               ),
             ),
           ),
@@ -289,22 +319,37 @@ class MessageBubble extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(top: 5.0),
-      child: Row(
-        mainAxisAlignment:
-            isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (!isSender) ...[
-            BlocBuilder<ChatCubit, ChatState>(
-              builder: (context, state) {
-                final contact = state.participants
-                    .firstWhere((p) => p.contact.id == message.sender);
+      child: BlocListener<ChatCubit, ChatState>(
+        listener: (context, state) {
+          print({'DUPA'});
+        },
+        child: BlocBuilder<ChatCubit, ChatState>(builder: (context, state) {
+          final contact = !isSender
+              ? state.participants
+                  .firstWhere((p) => p.contact.id == message.sender)
+              : null;
 
-                return isLastInSet
+          //print(message.unreadBy);
+
+          final readBy = state.participants.where(
+            (e) => !message.unreadBy.contains(e.contact.id),
+          );
+          //&& e.contact.id != context.read<UserCubit>().state.user.id
+
+          //print({'READBY:', readBy.toList()});
+
+          return Row(
+            mainAxisAlignment:
+                isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (!isSender) ...[
+                isLastInSet
                     ? BlocProvider(
                         create: (context) => ContactCubit(
-                            contact: contact.contact,
-                            currentState: contact.currentState),
+                          contact: contact!.contact,
+                          currentState: contact.currentState,
+                        ),
                         child: BlocBuilder<ContactCubit, ContactState>(
                           builder: (context, state) {
                             return Stack(
@@ -348,23 +393,37 @@ class MessageBubble extends StatelessWidget {
                       )
                     : SizedBox(
                         width: 28,
-                      );
-              },
-            ),
-            SizedBox(width: 10.0),
-          ],
-          TextMessage(message: message.data, isSender: isSender),
-          if (isSender) ...[
-            SizedBox(width: 2.0),
-            Icon(
-              message.status == MessageStatus.SENDING
-                  ? Icons.check_circle_outline
-                  : Icons.check_circle,
-              size: 15,
-              color: Colors.blue.shade800,
-            )
-          ],
-        ],
+                      ),
+                SizedBox(width: 10.0),
+              ],
+              TextMessage(message: message.data, isSender: isSender),
+              if (isSender) ...[
+                SizedBox(width: 2.0),
+                readBy.isNotEmpty
+                    ? CircleAvatar(
+                        radius: 10,
+                        child: readBy.first.contact.avatar != null
+                            ? ClipOval(
+                                child: Image.file(readBy.first.contact.avatar!),
+                              )
+                            : Icon(
+                                Icons.person,
+                                size: 16,
+                                color: Colors.grey.shade50,
+                              ),
+                        backgroundColor: Colors.grey.shade300,
+                      )
+                    : Icon(
+                        message.status == MessageStatus.SENDING
+                            ? Icons.check_circle_outline
+                            : Icons.check_circle,
+                        size: 15,
+                        color: Colors.blue.shade800,
+                      )
+              ],
+            ],
+          );
+        }),
       ),
     );
   }
