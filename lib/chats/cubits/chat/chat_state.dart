@@ -8,6 +8,7 @@ class ChatState extends Equatable {
     this.messages = const [],
     this.newMessage = Message.empty,
     this.typing = const [],
+    this.attachments = const [],
   });
 
   final String id;
@@ -16,9 +17,16 @@ class ChatState extends Equatable {
   final List<Message> messages;
   final Message newMessage;
   final List<String> typing;
+  final List<Attachment> attachments;
 
   @override
-  List<Object> get props => [participants, messages, newMessage, typing];
+  List<Object> get props => [
+        participants,
+        messages,
+        newMessage,
+        typing,
+        attachments,
+      ];
 
   ChatState copyWith({
     String? id,
@@ -27,6 +35,7 @@ class ChatState extends Equatable {
     List<Message>? messages,
     Message? newMessage,
     List<String>? typing,
+    List<Attachment>? attachments,
   }) {
     return ChatState(
       id: id ?? this.id,
@@ -35,6 +44,7 @@ class ChatState extends Equatable {
       messages: messages ?? this.messages,
       newMessage: newMessage ?? this.newMessage,
       typing: typing ?? this.typing,
+      attachments: attachments ?? this.attachments,
     );
   }
 }

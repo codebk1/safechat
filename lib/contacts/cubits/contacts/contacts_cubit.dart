@@ -14,7 +14,7 @@ class ContactsCubit extends Cubit<ContactsState> {
 
   final ContactsRepository _contactsRepository = ContactsRepository();
 
-  Future<void> getContacts() async {
+  Future<void> getContacts({bool onlyAccepted = false}) async {
     try {
       emit(state.copyWith(listStatus: ListStatus.loading));
 
@@ -26,14 +26,17 @@ class ContactsCubit extends Cubit<ContactsState> {
             ),
       );
 
+      if (onlyAccepted)
+        contacts.removeWhere((c) => c.currentState != CurrentState.ACCEPTED);
+
       emit(state.copyWith(contacts: contacts, listStatus: ListStatus.success));
     } on DioError catch (e) {
-      print(e);
+      print({'CONTACTS', e});
       emit(state.copyWith(
         status: FormStatus.failure(e.response?.data['message']),
       ));
     } catch (e) {
-      print(e);
+      print({'CONTACTS', e});
       emit(state.copyWith(
         status: FormStatus.failure(e.toString()),
       ));

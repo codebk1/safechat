@@ -191,9 +191,13 @@ class _LoginPageState extends State<LoginPage> {
                                           height: 60.0,
                                           child: Center(
                                             child: state.status.isLoading
-                                                ? CircularProgressIndicator(
-                                                    color: Colors.white,
-                                                    strokeWidth: 2.0,
+                                                ? Transform.scale(
+                                                    scale: 0.6,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                      color: Colors.white,
+                                                      strokeWidth: 2.0,
+                                                    ),
                                                   )
                                                 : Text(
                                                     'Zaloguj',

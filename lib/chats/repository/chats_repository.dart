@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
 import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/contacts/contacts.dart';
+import 'package:safechat/contacts/models/contact.dart';
 
 import 'package:safechat/utils/utils.dart';
 
@@ -70,7 +71,7 @@ class ChatsRepository {
     return chats.toList();
   }
 
-  Future<void> createChat(String participantId) async {
+  Future<void> createChat(List<Contact> participants) async {
     final chatSharedKey =
         _encryptionService.genereateSecureRandom().nextBytes(32);
 
@@ -87,31 +88,31 @@ class ChatsRepository {
       ),
     });
 
-    final participant = await _apiService.get(
-      '/user/contacts/$participantId',
-    );
+    for (var i = 0; i < participants.length; i++) {
+      final participant = await _apiService.get(
+        '/user/contacts/${participants[i].id}',
+      );
 
-    print(participant);
-
-    await _apiService.post('/chat/participants', data: {
-      'chat': {
-        'id': chat.data['id'],
-        'sharedKey': _encryptionService.rsaEncrypt(
-          chatSharedKey,
-          _encryptionService
-              .parsePublicKeyFromPem(participant.data['publicKey']),
-        ),
-      },
-      'participant': {
-        'id': participant.data['id'],
-        'sharedKey': base64.encode(
-          _encryptionService.chachaEncrypt(
-            _encryptionService.rsaDecrypt(participant.data['sharedKey']),
+      await _apiService.post('/chat/participants', data: {
+        'chat': {
+          'id': chat.data['id'],
+          'sharedKey': _encryptionService.rsaEncrypt(
             chatSharedKey,
+            _encryptionService
+                .parsePublicKeyFromPem(participant.data['publicKey']),
           ),
-        ),
-      }
-    });
+        },
+        'participant': {
+          'id': participant.data['id'],
+          'sharedKey': base64.encode(
+            _encryptionService.chachaEncrypt(
+              _encryptionService.rsaDecrypt(participant.data['sharedKey']),
+              chatSharedKey,
+            ),
+          ),
+        }
+      });
+    }
   }
 
   Future<void> addMessage(String chatId, Message message) async {

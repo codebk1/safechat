@@ -30,7 +30,7 @@ class ContactCubit extends Cubit<ContactState> {
 
   Future<void> createChat() async {
     try {
-      await _chatsRepository.createChat(state.contact.id);
+      await _chatsRepository.createChat([state.contact]);
     } on DioError catch (e) {
       print(e);
       // emit(state.copyWith(

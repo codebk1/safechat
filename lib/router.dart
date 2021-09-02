@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
 import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
+import 'package:safechat/chats/cubits/create_chat/create_chat_cubit.dart';
 import 'package:safechat/chats/view/chat_page.dart';
 import 'package:safechat/chats/view/create_chat_page.dart';
 import 'package:safechat/profile/cubit/profile_cubit.dart';
@@ -87,7 +88,9 @@ class AppRouter {
           pageBuilder: (_, __, ___) => MultiBlocProvider(
             providers: [
               BlocProvider.value(value: _chatsCubit),
-              BlocProvider.value(value: _contactsCubit..getContacts()),
+              BlocProvider.value(
+                  value: _contactsCubit..getContacts(onlyAccepted: true)),
+              BlocProvider(create: (_) => CreateChatCubit())
             ],
             child: CreateChatPage(),
           ),

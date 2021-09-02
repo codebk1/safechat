@@ -1,9 +1,13 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:mime/mime.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:safechat/chats/models/attachment.dart';
 import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/chats/repository/chats_repository.dart';
 import 'package:safechat/contacts/contacts.dart';
@@ -145,5 +149,40 @@ class ChatCubit extends Cubit<ChatState> {
       'room': state.id,
       'participantId': participantId,
     });
+  }
+
+  getPhotos() async {
+    print('GET PHOTOTSSSSSS');
+    if (await Permission.storage.request().isGranted) {
+      List<Attachment> _attachments = [];
+
+      Directory dir = Directory('/storage/emulated/0');
+      List<FileSystemEntity> _files = dir.listSync(
+        recursive: true,
+        followLinks: false,
+      );
+
+      for (FileSystemEntity entity in _files) {
+        var _mime = lookupMimeType(entity.path);
+        AttachmentType _type;
+
+        if (_mime != null) {
+          switch (_mime.split('/')[0]) {
+            case 'image':
+              _type = AttachmentType.PHOTO;
+              break;
+            case 'video':
+              _type = AttachmentType.VIDEO;
+              break;
+            default:
+              _type = AttachmentType.FILE;
+          }
+
+          _attachments.add(Attachment(path: entity.absolute.path, type: _type));
+        }
+      }
+
+      emit(state.copyWith(attachments: _attachments));
+    }
   }
 }

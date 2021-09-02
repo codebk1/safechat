@@ -20,7 +20,10 @@ class ContactsRepository {
     final directory = await getApplicationDocumentsDirectory();
 
     final contacts = contactsData.map((contactData) {
-      final sharedKey = _encryptionService.rsaDecrypt(contactData['sharedKey']);
+      print(contactData);
+      final sharedKey = contactData['sharedKey'] != null
+          ? _encryptionService.rsaDecrypt(contactData['sharedKey'])
+          : null;
       return getContactState(contactData, directory, sharedKey);
     });
 
@@ -90,7 +93,12 @@ class ContactsRepository {
   }
 
   ContactState getContactState(
-      contactData, Directory avatarsDirectory, Uint8List? sharedKey) {
+    contactData,
+    Directory avatarsDirectory,
+    Uint8List? sharedKey,
+  ) {
+    //print({'SHAREDKEY', sharedKey});
+    //print({contactData['email'], contactData['state']});
     if (sharedKey != null) {
       contactData['profile']['firstName'] = utf8.decode(
         _encryptionService.chachaDecrypt(
@@ -122,7 +130,9 @@ class ContactsRepository {
     return ContactState(
       contact: Contact.fromJson(contactData),
       currentState: CurrentState.values.firstWhere(
-        (e) => e.toString().split('.').last == contactData['state']!,
+        (e) =>
+            e.toString().split('.').last ==
+            (contactData['state'] ?? 'ACCEPTED'),
       ),
     );
   }

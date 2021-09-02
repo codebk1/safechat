@@ -1,34 +1,27 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rive/rive.dart';
 
 import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
+import 'package:safechat/chats/models/attachment.dart';
 import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/contacts/models/contact.dart';
 import 'package:safechat/user/user.dart';
+import 'package:video_player/video_player.dart';
 
-class ChatPage extends StatefulWidget {
+class ChatPage extends StatelessWidget {
   const ChatPage({Key? key, required this.chatCubit}) : super(key: key);
 
   final ChatCubit chatCubit;
 
   @override
-  _ChatPageState createState() => _ChatPageState();
-}
-
-class _ChatPageState extends State<ChatPage> {
-  @override
-  void initState() {
-    widget.chatCubit.readAllMessages();
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
-      value: widget.chatCubit..readAllMessages(),
+      value: chatCubit..readAllMessages(),
       child: Scaffold(
         appBar: AppBar(
           actions: [
@@ -45,8 +38,8 @@ class _ChatPageState extends State<ChatPage> {
           ),
           title: BlocProvider(
             create: (context) => ContactCubit(
-              contact: widget.chatCubit.state.participants[0].contact,
-              currentState: widget.chatCubit.state.participants[0].currentState,
+              contact: chatCubit.state.participants[0].contact,
+              currentState: chatCubit.state.participants[0].currentState,
             ),
             child: BlocBuilder<ContactCubit, ContactState>(
               builder: (context, state) {
@@ -148,11 +141,10 @@ class MessagesSection extends StatelessWidget {
                         BuildContext context,
                         int index,
                       ) {
-                        final userId = context.read<UserCubit>().state.user.id;
                         final isLastInSet = state
                                     .messages[index == 0 ? index : index - 1]
-                                    .sender ==
-                                userId ||
+                                    .sender !=
+                                state.messages[index].sender ||
                             index == 0;
 
                         return Padding(
@@ -235,12 +227,78 @@ class _MessageTextFieldState extends State<MessageTextField> {
       ),
       child: Row(
         children: [
-          IconButton(
-            onPressed: () {},
-            icon: Icon(
-              Icons.photo_library,
-              color: Colors.grey.shade500,
-            ),
+          BlocBuilder<ChatCubit, ChatState>(
+            builder: (context, state) {
+              return IconButton(
+                onPressed: () async {
+                  await context.read<ChatCubit>().getPhotos();
+
+                  showModalBottomSheet<void>(
+                    context: context,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(10.0),
+                      ),
+                    ),
+                    builder: (_) {
+                      return Container(
+                        height: MediaQuery.of(context).size.height * 0.4,
+                        //padding: EdgeInsets.all(10.0),
+                        child: DefaultTabController(
+                          length: 3,
+                          child: Column(
+                            children: [
+                              Container(
+                                //margin: EdgeInsets.only(bottom: 5.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade900,
+                                  borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(10),
+                                  ),
+                                ),
+                                child: TabBar(
+                                  tabs: [
+                                    Tab(icon: Icon(Icons.photo_library)),
+                                    Tab(icon: Icon(Icons.video_library)),
+                                    Tab(icon: Icon(Icons.file_present)),
+                                  ],
+                                ),
+                              ),
+                              Flexible(
+                                child: TabBarView(children: [
+                                  AttachmentsGrid(
+                                    attachments: state.attachments
+                                        .where((e) =>
+                                            e.type == AttachmentType.PHOTO)
+                                        .toList(),
+                                  ),
+                                  VideosGrid(
+                                    attachments: state.attachments
+                                        .where((e) =>
+                                            e.type == AttachmentType.VIDEO)
+                                        .toList(),
+                                  ),
+                                  AttachmentsGrid(
+                                    attachments: state.attachments
+                                        .where((e) =>
+                                            e.type == AttachmentType.FILE)
+                                        .toList(),
+                                  ),
+                                ]),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+                icon: Icon(
+                  Icons.attach_file,
+                  color: Colors.grey.shade500,
+                ),
+              );
+            },
           ),
           SizedBox(width: 15.0),
           Expanded(
@@ -287,6 +345,82 @@ class _MessageTextFieldState extends State<MessageTextField> {
         ],
       ),
     );
+  }
+}
+
+class AttachmentsGrid extends StatelessWidget {
+  const AttachmentsGrid({
+    Key? key,
+    required this.attachments,
+  }) : super(key: key);
+
+  final List<Attachment> attachments;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: 150,
+          //crossAxisSpacing: 5,
+          //mainAxisSpacing: 5,
+        ),
+        itemCount: attachments.length,
+        itemBuilder: (BuildContext ctx, index) {
+          return Container(
+            margin: EdgeInsets.all(5.0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              // image: DecorationImage(
+              //   fit: BoxFit.cover,
+              //   alignment: Alignment.center,
+              //   image: FileImage(
+              //     File(
+              //       attachments[index].path,
+              //     ),
+              //   ),
+              // ),
+            ),
+            child: Image.file(
+              File(
+                attachments[index].path,
+              ),
+              fit: BoxFit.cover,
+            ),
+          );
+        });
+  }
+}
+
+class VideosGrid extends StatelessWidget {
+  const VideosGrid({
+    Key? key,
+    required this.attachments,
+  }) : super(key: key);
+
+  final List<Attachment> attachments;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: 150,
+          //crossAxisSpacing: 5,
+          //mainAxisSpacing: 5,
+        ),
+        itemCount: attachments.length,
+        itemBuilder: (BuildContext ctx, index) {
+          return Container(
+            margin: EdgeInsets.all(5.0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: VideoPlayer(
+              VideoPlayerController.file(
+                File(attachments[index].path),
+              )..initialize(),
+            ),
+          );
+        });
   }
 }
 
@@ -396,7 +530,10 @@ class MessageBubble extends StatelessWidget {
                       ),
                 SizedBox(width: 10.0),
               ],
-              TextMessage(message: message.data, isSender: isSender),
+              TextMessage(
+                message: message.data,
+                sender: contact,
+              ),
               if (isSender) ...[
                 SizedBox(width: 2.0),
                 readBy.isNotEmpty
@@ -433,11 +570,11 @@ class TextMessage extends StatelessWidget {
   const TextMessage({
     Key? key,
     this.message,
-    required this.isSender,
+    required this.sender,
   }) : super(key: key);
 
   final String? message;
-  final bool isSender;
+  final ContactState? sender;
 
   @override
   Widget build(BuildContext context) {
@@ -445,16 +582,44 @@ class TextMessage extends StatelessWidget {
       constraints: BoxConstraints(
         maxWidth: MediaQuery.of(context).size.width * 0.7,
       ),
-      padding: const EdgeInsets.all(10.0),
+      padding: sender == null
+          ? const EdgeInsets.all(10.0)
+          : const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
       decoration: BoxDecoration(
-        color: Colors.blue.shade800.withOpacity(isSender ? 1 : 0.1),
+        color: Colors.blue.shade800.withOpacity(sender == null ? 1 : 0.1),
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Text(
-        message!,
-        style: TextStyle(
-          color: isSender ? Colors.white : Colors.grey.shade800,
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (sender != null)
+            Row(
+              //mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  sender!.contact.firstName,
+                  style: Theme.of(context)
+                      .textTheme
+                      .subtitle2!
+                      .copyWith(fontSize: 10),
+                ),
+                // Text(
+                //   '16:49',
+                //   style: Theme.of(context)
+                //       .textTheme
+                //       .subtitle2!
+                //       .copyWith(fontSize: 10),
+                // ),
+              ],
+            ),
+          Text(
+            message!,
+            style: TextStyle(
+              color: sender == null ? Colors.white : Colors.grey.shade800,
+            ),
+          ),
+        ],
       ),
     );
   }
