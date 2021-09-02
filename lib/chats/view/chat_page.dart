@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rive/rive.dart';
+import 'package:safechat/chats/cubits/attachments/attachments_cubit.dart';
 
 import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
 import 'package:safechat/chats/models/attachment.dart';
@@ -227,78 +228,93 @@ class _MessageTextFieldState extends State<MessageTextField> {
       ),
       child: Row(
         children: [
-          BlocBuilder<ChatCubit, ChatState>(
-            builder: (context, state) {
-              return IconButton(
-                onPressed: () async {
-                  await context.read<ChatCubit>().getPhotos();
-
-                  showModalBottomSheet<void>(
-                    context: context,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(10.0),
-                      ),
+          IconButton(
+            onPressed: () async {
+              //context.read<AttachmentsCubit>().loadAttachments();
+              showModalBottomSheet(
+                context: context,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(10.0),
+                  ),
+                ),
+                builder: (context) {
+                  return BlocProvider(
+                    create: (context) => AttachmentsCubit()..loadAttachments(),
+                    child: BlocBuilder<AttachmentsCubit, AttachmentsState>(
+                      builder: (context, state) {
+                        return Container(
+                          height: MediaQuery.of(context).size.height * 0.4,
+                          //padding: EdgeInsets.all(10.0),
+                          child: state.loading
+                              ? Center(
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : DefaultTabController(
+                                  length: 3,
+                                  child: Column(
+                                    children: [
+                                      Container(
+                                        //margin: EdgeInsets.only(bottom: 5.0),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade900,
+                                          borderRadius: BorderRadius.vertical(
+                                            top: Radius.circular(10),
+                                          ),
+                                        ),
+                                        child: TabBar(
+                                          tabs: [
+                                            Tab(
+                                                icon:
+                                                    Icon(Icons.photo_library)),
+                                            Tab(
+                                                icon:
+                                                    Icon(Icons.video_library)),
+                                            Tab(icon: Icon(Icons.file_present)),
+                                          ],
+                                        ),
+                                      ),
+                                      Flexible(
+                                        child: TabBarView(children: [
+                                          PhotosGrid(
+                                            attachments: state.attachments
+                                                .where((e) =>
+                                                    e.type ==
+                                                    AttachmentType.PHOTO)
+                                                .toList(),
+                                          ),
+                                          VideosGrid(
+                                            attachments: state.attachments
+                                                .where((e) =>
+                                                    e.type ==
+                                                    AttachmentType.VIDEO)
+                                                .toList(),
+                                          ),
+                                          FilesList(
+                                            attachments: state.attachments
+                                                .where((e) =>
+                                                    e.type ==
+                                                    AttachmentType.FILE)
+                                                .toList(),
+                                          ),
+                                        ]),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                        );
+                      },
                     ),
-                    builder: (_) {
-                      return Container(
-                        height: MediaQuery.of(context).size.height * 0.4,
-                        //padding: EdgeInsets.all(10.0),
-                        child: DefaultTabController(
-                          length: 3,
-                          child: Column(
-                            children: [
-                              Container(
-                                //margin: EdgeInsets.only(bottom: 5.0),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade900,
-                                  borderRadius: BorderRadius.vertical(
-                                    top: Radius.circular(10),
-                                  ),
-                                ),
-                                child: TabBar(
-                                  tabs: [
-                                    Tab(icon: Icon(Icons.photo_library)),
-                                    Tab(icon: Icon(Icons.video_library)),
-                                    Tab(icon: Icon(Icons.file_present)),
-                                  ],
-                                ),
-                              ),
-                              Flexible(
-                                child: TabBarView(children: [
-                                  AttachmentsGrid(
-                                    attachments: state.attachments
-                                        .where((e) =>
-                                            e.type == AttachmentType.PHOTO)
-                                        .toList(),
-                                  ),
-                                  VideosGrid(
-                                    attachments: state.attachments
-                                        .where((e) =>
-                                            e.type == AttachmentType.VIDEO)
-                                        .toList(),
-                                  ),
-                                  AttachmentsGrid(
-                                    attachments: state.attachments
-                                        .where((e) =>
-                                            e.type == AttachmentType.FILE)
-                                        .toList(),
-                                  ),
-                                ]),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
                   );
                 },
-                icon: Icon(
-                  Icons.attach_file,
-                  color: Colors.grey.shade500,
-                ),
               );
             },
+            icon: Icon(
+              Icons.attach_file,
+              color: Colors.grey.shade500,
+            ),
           ),
           SizedBox(width: 15.0),
           Expanded(
@@ -348,8 +364,8 @@ class _MessageTextFieldState extends State<MessageTextField> {
   }
 }
 
-class AttachmentsGrid extends StatelessWidget {
-  const AttachmentsGrid({
+class PhotosGrid extends StatelessWidget {
+  const PhotosGrid({
     Key? key,
     required this.attachments,
   }) : super(key: key);
@@ -361,30 +377,52 @@ class AttachmentsGrid extends StatelessWidget {
     return GridView.builder(
         gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
           maxCrossAxisExtent: 150,
-          //crossAxisSpacing: 5,
-          //mainAxisSpacing: 5,
         ),
         itemCount: attachments.length,
         itemBuilder: (BuildContext ctx, index) {
-          return Container(
-            margin: EdgeInsets.all(5.0),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              // image: DecorationImage(
-              //   fit: BoxFit.cover,
-              //   alignment: Alignment.center,
-              //   image: FileImage(
-              //     File(
-              //       attachments[index].path,
-              //     ),
-              //   ),
-              // ),
-            ),
-            child: Image.file(
-              File(
-                attachments[index].path,
-              ),
-              fit: BoxFit.cover,
+          return GestureDetector(
+            onTap: () => context
+                .read<AttachmentsCubit>()
+                .toggleAttachment(attachments[index]),
+            child: BlocBuilder<AttachmentsCubit, AttachmentsState>(
+              builder: (context, state) {
+                return Container(
+                  margin: EdgeInsets.all(5.0),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Transform.scale(
+                        scale: state.selectedAttachments
+                                .contains(attachments[index])
+                            ? 0.9
+                            : 1,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.file(
+                            attachments[index].file,
+                            fit: BoxFit.cover,
+                            cacheWidth: 150,
+                            filterQuality: FilterQuality.medium,
+                          ),
+                        ),
+                      ),
+                      if (state.selectedAttachments
+                          .contains(attachments[index]))
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: CircleAvatar(
+                            radius: 12,
+                            backgroundColor: Colors.blue.shade800,
+                            child: Icon(
+                              Icons.check,
+                              color: Colors.white,
+                            ),
+                          ),
+                        )
+                    ],
+                  ),
+                );
+              },
             ),
           );
         });
@@ -404,8 +442,6 @@ class VideosGrid extends StatelessWidget {
     return GridView.builder(
         gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
           maxCrossAxisExtent: 150,
-          //crossAxisSpacing: 5,
-          //mainAxisSpacing: 5,
         ),
         itemCount: attachments.length,
         itemBuilder: (BuildContext ctx, index) {
@@ -414,13 +450,107 @@ class VideosGrid extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
             ),
-            child: VideoPlayer(
-              VideoPlayerController.file(
-                File(attachments[index].path),
-              )..initialize(),
-            ),
+            child: VideoThumbnail(video: attachments[index].file),
           );
         });
+  }
+}
+
+class VideoThumbnail extends StatefulWidget {
+  const VideoThumbnail({
+    Key? key,
+    required this.video,
+  }) : super(key: key);
+
+  final File video;
+
+  @override
+  _VideoThumbnailState createState() => _VideoThumbnailState();
+}
+
+class _VideoThumbnailState extends State<VideoThumbnail> {
+  late VideoPlayerController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.file(widget.video)..initialize();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _controller.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(children: [
+      VideoPlayer(_controller),
+      Align(
+        alignment: Alignment.bottomRight,
+        child: Container(
+          margin: EdgeInsets.all(5.0),
+          padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 2.0),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+            color: Colors.black54,
+          ),
+          child: Text(
+            '${_controller.value.duration.inSeconds}s',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      ),
+    ]);
+  }
+}
+
+class FilesList extends StatelessWidget {
+  const FilesList({
+    Key? key,
+    required this.attachments,
+  }) : super(key: key);
+
+  final List<Attachment> attachments;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: attachments.length,
+      itemBuilder: (
+        BuildContext context,
+        int index,
+      ) {
+        return ListTile(
+          leading: Stack(
+            children: [
+              CircleAvatar(
+                child: Icon(
+                  Icons.text_snippet,
+                  color: Colors.white,
+                ),
+                backgroundColor: Colors.grey.shade300,
+              ),
+            ],
+          ),
+          title: Text(
+            '${attachments[index].file.path.split('/').last}',
+            style: Theme.of(context).textTheme.subtitle2!.copyWith(
+                  color: Colors.grey.shade900,
+                ),
+          ),
+          // subtitle: Text(
+          //     '${File(attachments[index].path).lastModifiedSync().toLocal()}'),
+          subtitle: Text(
+            '${(attachments[index].file.lengthSync() / (1024 * 1024)).toStringAsFixed(2)} MB',
+            style: Theme.of(context).textTheme.subtitle2!.copyWith(
+                  color: Colors.grey.shade500,
+                ),
+          ),
+        );
+      },
+    );
   }
 }
 
