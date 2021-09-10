@@ -4,7 +4,6 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:safechat/contacts/models/contact.dart';
 
 import 'package:safechat/user/user.dart';
 import 'package:safechat/contacts/contacts.dart';
@@ -16,18 +15,9 @@ class ContactsRepository {
 
   Future<List<ContactState>> getContacts() async {
     final res = await _apiService.get('/user/contacts');
-    final contactsData = res.data as List;
-    final directory = await getApplicationDocumentsDirectory();
 
-    final contacts = contactsData.map((contactData) {
-      print(contactData);
-      final sharedKey = contactData['sharedKey'] != null
-          ? _encryptionService.rsaDecrypt(contactData['sharedKey'])
-          : null;
-      return getContactState(contactData, directory, sharedKey);
-    });
-
-    return contacts.toList();
+    return await getDecryptedContactsList(res.data as List)
+      ..toList();
   }
 
   Future<ContactState> addContact(User user, String contactEmail) async {
@@ -55,12 +45,10 @@ class ContactsRepository {
     });
 
     return ContactState(
-      contact: Contact(
-        id: res.data['id'],
-        email: res.data['email'],
-        firstName: '',
-        lastName: '',
-      ),
+      id: res.data['id'],
+      email: res.data['email'],
+      firstName: '',
+      lastName: '',
       currentState: CurrentState.PENDING,
     );
   }
@@ -92,48 +80,62 @@ class ContactsRepository {
     });
   }
 
-  ContactState getContactState(
-    contactData,
-    Directory avatarsDirectory,
-    Uint8List? sharedKey,
-  ) {
-    //print({'SHAREDKEY', sharedKey});
-    //print({contactData['email'], contactData['state']});
-    if (sharedKey != null) {
-      contactData['profile']['firstName'] = utf8.decode(
-        _encryptionService.chachaDecrypt(
-          contactData['profile']['firstName'],
-          sharedKey,
-        ),
-      );
+  Future<List<ContactState>> getDecryptedContactsList(
+      List<dynamic> contactsData,
+      [Uint8List? sharedKey]) async {
+    //final directory = await getApplicationDocumentsDirectory();
 
-      contactData['profile']['lastName'] = utf8.decode(
-        _encryptionService.chachaDecrypt(
-          contactData['profile']['lastName'],
-          sharedKey,
-        ),
-      );
+    final List<ContactState> contacts = [];
 
-      if (contactData['profile']['avatar'] != null) {
-        final decryptedAvatar = _encryptionService.chachaDecrypt(
-          contactData['profile']['avatar'],
+    for (var i = 0; i < contactsData.length; i++) {
+      print(contactsData[i]);
+
+      if (sharedKey != null) {
+        contactsData[i]['sharedKey'] = _encryptionService.chachaDecrypt(
+          contactsData[i]['sharedKey'],
           sharedKey,
         );
-
-        final avatar = File('${avatarsDirectory.path}/${contactData["id"]}.jpg')
-          ..writeAsBytes(decryptedAvatar);
-
-        contactData['profile']['avatar'] = avatar;
+      } else {
+        contactsData[i]['sharedKey'] = contactsData[i]['sharedKey'] != null
+            ? _encryptionService.rsaDecrypt(contactsData[i]['sharedKey'])
+            : null;
       }
+
+      var contact = ContactState.fromJson(contactsData[i]);
+      //print(contact);
+
+      if (contact.sharedKey != null) {
+        contact = contact.copyWith(
+          firstName: utf8.decode(
+            _encryptionService.chachaDecrypt(
+              contact.firstName,
+              contact.sharedKey!,
+            ),
+          ),
+          lastName: utf8.decode(
+            _encryptionService.chachaDecrypt(
+              contact.lastName,
+              contact.sharedKey!,
+            ),
+          ),
+        );
+
+        if (contact.avatar != null) {
+          final decryptedAvatar = _encryptionService.chachaDecrypt(
+            base64.encode(contact.avatar!),
+            contact.sharedKey!,
+          );
+
+          //final avatar = ;
+          //print(contact.avatar);
+
+          contact = contact.copyWith(avatar: decryptedAvatar);
+        }
+      }
+
+      contacts.add(contact);
     }
 
-    return ContactState(
-      contact: Contact.fromJson(contactData),
-      currentState: CurrentState.values.firstWhere(
-        (e) =>
-            e.toString().split('.').last ==
-            (contactData['state'] ?? 'ACCEPTED'),
-      ),
-    );
+    return contacts;
   }
 }

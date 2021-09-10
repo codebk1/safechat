@@ -75,7 +75,7 @@ class ContactsCubit extends Cubit<ContactsState> {
 
       emit(state.copyWith(
         contacts: List.of(state.contacts)
-          ..removeWhere((e) => e.contact.id == contactId),
+          ..removeWhere((e) => e.id == contactId),
       ));
     } on DioError catch (e) {
       emit(state.copyWith(

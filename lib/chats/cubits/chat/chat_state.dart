@@ -6,23 +6,26 @@ class ChatState extends Equatable {
     required this.sharedKey,
     this.participants = const [],
     this.messages = const [],
-    this.newMessage = Message.empty,
+    this.message = Message.empty,
     this.typing = const [],
+    this.listStatus = ListStatus.unknow,
   });
 
   final String id;
   final Uint8List sharedKey;
   final List<ContactState> participants;
   final List<Message> messages;
-  final Message newMessage;
+  final Message message;
   final List<String> typing;
+  final ListStatus listStatus;
 
   @override
   List<Object> get props => [
         participants,
         messages,
-        newMessage,
+        message,
         typing,
+        listStatus,
       ];
 
   ChatState copyWith({
@@ -30,16 +33,32 @@ class ChatState extends Equatable {
     Uint8List? sharedKey,
     List<ContactState>? participants,
     List<Message>? messages,
-    Message? newMessage,
+    Message? message,
     List<String>? typing,
+    ListStatus? listStatus,
   }) {
     return ChatState(
       id: id ?? this.id,
       sharedKey: sharedKey ?? this.sharedKey,
       participants: participants ?? this.participants,
       messages: messages ?? this.messages,
-      newMessage: newMessage ?? this.newMessage,
+      message: message ?? this.message,
       typing: typing ?? this.typing,
+      listStatus: listStatus ?? this.listStatus,
     );
   }
+
+  // do wywalenia
+  // ChatState.fromJson(Map<String, dynamic> json)
+  //     : id = json['id'],
+  //       sharedKey = json['sharedKey']!,
+  //       participants = (json['participants']! as List)
+  //           .map((participant) => ContactState.fromJson(participant))
+  //           .toList(),
+  //       messages = (json['messages']! as List)
+  //           .map((msg) => Message.fromJson(msg))
+  //           .toList(),
+  //       message = Message.empty,
+  //       typing = [],
+  //       listStatus = ListStatus.unknow;
 }

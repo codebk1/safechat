@@ -6,14 +6,14 @@ class CreateChatState extends Equatable {
     this.status = const FormStatus.init(),
   });
 
-  final List<Contact> selectedParticipants;
+  final List<ContactState> selectedParticipants;
   final FormStatus status;
 
   @override
   List<Object> get props => [selectedParticipants];
 
   CreateChatState copyWith({
-    List<Contact>? selectedParticipants,
+    List<ContactState>? selectedParticipants,
     FormStatus? status,
   }) {
     return CreateChatState(

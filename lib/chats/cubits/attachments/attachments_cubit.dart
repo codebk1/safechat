@@ -43,16 +43,16 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
           }
 
           _attachments.add(Attachment(
-            file: File(entity.absolute.path),
+            file: entity.absolute.path,
             type: _type,
           ));
         }
       });
 
-      _attachments.sort((a, b) => b.file
-          .lastModifiedSync()
-          .toLocal()
-          .compareTo(a.file.lastModifiedSync().toLocal()));
+      // _attachments.sort((a, b) => b.file
+      //     .lastModifiedSync()
+      //     .toLocal()
+      //     .compareTo(a.file.lastModifiedSync().toLocal()));
 
       emit(state.copyWith(loading: false, attachments: _attachments));
     }

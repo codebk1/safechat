@@ -2,7 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:safechat/chats/repository/chats_repository.dart';
-import 'package:safechat/contacts/models/contact.dart';
+import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/utils/utils.dart';
 
 part 'create_chat_state.dart';
@@ -12,7 +12,7 @@ class CreateChatCubit extends Cubit<CreateChatState> {
 
   final ChatsRepository _chatsRepository = ChatsRepository();
 
-  toggleParticipant(Contact participant) {
+  toggleParticipant(ContactState participant) {
     emit(state.copyWith(
       selectedParticipants: state.selectedParticipants.contains(participant)
           ? [
@@ -25,7 +25,9 @@ class CreateChatCubit extends Cubit<CreateChatState> {
 
   Future<void> createChat() async {
     try {
-      await _chatsRepository.createChat(state.selectedParticipants);
+      await _chatsRepository.createChat(
+        state.selectedParticipants.map((e) => e.id).toList(),
+      );
     } on DioError catch (e) {
       print(e);
       emit(state.copyWith(

@@ -3,11 +3,9 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
 import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/contacts/contacts.dart';
-import 'package:safechat/contacts/models/contact.dart';
 
 import 'package:safechat/utils/utils.dart';
 
@@ -19,59 +17,57 @@ class ChatsRepository {
   Future<List<ChatState>> getChats() async {
     final res = await _apiService.get('/chat');
     final chatsData = res.data as List;
-    final directory = await getApplicationDocumentsDirectory();
 
-    final chats = chatsData.map((chatData) {
-      final participantsData = chatData['participants'] as List;
-      final messagesData = chatData['messages'] as List;
+    List<ChatState> chats = [];
 
+    for (var i = 0; i < chatsData.length; i++) {
       final decryptedChatSharedKey = _encryptionService.rsaDecrypt(
-        chatData['sharedKey'],
+        chatsData[i]['sharedKey'],
       );
 
-      final participants = participantsData.map((participant) {
-        // odszyfrowany klucz współdzielony członka czatu za pomocą klucza współdzielonego danego czatu
-        final sharedKey = _encryptionService.chachaDecrypt(
-          participant['sharedKey'],
-          decryptedChatSharedKey,
-        );
+      final chatParticipants =
+          await _contactsRepository.getDecryptedContactsList(
+        chatsData[i]['participants'] as List,
+        decryptedChatSharedKey,
+      );
 
-        return _contactsRepository.getContactState(
-          participant,
-          directory,
-          sharedKey,
-        );
-      }).toList();
+      print(chatParticipants);
 
-      final messages = messagesData.map((message) {
-        print(message['unreadBy']);
-        return Message(
-          sender: message['sender'],
-          type: MessageType.values.firstWhere(
-            (e) => describeEnum(e) == message['type'],
-          ),
-          data: utf8.decode(
-            _encryptionService.chachaDecrypt(
-              message['data'],
+      List<Message> chatMessages = [];
+
+      for (var j = 0; j < chatsData[i]['messages'].length; j++) {
+        final msg = Message.fromJson(chatsData[i]['messages'][j]);
+
+        chatMessages.add(msg.copyWith(
+            content: msg.content.map((item) {
+          if (item.type == MessageType.TEXT) {
+            return item.copyWith(
+                data: utf8.decode(_encryptionService.chachaDecrypt(
+              item.data,
               decryptedChatSharedKey,
-            ),
-          ),
-          unreadBy: List<String>.from(message['unreadBy']),
-        );
-      }).toList();
+            )));
+          }
 
-      return ChatState(
-        id: chatData['id'],
+          return item;
+        }).toList()));
+      }
+
+      final chat = ChatState(
+        id: chatsData[i]['id'],
         sharedKey: decryptedChatSharedKey,
-        participants: participants,
-        messages: messages.reversed.toList(),
+        participants: chatParticipants,
+        messages: chatMessages.reversed.toList(),
       );
-    });
+
+      print(chat);
+
+      chats.add(chat);
+    }
 
     return chats.toList();
   }
 
-  Future<void> createChat(List<Contact> participants) async {
+  Future<void> createChat(List<String> participantsIDs) async {
     final chatSharedKey =
         _encryptionService.genereateSecureRandom().nextBytes(32);
 
@@ -88,9 +84,9 @@ class ChatsRepository {
       ),
     });
 
-    for (var i = 0; i < participants.length; i++) {
+    for (var i = 0; i < participantsIDs.length; i++) {
       final participant = await _apiService.get(
-        '/user/contacts/${participants[i].id}',
+        '/user/contacts/${participantsIDs[i]}',
       );
 
       await _apiService.post('/chat/participants', data: {
@@ -115,15 +111,69 @@ class ChatsRepository {
     }
   }
 
-  Future<void> addMessage(String chatId, Message message) async {
-    await _apiService.post('/chat/messages', data: {
-      'id': chatId,
-      'message': {
-        'sender': message.sender,
-        'type': describeEnum(message.type),
-        'data': base64.encode(message.data),
-      }
-    });
+  Future<List<Message>> getMessages(String chatId, Uint8List sharedKey) async {
+    final res = await _apiService.get('/chat/$chatId/messages/');
+    final messagesData = res.data as List;
+
+    List<Message> messages = [];
+
+    for (var i = 0; i < messagesData.length; i++) {
+      final msg = Message.fromJson(messagesData[i]);
+
+      messages.add(msg.copyWith(
+          content: msg.content.map((item) {
+        if (item.type == MessageType.TEXT) {
+          return item.copyWith(
+              data: utf8.decode(_encryptionService.chachaDecrypt(
+            item.data,
+            sharedKey,
+          )));
+        }
+
+        return item;
+      }).toList()));
+    }
+
+    return messages;
+  }
+
+  Future<Uint8List> getAttachment(
+    String chatId,
+    String attachmentName,
+    Uint8List chatSharedKey,
+  ) async {
+    final res = await _apiService.get(
+      '/chat/$chatId/messages/attachments/$attachmentName',
+    );
+
+    final decryptedAttachment = _encryptionService.chachaDecrypt(
+      res.data,
+      chatSharedKey,
+    );
+
+    return decryptedAttachment;
+  }
+
+  Future<void> addMessage(
+    String chatId,
+    Message encryptedMessage,
+    List<MultipartFile> encryptedAttachments,
+  ) async {
+    final formData = FormData.fromMap(
+      {
+        'id': chatId,
+        'message': encryptedMessage.toJson(),
+        'attachments': encryptedAttachments,
+      },
+    );
+
+    await _apiService.post(
+      '/chat/messages',
+      data: formData,
+      onSendProgress: (int sent, int total) {
+        //print('${(sent / total * 100)} %');
+      },
+    );
   }
 
   Future<void> readAllMessages(String chatId) async {

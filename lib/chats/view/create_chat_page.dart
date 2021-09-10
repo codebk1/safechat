@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/chats/cubits/create_chat/create_chat_cubit.dart';
 import 'package:safechat/contacts/contacts.dart';
-import 'package:safechat/contacts/models/contact.dart';
 
 class CreateChatPage extends StatelessWidget {
   @override
@@ -175,10 +174,7 @@ class CreateChatPage extends StatelessWidget {
                                                 return BlocProvider(
                                                   create: (context) =>
                                                       ContactCubit(
-                                                    contact:
-                                                        contactState.contact,
-                                                    currentState: contactState
-                                                        .currentState,
+                                                    contact: contactState,
                                                   ),
                                                   child: BlocBuilder<
                                                       ContactCubit,
@@ -188,34 +184,33 @@ class CreateChatPage extends StatelessWidget {
                                                         value: createChatState
                                                             .selectedParticipants
                                                             .contains(
-                                                          state.contact,
+                                                          state,
                                                         ),
                                                         onChanged: (selected) {
                                                           context
                                                               .read<
                                                                   CreateChatCubit>()
                                                               .toggleParticipant(
-                                                                state.contact,
+                                                                state,
                                                               );
                                                         },
                                                         secondary: Stack(
                                                           children: [
                                                             CircleAvatar(
-                                                              child: state.contact
-                                                                          .avatar !=
-                                                                      null
-                                                                  ? ClipOval(
-                                                                      child: Image.file(state
-                                                                          .contact
-                                                                          .avatar!),
-                                                                    )
-                                                                  : Icon(
-                                                                      Icons
-                                                                          .person,
-                                                                      color: Colors
-                                                                          .grey
-                                                                          .shade50,
-                                                                    ),
+                                                              child:
+                                                                  state.avatar !=
+                                                                          null
+                                                                      ? ClipOval(
+                                                                          child:
+                                                                              Image.memory(state.avatar!),
+                                                                        )
+                                                                      : Icon(
+                                                                          Icons
+                                                                              .person,
+                                                                          color: Colors
+                                                                              .grey
+                                                                              .shade50,
+                                                                        ),
                                                               backgroundColor:
                                                                   Colors.grey
                                                                       .shade300,
@@ -228,8 +223,7 @@ class CreateChatPage extends StatelessWidget {
                                                                 width: 14,
                                                                 decoration:
                                                                     BoxDecoration(
-                                                                  color: state.contact
-                                                                              .status ==
+                                                                  color: state.status ==
                                                                           Status
                                                                               .ONLINE
                                                                       ? Colors
@@ -250,7 +244,7 @@ class CreateChatPage extends StatelessWidget {
                                                           ],
                                                         ),
                                                         title: Text(
-                                                          '${state.contact.firstName} ${state.contact.lastName}',
+                                                          '${state.firstName} ${state.lastName}',
                                                         ),
                                                       );
                                                     },

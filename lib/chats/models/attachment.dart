@@ -10,14 +10,14 @@ class Attachment extends Equatable {
     required this.type,
   });
 
-  final File file;
+  final String file;
   final AttachmentType type;
 
   @override
   List<Object?> get props => [file, type];
 
   Attachment copyWith({
-    File? file,
+    String? file,
     AttachmentType? type,
   }) {
     return Attachment(

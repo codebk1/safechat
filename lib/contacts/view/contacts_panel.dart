@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:safechat/contacts/contacts.dart';
-import 'package:safechat/contacts/models/contact.dart';
 
 class ContactsPanel extends StatelessWidget {
   const ContactsPanel({Key? key}) : super(key: key);
@@ -89,15 +88,9 @@ class ContactsPanel extends StatelessWidget {
                                           BuildContext context,
                                           int index,
                                         ) {
-                                          final contactState =
-                                              state.contacts[index];
-
                                           return BlocProvider(
                                             create: (context) => ContactCubit(
-                                              contact: contactState.contact,
-                                              currentState:
-                                                  contactState.currentState,
-                                            ),
+                                                contact: state.contacts[index]),
                                             child: BlocBuilder<ContactCubit,
                                                 ContactState>(
                                               builder: (context, state) {
@@ -113,21 +106,20 @@ class ContactsPanel extends StatelessWidget {
                                                   leading: Stack(
                                                     children: [
                                                       CircleAvatar(
-                                                        child: state.contact
-                                                                    .avatar !=
-                                                                null
-                                                            ? ClipOval(
-                                                                child: Image
-                                                                    .file(state
-                                                                        .contact
-                                                                        .avatar!),
-                                                              )
-                                                            : Icon(
-                                                                Icons.person,
-                                                                color: Colors
-                                                                    .grey
-                                                                    .shade50,
-                                                              ),
+                                                        child:
+                                                            state.avatar != null
+                                                                ? ClipOval(
+                                                                    child: Image
+                                                                        .memory(
+                                                                            state.avatar!),
+                                                                  )
+                                                                : Icon(
+                                                                    Icons
+                                                                        .person,
+                                                                    color: Colors
+                                                                        .grey
+                                                                        .shade50,
+                                                                  ),
                                                         backgroundColor: Colors
                                                             .grey.shade300,
                                                       ),
@@ -145,8 +137,7 @@ class ContactsPanel extends StatelessWidget {
                                                             width: 14,
                                                             decoration:
                                                                 BoxDecoration(
-                                                              color: state.contact
-                                                                          .status ==
+                                                              color: state.status ==
                                                                       Status
                                                                           .ONLINE
                                                                   ? Colors.green
@@ -167,10 +158,10 @@ class ContactsPanel extends StatelessWidget {
                                                   title: state.currentState ==
                                                           CurrentState.PENDING
                                                       ? Text(
-                                                          '${state.contact.email}',
+                                                          '${state.email}',
                                                         )
                                                       : Text(
-                                                          '${state.contact.firstName} ${state.contact.lastName}',
+                                                          '${state.firstName} ${state.lastName}',
                                                         ),
                                                   trailing: _ContactActions(),
                                                 );
@@ -213,7 +204,7 @@ class _ContactActions extends StatelessWidget {
               IconButton(
                 onPressed: () {
                   context.read<ContactsCubit>().cancelInvitation(
-                        state.contact.id,
+                        state.id,
                       );
                 },
                 icon: Icon(
@@ -227,7 +218,7 @@ class _ContactActions extends StatelessWidget {
           return IconButton(
             onPressed: () {
               context.read<ContactsCubit>().cancelInvitation(
-                    state.contact.id,
+                    state.id,
                   );
             },
             icon: Icon(Icons.cancel),

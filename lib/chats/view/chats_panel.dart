@@ -4,7 +4,6 @@ import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/contacts/contacts.dart';
-import 'package:safechat/contacts/models/contact.dart';
 
 import 'package:safechat/home/view/panels/side_panels.dart';
 import 'package:safechat/user/user.dart';
@@ -89,7 +88,7 @@ class MainPanel extends StatelessWidget {
                                 itemCount: state.chats.length,
                                 itemBuilder: (context, index) {
                                   final chatState = state.chats[index].copyWith(
-                                    newMessage: Message.empty.copyWith(
+                                    message: Message(
                                       sender: context
                                           .read<UserCubit>()
                                           .state
@@ -103,9 +102,7 @@ class MainPanel extends StatelessWidget {
                                   );
 
                                   final contactCubit = ContactCubit(
-                                    contact: chatState.participants[0].contact,
-                                    currentState:
-                                        chatState.participants[0].currentState,
+                                    contact: chatState.participants[0],
                                   );
 
                                   return MultiBlocProvider(
@@ -128,13 +125,10 @@ class MainPanel extends StatelessWidget {
                                               return Stack(
                                                 children: [
                                                   CircleAvatar(
-                                                    child: state.contact
-                                                                .avatar !=
-                                                            null
+                                                    child: state.avatar != null
                                                         ? ClipOval(
-                                                            child: Image.file(
-                                                                state.contact
-                                                                    .avatar!),
+                                                            child: Image.memory(
+                                                                state.avatar!),
                                                           )
                                                         : Icon(
                                                             Icons.person,
@@ -151,8 +145,7 @@ class MainPanel extends StatelessWidget {
                                                       height: 14,
                                                       width: 14,
                                                       decoration: BoxDecoration(
-                                                        color: state.contact
-                                                                    .status ==
+                                                        color: state.status ==
                                                                 Status.ONLINE
                                                             ? Colors.green
                                                             : Colors.grey,
@@ -169,11 +162,16 @@ class MainPanel extends StatelessWidget {
                                             },
                                           ),
                                           title: Text(
-                                            '${state.participants[0].contact.firstName} ${state.participants[0].contact.lastName}',
+                                            '${state.participants[0].firstName} ${state.participants[0].lastName}',
                                           ),
                                           subtitle: Text(
                                             state.messages.length > 0
-                                                ? state.messages[0].data
+                                                ? state.messages[0].content[0]
+                                                            .type ==
+                                                        MessageType.TEXT
+                                                    ? state.messages[0]
+                                                        .content[0].data
+                                                    : '${state.participants[0].firstName} wysłał załącznik(-i).'
                                                 : 'Wyślij pierwszą wiadomość',
                                             overflow: TextOverflow.ellipsis,
                                             maxLines: 1,

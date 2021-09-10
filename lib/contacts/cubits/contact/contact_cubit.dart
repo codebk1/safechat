@@ -1,8 +1,11 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:safechat/chats/repository/chats_repository.dart';
-import 'package:safechat/contacts/models/contact.dart';
 import 'package:safechat/contacts/repository/contacts_repository.dart';
 import 'package:safechat/utils/socket_service.dart';
 
@@ -10,16 +13,11 @@ part 'contact_state.dart';
 
 class ContactCubit extends Cubit<ContactState> {
   ContactCubit({
-    required Contact contact,
-    required CurrentState currentState,
-  }) : super(ContactState(contact: contact, currentState: currentState)) {
-    //_wsService.socket.emit('test', contact.email);
-
-    _wsService.socket.on(state.contact.id, (status) {
-      print('STATUS CHANGED: ${state.contact.email}');
+    required ContactState contact,
+  }) : super(contact) {
+    _wsService.socket.on(state.id, (status) {
       emit(state.copyWith(
-        contact: state.contact.copyWith(
-            status: status == 'online' ? Status.ONLINE : Status.OFFLINE),
+        status: status == 'online' ? Status.ONLINE : Status.OFFLINE,
       ));
     });
   }
@@ -30,7 +28,7 @@ class ContactCubit extends Cubit<ContactState> {
 
   Future<void> createChat() async {
     try {
-      await _chatsRepository.createChat([state.contact]);
+      await _chatsRepository.createChat([state.id]);
     } on DioError catch (e) {
       print(e);
       // emit(state.copyWith(
@@ -46,7 +44,7 @@ class ContactCubit extends Cubit<ContactState> {
 
   Future<void> acceptInvitation() async {
     try {
-      await _contactsRepository.acceptInvitation(state.contact.id);
+      await _contactsRepository.acceptInvitation(state.id);
 
       emit(state.copyWith(currentState: CurrentState.ACCEPTED));
     } on DioError catch (e) {

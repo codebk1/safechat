@@ -81,7 +81,7 @@ class AppRouter {
         final args = routeSettings.arguments as ChatCubit;
         return PageRouteBuilder(
           pageBuilder: (_, __, ___) => ChatPage(
-            chatCubit: args,
+            chatCubit: args, //..getMessages(),
           ),
         );
       case '/chats/create':
