@@ -33,6 +33,7 @@ dependencies:
   image: ^3.0.2
   image_picker: ^0.8.3+2
   mime: ^1.0.0
+  open_file: ^3.2.1
   path_provider: ^2.0.2
   permission_handler: ^8.1.4+2
   pointycastle: ^3.2.0
@@ -40,6 +41,7 @@ dependencies:
   socket_io_client: ^2.0.0-beta.4-nullsafety.0
   transparent_image: ^2.0.0
   video_player: ^2.1.14
+  video_thumbnail: ^0.4.3
 
 dev_dependencies:
   flutter_test:

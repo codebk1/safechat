@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -137,6 +139,28 @@ class ChatsRepository {
     return messages;
   }
 
+  // TODO
+  downloadVideo(
+    String chatId,
+    String attachmentName,
+    Uint8List chatSharedKey,
+  ) {
+    Stream<List<int>> stream = _apiService
+        .download('', '')
+        .asStream()
+        .transform(
+            StreamTransformer.fromHandlers(handleData: (data, EventSink sink) {
+      final decryptedData = _encryptionService.chachaDecrypt(
+        data as String,
+        chatSharedKey,
+      );
+
+      sink.add(decryptedData);
+    }));
+
+    File('').openWrite(mode: FileMode.append).addStream(stream);
+  }
+
   Future<Uint8List> getAttachment(
     String chatId,
     String attachmentName,
@@ -171,7 +195,7 @@ class ChatsRepository {
       '/chat/messages',
       data: formData,
       onSendProgress: (int sent, int total) {
-        //print('${(sent / total * 100)} %');
+        print('${(sent / total) * 100} %');
       },
     );
   }

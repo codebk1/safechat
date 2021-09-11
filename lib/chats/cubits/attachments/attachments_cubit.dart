@@ -5,7 +5,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:mime/mime.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:safechat/chats/models/attachment.dart';
+import 'package:safechat/chats/cubits/attachment/attachment_cubit.dart';
 
 part 'attachments_state.dart';
 
@@ -17,7 +17,7 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
     if (await Permission.storage.request().isGranted) {
       emit(state.copyWith(loading: true));
 
-      List<Attachment> _attachments = [];
+      List<AttachmentState> _attachments = [];
 
       var _downloadDirFiles = await this._listDirectory(
         Directory('/storage/emulated/0/Download'),
@@ -42,8 +42,8 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
               _type = AttachmentType.FILE;
           }
 
-          _attachments.add(Attachment(
-            file: entity.absolute.path,
+          _attachments.add(AttachmentState(
+            name: entity.absolute.path,
             type: _type,
           ));
         }
@@ -69,7 +69,7 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
     return completer.future;
   }
 
-  toggleAttachment(Attachment attachment) {
+  toggleAttachment(AttachmentState attachment) {
     emit(state.copyWith(
       selectedAttachments: state.selectedAttachments.contains(attachment)
           ? [

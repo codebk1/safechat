@@ -6,8 +6,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:safechat/chats/models/attachment.dart';
+import 'package:safechat/chats/cubits/attachment/attachment_cubit.dart';
 import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/chats/repository/chats_repository.dart';
 import 'package:safechat/contacts/contacts.dart';
@@ -93,15 +92,23 @@ class ChatCubit extends Cubit<ChatState> {
       }
     });
 
-    _wsService.socket.on('typing.start', (participantId) {
-      emit(state.copyWith(typing: [...state.typing, participantId]));
-    });
-
-    _wsService.socket.on('typing.stop', (participantId) {
+    _wsService.socket.on('typing.toggle', (participantId) {
       emit(state.copyWith(
-        typing: List.of(state.typing)..removeWhere((e) => e == participantId),
+        typing: state.typing.contains(participantId)
+            ? [...List.of(state.typing)..remove(participantId)]
+            : [...state.typing, participantId],
       ));
     });
+
+    // _wsService.socket.on('typing.start', (participantId) {
+    //   emit(state.copyWith(typing: [...state.typing, participantId]));
+    // });
+
+    // _wsService.socket.on('typing.stop', (participantId) {
+    //   emit(state.copyWith(
+    //     typing: List.of(state.typing)..removeWhere((e) => e == participantId),
+    //   ));
+    // });
   }
 
   final _wsService = SocketService();
@@ -140,14 +147,14 @@ class ChatCubit extends Cubit<ChatState> {
     return await cacheManager.putFile(attachmentName, attachment);
   }
 
-  sendMessage(List<Attachment> attachments) async {
+  sendMessage(List<AttachmentState> attachments) async {
     DefaultCacheManager cacheManager = DefaultCacheManager();
     List<MultipartFile> encryptedAttachments = [];
     List<MessageItem> items = [];
 
     for (var i = 0; i < attachments.length; i++) {
       final attachmentName =
-          '${DateTime.now().millisecondsSinceEpoch}_$i.${attachments[i].file.split('.').last}';
+          '${DateTime.now().millisecondsSinceEpoch}_$i.${attachments[i].name.split('.').last}';
 
       items.add(MessageItem(
           type: MessageType.values.firstWhere(
@@ -155,7 +162,7 @@ class ChatCubit extends Cubit<ChatState> {
           ),
           data: attachmentName));
 
-      final file = File(attachments[i].file).readAsBytesSync();
+      final file = File(attachments[i].name).readAsBytesSync();
 
       encryptedAttachments.add(MultipartFile.fromBytes(
         _encryptionService.chachaEncrypt(
@@ -204,7 +211,7 @@ class ChatCubit extends Cubit<ChatState> {
           encryptedAttachments,
         );
 
-    stopTyping(encryptedMessage.sender);
+    toggleTyping(encryptedMessage.sender);
 
     // this._wsService.socket.emit('msg', {
     //   'room': state.id,
@@ -245,17 +252,24 @@ class ChatCubit extends Cubit<ChatState> {
     ));
   }
 
-  startTyping(String participantId) {
-    _wsService.socket.emit('typing.start', {
+  toggleTyping(String participantId) {
+    _wsService.socket.emit('typing.toggle', {
       'room': state.id,
       'participantId': participantId,
     });
   }
 
-  stopTyping(String participantId) {
-    _wsService.socket.emit('typing.stop', {
-      'room': state.id,
-      'participantId': participantId,
-    });
-  }
+  // startTyping(String participantId) {
+  //   _wsService.socket.emit('typing.start', {
+  //     'room': state.id,
+  //     'participantId': participantId,
+  //   });
+  // }
+
+  // stopTyping(String participantId) {
+  //   _wsService.socket.emit('typing.stop', {
+  //     'room': state.id,
+  //     'participantId': participantId,
+  //   });
+  // }
 }
