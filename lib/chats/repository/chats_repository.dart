@@ -140,26 +140,26 @@ class ChatsRepository {
   }
 
   // TODO
-  downloadVideo(
-    String chatId,
-    String attachmentName,
-    Uint8List chatSharedKey,
-  ) {
-    Stream<List<int>> stream = _apiService
-        .download('', '')
-        .asStream()
-        .transform(
-            StreamTransformer.fromHandlers(handleData: (data, EventSink sink) {
-      final decryptedData = _encryptionService.chachaDecrypt(
-        data as String,
-        chatSharedKey,
-      );
+  // downloadVideo(
+  //   String chatId,
+  //   String attachmentName,
+  //   Uint8List chatSharedKey,
+  // ) {
+  //   Stream<List<int>> stream = _apiService
+  //       .download('', '')
+  //       .asStream()
+  //       .transform(
+  //           StreamTransformer.fromHandlers(handleData: (data, EventSink sink) {
+  //     final decryptedData = _encryptionService.chachaDecrypt(
+  //       data as String,
+  //       chatSharedKey,
+  //     );
 
-      sink.add(decryptedData);
-    }));
+  //     sink.add(decryptedData);
+  //   }));
 
-    File('').openWrite(mode: FileMode.append).addStream(stream);
-  }
+  //   File('').openWrite(mode: FileMode.append).addStream(stream);
+  // }
 
   Future<Uint8List> getAttachment(
     String chatId,

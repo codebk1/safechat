@@ -11,6 +11,7 @@ import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/chats/repository/chats_repository.dart';
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/utils/utils.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 part 'chat_state.dart';
 
@@ -129,8 +130,14 @@ class ChatCubit extends Cubit<ChatState> {
     ));
   }
 
-  Future<File> getAttachment(String attachmentName) async {
+  Future<File> getAttachment(AttachmentState attachment,
+      {bool thumbnail = true}) async {
     final cacheManager = DefaultCacheManager();
+    var attachmentName = attachment.name;
+
+    if (attachment.type == AttachmentType.VIDEO && thumbnail) {
+      attachmentName = '${attachment.name.split('.').first}_thumb.jpg';
+    }
 
     var cachedFile = await cacheManager.getFileFromCache(attachmentName);
 
@@ -138,13 +145,13 @@ class ChatCubit extends Cubit<ChatState> {
       return cachedFile.file;
     }
 
-    final attachment = await _chatsRepository.getAttachment(
+    final attachmentFile = await _chatsRepository.getAttachment(
       state.id,
       attachmentName,
       state.sharedKey,
     );
 
-    return await cacheManager.putFile(attachmentName, attachment);
+    return await cacheManager.putFile(attachmentName, attachmentFile);
   }
 
   sendMessage(List<AttachmentState> attachments) async {
@@ -163,6 +170,28 @@ class ChatCubit extends Cubit<ChatState> {
           data: attachmentName));
 
       final file = File(attachments[i].name).readAsBytesSync();
+
+      // generate thumbnail for video
+      if (attachments[i].type == AttachmentType.VIDEO) {
+        final thumbName = '${attachmentName.split('.').first}_thumb.jpg';
+
+        final thumb = await VideoThumbnail.thumbnailData(
+          video: attachments[i].name,
+          imageFormat: ImageFormat.JPEG,
+          maxWidth: 1024,
+          quality: 50,
+        );
+
+        encryptedAttachments.add(MultipartFile.fromBytes(
+          _encryptionService.chachaEncrypt(
+            thumb!,
+            state.sharedKey,
+          ),
+          filename: thumbName,
+        ));
+
+        await cacheManager.putFile(thumbName, thumb);
+      }
 
       encryptedAttachments.add(MultipartFile.fromBytes(
         _encryptionService.chachaEncrypt(

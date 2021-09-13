@@ -7,6 +7,7 @@ import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
 import 'package:safechat/chats/cubits/create_chat/create_chat_cubit.dart';
 import 'package:safechat/chats/view/chat_page.dart';
 import 'package:safechat/chats/view/create_chat_page.dart';
+import 'package:safechat/chats/view/media_page.dart';
 import 'package:safechat/profile/cubit/profile_cubit.dart';
 import 'package:safechat/profile/view/edit_profile_page.dart';
 
@@ -17,6 +18,8 @@ import 'package:safechat/splash_screen.dart';
 import 'package:safechat/login/login.dart';
 import 'package:safechat/signup/signup.dart';
 import 'package:safechat/home/home.dart';
+
+import 'chats/cubits/attachment/attachment_cubit.dart';
 
 class AppRouter {
   Route? onGenerateRoute(RouteSettings routeSettings) {
@@ -96,8 +99,25 @@ class AppRouter {
             child: CreateChatPage(),
           ),
         );
+      case '/chat/video':
+        final args = routeSettings.arguments as MediaPageArguments;
+        return PageRouteBuilder(
+          pageBuilder: (_, __, ___) => BlocProvider.value(
+            value: args.chatCubit,
+            child: MediaPage(
+              attachment: args.attachmentState,
+            ),
+          ),
+        );
       default:
         return null;
     }
   }
+}
+
+class MediaPageArguments {
+  final ChatCubit chatCubit;
+  final AttachmentState attachmentState;
+
+  MediaPageArguments(this.chatCubit, this.attachmentState);
 }

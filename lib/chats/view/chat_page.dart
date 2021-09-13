@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:async/async.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:math';
@@ -13,8 +12,8 @@ import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
 import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/chats/view/widgets/message_text_field.dart';
 import 'package:safechat/contacts/contacts.dart';
+import 'package:safechat/router.dart';
 import 'package:safechat/user/user.dart';
-import 'package:video_player/video_player.dart';
 
 class ChatPage extends StatelessWidget {
   const ChatPage({Key? key, required this.chatCubit}) : super(key: key);
@@ -487,9 +486,8 @@ class _PhotoMessageState extends State<PhotoMessage> {
         itemCount: widget.photos.length,
         itemBuilder: (BuildContext context, index) {
           return FutureBuilder(
-              future: context
-                  .read<ChatCubit>()
-                  .getAttachment(widget.photos[index].name),
+              future:
+                  context.read<ChatCubit>().getAttachment(widget.photos[index]),
               builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
                 if (snapshot.hasData) {
                   return GestureDetector(
@@ -573,50 +571,50 @@ class _PhotoMessageState extends State<PhotoMessage> {
   }
 }
 
-class VideoMessageThumbnail extends StatefulWidget {
-  const VideoMessageThumbnail({
-    Key? key,
-    required this.video,
-  }) : super(key: key);
+// class VideoMessageThumbnail extends StatefulWidget {
+//   const VideoMessageThumbnail({
+//     Key? key,
+//     required this.video,
+//   }) : super(key: key);
 
-  final File video;
+//   final File video;
 
-  @override
-  _VideoMessageThumbnailState createState() => _VideoMessageThumbnailState();
-}
+//   @override
+//   _VideoMessageThumbnailState createState() => _VideoMessageThumbnailState();
+// }
 
-class _VideoMessageThumbnailState extends State<VideoMessageThumbnail> {
-  late VideoPlayerController _controller;
+// class _VideoMessageThumbnailState extends State<VideoMessageThumbnail> {
+//   late VideoPlayerController _controller;
 
-  @override
-  void initState() {
-    super.initState();
-    _controller = VideoPlayerController.file(widget.video)..initialize();
-  }
+//   @override
+//   void initState() {
+//     super.initState();
+//     _controller = VideoPlayerController.file(widget.video)..initialize();
+//   }
 
-  @override
-  void dispose() {
-    super.dispose();
-    _controller.dispose();
-  }
+//   @override
+//   void dispose() {
+//     super.dispose();
+//     _controller.dispose();
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Stack(children: [
-      VideoPlayer(_controller),
-      Align(
-        alignment: Alignment.center,
-        child: Icon(
-          Icons.play_circle,
-          color: Colors.white,
-          size: 55,
-        ),
-      ),
-    ]);
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Stack(children: [
+//       VideoPlayer(_controller),
+//       Align(
+//         alignment: Alignment.center,
+//         child: Icon(
+//           Icons.play_circle,
+//           color: Colors.white,
+//           size: 55,
+//         ),
+//       ),
+//     ]);
+//   }
+// }
 
-class VideosMessage extends StatefulWidget {
+class VideosMessage extends StatelessWidget {
   const VideosMessage({
     Key? key,
     required this.videos,
@@ -625,35 +623,75 @@ class VideosMessage extends StatefulWidget {
   final List<AttachmentState> videos;
 
   @override
-  State<VideosMessage> createState() => _VideosMessageState();
-}
-
-class _VideosMessageState extends State<VideosMessage> {
-  @override
   Widget build(BuildContext context) {
     return GridView.builder(
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: min(widget.videos.length, 3),
+          crossAxisCount: min(videos.length, 3),
           crossAxisSpacing: 5,
           mainAxisSpacing: 5,
         ),
-        itemCount: widget.videos.length,
+        itemCount: videos.length,
         itemBuilder: (BuildContext context, index) {
           return FutureBuilder(
-              future: context
-                  .read<ChatCubit>()
-                  .getAttachment(widget.videos[index].name),
+              future: context.read<ChatCubit>().getAttachment(videos[index]),
               builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
                 if (snapshot.hasData) {
-                  return GestureDetector(
-                    onTap: () => {},
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(10),
+                  return ClipRRect(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(10),
+                    ),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          '/chat/video',
+                          arguments: MediaPageArguments(
+                            context.read<ChatCubit>(),
+                            videos[index],
+                          ),
+                        );
+                      },
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.file(
+                            snapshot.data!,
+                            fit: BoxFit.cover,
+                            frameBuilder: (
+                              BuildContext context,
+                              Widget child,
+                              int? frame,
+                              bool wasSynchronouslyLoaded,
+                            ) {
+                              if (wasSynchronouslyLoaded) {
+                                return child;
+                              }
+                              return Container(
+                                child: AnimatedOpacity(
+                                  child: child,
+                                  opacity: frame == null ? 0 : 1,
+                                  duration: const Duration(seconds: 1),
+                                  curve: Curves.easeOut,
+                                ),
+                              );
+                            },
+                          ),
+                          DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: Colors.black26,
+                            ),
+                          ),
+                          Align(
+                            alignment: Alignment.center,
+                            child: Icon(
+                              Icons.play_circle,
+                              color: Colors.white,
+                              size: 60,
+                            ),
+                          ),
+                        ],
                       ),
-                      child: VideoMessageThumbnail(video: snapshot.data),
                     ),
                   );
                 } else {

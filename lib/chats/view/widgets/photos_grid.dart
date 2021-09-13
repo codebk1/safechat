@@ -27,6 +27,7 @@ class PhotosGrid extends StatelessWidget {
                 .toggleAttachment(attachments[index]),
             child: BlocBuilder<AttachmentsCubit, AttachmentsState>(
               builder: (context, state) {
+                print(state.selectedAttachments);
                 return Container(
                   margin: EdgeInsets.all(5.0),
                   child: Stack(

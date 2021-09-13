@@ -14,7 +14,7 @@ class AttachmentState extends Equatable {
   final bool downloading;
 
   @override
-  List<Object> get props => [downloading];
+  List<Object> get props => [name, type, downloading];
 
   AttachmentState copyWith({
     String? name,
