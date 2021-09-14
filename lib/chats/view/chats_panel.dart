@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
 import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -87,14 +89,11 @@ class MainPanel extends StatelessWidget {
                             : ListView.builder(
                                 itemCount: state.chats.length,
                                 itemBuilder: (context, index) {
+                                  final currentUser =
+                                      context.read<UserCubit>().state.user;
+
                                   final chatState = state.chats[index].copyWith(
-                                    message: Message(
-                                      sender: context
-                                          .read<UserCubit>()
-                                          .state
-                                          .user
-                                          .id,
-                                    ),
+                                    message: Message(sender: currentUser.id),
                                   );
 
                                   final chatCubit = ChatCubit(
@@ -102,7 +101,10 @@ class MainPanel extends StatelessWidget {
                                   );
 
                                   final contactCubit = ContactCubit(
-                                    contact: chatState.participants[0],
+                                    contact: chatState.participants.singleWhere(
+                                      (participant) =>
+                                          participant.id != currentUser.id,
+                                    ),
                                   );
 
                                   return MultiBlocProvider(
@@ -112,29 +114,37 @@ class MainPanel extends StatelessWidget {
                                     ],
                                     child: BlocBuilder<ChatCubit, ChatState>(
                                       builder: (context, state) {
-                                        return ListTile(
-                                          onTap: () {
-                                            Navigator.of(context).pushNamed(
-                                              '/chat',
-                                              arguments: chatCubit,
-                                            );
-                                          },
-                                          leading: BlocBuilder<ContactCubit,
-                                              ContactState>(
-                                            builder: (context, state) {
-                                              return Stack(
+                                        print({
+                                          'BAABABABABABBAAB',
+                                          //state.messages[0].unreadBy
+                                        });
+                                        return BlocBuilder<ContactCubit,
+                                            ContactState>(
+                                          builder: (context, contactState) {
+                                            return ListTile(
+                                              onTap: () {
+                                                //chatCubit.readAllMessages();
+                                                Navigator.of(context).pushNamed(
+                                                    '/chat',
+                                                    arguments: chatCubit);
+                                              },
+                                              leading: Stack(
                                                 children: [
                                                   CircleAvatar(
-                                                    child: state.avatar != null
-                                                        ? ClipOval(
-                                                            child: Image.memory(
-                                                                state.avatar!),
-                                                          )
-                                                        : Icon(
-                                                            Icons.person,
-                                                            color: Colors
-                                                                .grey.shade50,
-                                                          ),
+                                                    child:
+                                                        contactState.avatar !=
+                                                                null
+                                                            ? ClipOval(
+                                                                child: Image.memory(
+                                                                    contactState
+                                                                        .avatar!),
+                                                              )
+                                                            : Icon(
+                                                                Icons.person,
+                                                                color: Colors
+                                                                    .grey
+                                                                    .shade50,
+                                                              ),
                                                     backgroundColor:
                                                         Colors.grey.shade300,
                                                   ),
@@ -145,7 +155,8 @@ class MainPanel extends StatelessWidget {
                                                       height: 14,
                                                       width: 14,
                                                       decoration: BoxDecoration(
-                                                        color: state.status ==
+                                                        color: contactState
+                                                                    .status ==
                                                                 Status.ONLINE
                                                             ? Colors.green
                                                             : Colors.grey,
@@ -158,24 +169,50 @@ class MainPanel extends StatelessWidget {
                                                     ),
                                                   ),
                                                 ],
-                                              );
-                                            },
-                                          ),
-                                          title: Text(
-                                            '${state.participants[0].firstName} ${state.participants[0].lastName}',
-                                          ),
-                                          subtitle: Text(
-                                            state.messages.length > 0
-                                                ? state.messages[0].content[0]
-                                                            .type ==
-                                                        MessageType.TEXT
-                                                    ? state.messages[0]
-                                                        .content[0].data
-                                                    : '${state.participants[0].firstName} wysłał załącznik(-i).'
-                                                : 'Wyślij pierwszą wiadomość',
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 1,
-                                          ),
+                                              ),
+                                              title: Text(
+                                                '${contactState.firstName} ${contactState.lastName}',
+                                                style: TextStyle(
+                                                  fontWeight: state.messages
+                                                                  .length >
+                                                              0 &&
+                                                          state.messages[0]
+                                                              .unreadBy
+                                                              .contains(
+                                                                  currentUser
+                                                                      .id)
+                                                      ? FontWeight.bold
+                                                      : FontWeight.normal,
+                                                ),
+                                              ),
+                                              subtitle: Text(
+                                                state.messages.length > 0
+                                                    ? state
+                                                                .messages[0]
+                                                                .content[0]
+                                                                .type ==
+                                                            MessageType.TEXT
+                                                        ? state.messages[0]
+                                                            .content[0].data
+                                                        : '${state.participants[0].firstName} wysłał załącznik(-i).'
+                                                    : 'Wyślij pierwszą wiadomość',
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
+                                                style: TextStyle(
+                                                  fontWeight: state.messages
+                                                                  .length >
+                                                              0 &&
+                                                          state.messages[0]
+                                                              .unreadBy
+                                                              .contains(
+                                                                  currentUser
+                                                                      .id)
+                                                      ? FontWeight.bold
+                                                      : FontWeight.normal,
+                                                ),
+                                              ),
+                                            );
+                                          },
                                         );
                                       },
                                     ),

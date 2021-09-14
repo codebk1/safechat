@@ -404,7 +404,7 @@ class TextMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print({'MSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS', text, sender});
+    //print({'MSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS', text, sender});
 
     return Container(
       // constraints: BoxConstraints(
@@ -458,7 +458,7 @@ class TextMessage extends StatelessWidget {
   }
 }
 
-class PhotoMessage extends StatefulWidget {
+class PhotoMessage extends StatelessWidget {
   const PhotoMessage({
     Key? key,
     required this.photos,
@@ -467,31 +467,31 @@ class PhotoMessage extends StatefulWidget {
   final List<AttachmentState> photos;
 
   @override
-  State<PhotoMessage> createState() => _PhotoMessageState();
-}
-
-class _PhotoMessageState extends State<PhotoMessage> {
-  AsyncMemoizer _memoizer = AsyncMemoizer();
-
-  @override
   Widget build(BuildContext context) {
     return GridView.builder(
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: min(widget.photos.length, 3),
+          crossAxisCount: min(photos.length, 3),
           crossAxisSpacing: 5,
           mainAxisSpacing: 5,
         ),
-        itemCount: widget.photos.length,
+        itemCount: photos.length,
         itemBuilder: (BuildContext context, index) {
           return FutureBuilder(
-              future:
-                  context.read<ChatCubit>().getAttachment(widget.photos[index]),
+              future: context.read<ChatCubit>().getAttachment(photos[index]),
               builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
                 if (snapshot.hasData) {
                   return GestureDetector(
-                    onTap: () => {},
+                    onTap: () {
+                      Navigator.of(context).pushNamed(
+                        '/chat/video',
+                        arguments: MediaPageArguments(
+                          context.read<ChatCubit>(),
+                          photos[index],
+                        ),
+                      );
+                    },
                     child: ClipRRect(
                       borderRadius: BorderRadius.all(
                         Radius.circular(10),
@@ -505,10 +505,6 @@ class _PhotoMessageState extends State<PhotoMessage> {
                             return child;
                           }
                           return Container(
-                            // decoration: BoxDecoration(
-                            //   color: Colors.grey.shade100,
-                            //   borderRadius: BorderRadius.circular(10),
-                            // ),
                             child: AnimatedOpacity(
                               child: child,
                               opacity: frame == null ? 0 : 1,
@@ -520,42 +516,6 @@ class _PhotoMessageState extends State<PhotoMessage> {
                         cacheWidth: (MediaQuery.of(context).size.width).round(),
                         filterQuality: FilterQuality.medium,
                       ),
-                      // child: Image.file(
-                      //   photos[index],
-                      //   // loadingBuilder: (BuildContext context, Widget child,
-                      //   //     ImageChunkEvent? loadingProgress) {
-                      //   //   if (loadingProgress == null) {
-                      //   //     return child;
-                      //   //   }
-                      //   //   return Center(
-                      //   //     child: CircularProgressIndicator(
-                      //   //       value: loadingProgress.expectedTotalBytes != null
-                      //   //           ? loadingProgress.cumulativeBytesLoaded /
-                      //   //               loadingProgress.expectedTotalBytes!
-                      //   //           : null,
-                      //   //     ),
-                      //   //   );
-                      //   // },
-                      //   frameBuilder: (BuildContext context, Widget child, int? frame,
-                      //       bool wasSynchronouslyLoaded) {
-                      //     if (wasSynchronouslyLoaded) {
-                      //       return child;
-                      //     }
-                      //     return Container(
-                      //       color: Colors.grey.shade100,
-                      //       child: AnimatedOpacity(
-                      //         child: child,
-                      //         opacity: frame == null ? 0 : 1,
-                      //         duration: const Duration(seconds: 1),
-                      //         curve: Curves.easeOut,
-                      //       ),
-                      //     );
-                      //   },
-
-                      //   fit: BoxFit.cover,
-                      //   cacheWidth: (MediaQuery.of(context).size.width * 0.7).round(),
-                      //   filterQuality: FilterQuality.medium,
-                      // ),
                     ),
                   );
                 } else {
@@ -570,49 +530,6 @@ class _PhotoMessageState extends State<PhotoMessage> {
         });
   }
 }
-
-// class VideoMessageThumbnail extends StatefulWidget {
-//   const VideoMessageThumbnail({
-//     Key? key,
-//     required this.video,
-//   }) : super(key: key);
-
-//   final File video;
-
-//   @override
-//   _VideoMessageThumbnailState createState() => _VideoMessageThumbnailState();
-// }
-
-// class _VideoMessageThumbnailState extends State<VideoMessageThumbnail> {
-//   late VideoPlayerController _controller;
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     _controller = VideoPlayerController.file(widget.video)..initialize();
-//   }
-
-//   @override
-//   void dispose() {
-//     super.dispose();
-//     _controller.dispose();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Stack(children: [
-//       VideoPlayer(_controller),
-//       Align(
-//         alignment: Alignment.center,
-//         child: Icon(
-//           Icons.play_circle,
-//           color: Colors.white,
-//           size: 55,
-//         ),
-//       ),
-//     ]);
-//   }
-// }
 
 class VideosMessage extends StatelessWidget {
   const VideosMessage({

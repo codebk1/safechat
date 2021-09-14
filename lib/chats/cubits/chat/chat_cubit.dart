@@ -6,6 +6,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
+import 'package:image/image.dart';
 import 'package:safechat/chats/cubits/attachment/attachment_cubit.dart';
 import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/chats/repository/chats_repository.dart';
@@ -17,65 +18,37 @@ part 'chat_state.dart';
 
 class ChatCubit extends Cubit<ChatState> {
   ChatCubit({required ChatState chatState}) : super(chatState) {
-    print({'INIT CHAT', state.id});
+    // print({'INIT CHAT', state.id});
     _wsService.socket.emit('join-chat', state.id);
 
     _wsService.socket.on('msg', (data) {
-      print({'ALAKALKSKSLDKASD', data['msg']});
+      print({'participants', state.participants.length});
       if (data['room'] == state.id) {
-        data['msg']['unreadBy'] = [
-          ...state.participants.map((e) => e.id)
-            ..where((id) => id != data['msg']['sender'])
-        ];
-
-        print({'ALAKALKSKSLDKASD', data['msg']});
+        data['msg']['unreadBy'] = state.participants
+            .map((e) => e.id)
+            .where((id) => id != data['msg']['sender']);
 
         final msg = Message.fromJson(data['msg']);
+
+        print(data['msg']['unreadBy']);
+        print({'msg.unreadBy', msg.unreadBy});
 
         emit(state.copyWith(messages: [
           msg.copyWith(
               content: msg.content.map((item) {
-            print(item.data);
-            return item.copyWith(
-              data: _encryptionService.chachaDecrypt(
-                item.data,
-                state.sharedKey,
-              ),
-            );
+            if (item.type == MessageType.TEXT) {
+              return item.copyWith(
+                data: utf8.decode(
+                  _encryptionService.chachaDecrypt(
+                    item.data,
+                    state.sharedKey,
+                  ),
+                ),
+              );
+            }
+
+            return item;
           }).toList()),
-          // Message(
-          //   id: data['msg']['id'],
-          //   sender: data['msg']['sender'],
-          //   content: (data['msg']['content'] as List).map((msg) {
-          //     return MessageItem(
-          //         type: MessageType.values.firstWhere(
-          //           (e) => describeEnum(e) == msg['type'],
-          //         ),
-          //         data: utf8.decode(
-          //           _encryptionService.chachaDecrypt(
-          //             msg['data'],
-          //             state.sharedKey,
-          //           ),
-          //         ));
-          //   }).toList(),
-          //   // [
-          //   //   MessageContent(
-          //   //     type: MessageType.values.firstWhere(
-          //   //       (e) => describeEnum(e) == data['msg']['type'],
-          //   //     ),
-          //   //     data: utf8.decode(
-          //   //       _encryptionService.chachaDecrypt(
-          //   //         data['msg']['data'],
-          //   //         state.sharedKey,
-          //   //       ),
-          //   //     ),
-          //   //   )
-          //   // ],
-          //   unreadBy: [
-          //     ...state.participants.map((e) => e.contact.id)
-          //       ..where((id) => id != data['msg']['sender'])
-          //   ],
-          // ),
           ...state.messages,
         ]));
       }
@@ -83,17 +56,21 @@ class ChatCubit extends Cubit<ChatState> {
 
     _wsService.socket.on('messages.readby', (data) {
       if (data['room'] == state.id) {
+        print('ZMINAA');
         final newMessages = List.of(state.messages);
 
         for (var i = 0; i < newMessages.length; i++) {
-          newMessages[i].unreadBy.removeWhere((u) => u == data['userId']);
+          newMessages[i] = newMessages[i].copyWith(
+              unreadBy: newMessages[i].unreadBy
+                ..removeWhere((id) => id == data['userId']));
         }
 
-        emit(state.copyWith(messages: [...newMessages]));
+        emit(state.copyWith(messages: newMessages));
       }
     });
 
     _wsService.socket.on('typing.toggle', (participantId) {
+      print('TYPING');
       emit(state.copyWith(
         typing: state.typing.contains(participantId)
             ? [...List.of(state.typing)..remove(participantId)]
@@ -135,7 +112,7 @@ class ChatCubit extends Cubit<ChatState> {
     final cacheManager = DefaultCacheManager();
     var attachmentName = attachment.name;
 
-    if (attachment.type == AttachmentType.VIDEO && thumbnail) {
+    if (attachment.type != AttachmentType.FILE && thumbnail) {
       attachmentName = '${attachment.name.split('.').first}_thumb.jpg';
     }
 
@@ -164,23 +141,35 @@ class ChatCubit extends Cubit<ChatState> {
           '${DateTime.now().millisecondsSinceEpoch}_$i.${attachments[i].name.split('.').last}';
 
       items.add(MessageItem(
-          type: MessageType.values.firstWhere(
-            (e) => describeEnum(e) == describeEnum(attachments[i].type),
-          ),
-          data: attachmentName));
+        type: MessageType.values.firstWhere(
+          (e) => describeEnum(e) == describeEnum(attachments[i].type),
+        ),
+        data: attachmentName,
+      ));
 
       final file = File(attachments[i].name).readAsBytesSync();
 
-      // generate thumbnail for video
-      if (attachments[i].type == AttachmentType.VIDEO) {
+      // generate thumbnail for video or photo
+      if (attachments[i].type != AttachmentType.FILE) {
         final thumbName = '${attachmentName.split('.').first}_thumb.jpg';
 
-        final thumb = await VideoThumbnail.thumbnailData(
-          video: attachments[i].name,
-          imageFormat: ImageFormat.JPEG,
-          maxWidth: 1024,
-          quality: 50,
-        );
+        Uint8List? thumb;
+
+        if (attachments[i].type == AttachmentType.VIDEO) {
+          thumb = await VideoThumbnail.thumbnailData(
+            video: attachments[i].name,
+            imageFormat: ImageFormat.JPEG,
+            maxWidth: 1024,
+            quality: 50,
+          );
+        } else {
+          var image = copyResize(
+            decodeImage(file)!,
+            width: 512,
+            interpolation: Interpolation.nearest,
+          );
+          thumb = encodeJpg(image) as Uint8List;
+        }
 
         encryptedAttachments.add(MultipartFile.fromBytes(
           _encryptionService.chachaEncrypt(
@@ -240,12 +229,12 @@ class ChatCubit extends Cubit<ChatState> {
           encryptedAttachments,
         );
 
-    toggleTyping(encryptedMessage.sender);
+    //toggleTyping(encryptedMessage.sender);
 
-    // this._wsService.socket.emit('msg', {
-    //   'room': state.id,
-    //   'msg': encryptedMessage.toJson(),
-    // });
+    this._wsService.socket.emit('msg', {
+      'room': state.id,
+      'msg': encryptedMessage.toJson(),
+    });
 
     emit(state.copyWith(
       messages: [
@@ -282,6 +271,7 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   toggleTyping(String participantId) {
+    print('TOOOOOOOOOOOOOOOOOOGLE');
     _wsService.socket.emit('typing.toggle', {
       'room': state.id,
       'participantId': participantId,

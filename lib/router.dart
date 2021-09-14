@@ -102,8 +102,17 @@ class AppRouter {
       case '/chat/video':
         final args = routeSettings.arguments as MediaPageArguments;
         return PageRouteBuilder(
-          pageBuilder: (_, __, ___) => BlocProvider.value(
-            value: args.chatCubit,
+          pageBuilder: (_, __, ___) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(
+                value: args.chatCubit,
+              ),
+              BlocProvider(
+                create: (_) => AttachmentCubit(
+                  attachmentState: args.attachmentState,
+                ),
+              ),
+            ],
             child: MediaPage(
               attachment: args.attachmentState,
             ),
