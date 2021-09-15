@@ -88,7 +88,7 @@ class ContactsRepository {
     final List<ContactState> contacts = [];
 
     for (var i = 0; i < contactsData.length; i++) {
-      print(contactsData[i]);
+      //print(contactsData[i]);
 
       if (sharedKey != null) {
         contactsData[i]['sharedKey'] = _encryptionService.chachaDecrypt(

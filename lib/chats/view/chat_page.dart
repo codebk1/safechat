@@ -1,4 +1,3 @@
-import 'package:async/async.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -9,7 +8,7 @@ import 'package:rive/rive.dart';
 import 'package:safechat/chats/cubits/attachment/attachment_cubit.dart';
 
 import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
-import 'package:safechat/chats/models/message.dart';
+import 'package:safechat/chats/cubits/message/message_cubit.dart';
 import 'package:safechat/chats/view/widgets/message_text_field.dart';
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/router.dart';
@@ -22,90 +21,103 @@ class ChatPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = context.read<UserCubit>().state.user;
+
     return BlocProvider.value(
-      value: chatCubit..readAllMessages(),
-      child: Scaffold(
-        appBar: AppBar(
-          actions: [
-            IconButton(
-              onPressed: () {},
-              icon: Icon(Icons.info),
+      value: chatCubit..readAllMessages(currentUser.id),
+      child: WillPopScope(
+        onWillPop: () {
+          chatCubit.emit(chatCubit.state.copyWith(
+            isNewMessage: false,
+          ));
+
+          return Future.value(true);
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            actions: [
+              IconButton(
+                onPressed: () {},
+                icon: Icon(Icons.info),
+              ),
+            ],
+            backgroundColor: Colors.white,
+            titleSpacing: 0,
+            elevation: 0,
+            iconTheme: IconThemeData(
+              color: Colors.grey.shade800,
             ),
-          ],
-          backgroundColor: Colors.white,
-          titleSpacing: 0,
-          elevation: 0,
-          iconTheme: IconThemeData(
-            color: Colors.grey.shade800,
-          ),
-          title: BlocProvider(
-            create: (context) => ContactCubit(
-              contact: chatCubit.state.participants[0],
-            ),
-            child: BlocBuilder<ContactCubit, ContactState>(
-              builder: (context, state) {
-                return Row(
-                  children: [
-                    Stack(
-                      children: [
-                        CircleAvatar(
-                          child: Icon(
-                            Icons.person,
-                            color: Colors.grey.shade50,
+            title: BlocProvider(
+              create: (context) => ContactCubit(
+                contact: chatCubit.state.participants
+                    .where((p) => p.id != currentUser.id)
+                    .first,
+              ),
+              child: BlocBuilder<ContactCubit, ContactState>(
+                builder: (context, state) {
+                  return Row(
+                    children: [
+                      Stack(
+                        children: [
+                          CircleAvatar(
+                            child: Icon(
+                              Icons.person,
+                              color: Colors.grey.shade50,
+                            ),
+                            backgroundColor: Colors.grey.shade300,
                           ),
-                          backgroundColor: Colors.grey.shade300,
-                        ),
-                        Positioned(
-                          right: 0,
-                          bottom: 0,
-                          child: Container(
-                            height: 14,
-                            width: 14,
-                            decoration: BoxDecoration(
-                              color: state.status == Status.ONLINE
-                                  ? Colors.green
-                                  : Colors.grey,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                width: 2,
-                                color: Colors.white,
+                          Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: Container(
+                              height: 14,
+                              width: 14,
+                              decoration: BoxDecoration(
+                                color: state.status == Status.ONLINE
+                                    ? Colors.green
+                                    : Colors.grey,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  width: 2,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      width: 15.0,
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${state.firstName} ${state.lastName}',
-                          style: Theme.of(context).textTheme.headline6,
-                        ),
-                        Text(
-                          'Aktywny 5min temu',
-                          style: Theme.of(context).textTheme.subtitle2,
-                        ),
-                      ],
-                    ),
-                  ],
-                );
-              },
+                        ],
+                      ),
+                      SizedBox(
+                        width: 15.0,
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${state.firstName} ${state.lastName}',
+                            style: Theme.of(context).textTheme.headline6,
+                          ),
+                          Text(
+                            'Aktywny 5min temu',
+                            style: Theme.of(context).textTheme.subtitle2,
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
           ),
-        ),
-        body: GestureDetector(
-          onTap: () {
-            FocusScopeNode currentFocus = FocusScope.of(context);
-            if (!currentFocus.hasPrimaryFocus &&
-                currentFocus.focusedChild != null) {
-              FocusManager.instance.primaryFocus!.unfocus();
-            }
-          },
-          child: MessagesSection(),
+          body: GestureDetector(
+            onTap: () {
+              FocusScopeNode currentFocus = FocusScope.of(context);
+              if (!currentFocus.hasPrimaryFocus &&
+                  currentFocus.focusedChild != null) {
+                FocusManager.instance.primaryFocus!.unfocus();
+              }
+            },
+            child: MessagesSection(),
+          ),
         ),
       ),
     );
@@ -117,6 +129,11 @@ class MessagesSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ChatCubit, ChatState>(
       builder: (context, state) {
+        final currentUser = context.read<UserCubit>().state.user;
+
+        final lastSenderMsg =
+            state.messages.where((msg) => msg.senderId == currentUser.id).first;
+
         return Column(
           children: [
             Expanded(
@@ -150,16 +167,21 @@ class MessagesSection extends StatelessWidget {
                           ) {
                             final isLastInSet =
                                 state.messages[index == 0 ? index : index - 1]
-                                            .sender !=
-                                        state.messages[index].sender ||
+                                            .senderId !=
+                                        state.messages[index].senderId ||
                                     index == 0;
 
                             return Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 15.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 15.0,
+                              ),
                               child: MessageBubble(
-                                message: state.messages[index],
+                                messageCubit: MessageCubit(
+                                  messageState: state.messages[index],
+                                ),
                                 isLastInSet: isLastInSet,
+                                isLastSentMsg:
+                                    lastSenderMsg == state.messages[index],
                               ),
                             );
                           }),
@@ -176,9 +198,10 @@ class MessagesSection extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Text(
-                      state.participants.map((e) {
-                        if (state.typing.contains(e.id)) return e.firstName;
-                      }).join(', '),
+                      state.participants
+                          .where((p) => state.typing.contains(p.id))
+                          .map((p) => p.firstName)
+                          .join(', '),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                       style: Theme.of(context)
@@ -210,183 +233,201 @@ class MessagesSection extends StatelessWidget {
 class MessageBubble extends StatelessWidget {
   const MessageBubble({
     Key? key,
-    required this.message,
+    required this.messageCubit,
     required this.isLastInSet,
+    required this.isLastSentMsg,
   }) : super(key: key);
 
-  final Message message;
+  final MessageCubit messageCubit;
   final bool isLastInSet;
+  final bool isLastSentMsg;
 
   @override
   Widget build(BuildContext context) {
-    final isSender = message.sender == context.read<UserCubit>().state.user.id;
+    final currentUser = context.read<UserCubit>().state.user;
 
-    return Padding(
-      padding: const EdgeInsets.only(top: 5.0),
-      child: BlocListener<ChatCubit, ChatState>(
-        listener: (context, state) {
-          print({'DUPA'});
-        },
-        child: BlocBuilder<ChatCubit, ChatState>(builder: (context, state) {
-          final contact = !isSender
-              ? state.participants.firstWhere((p) => p.id == message.sender)
-              : null;
+    return BlocProvider.value(
+      value: messageCubit..readMessage(currentUser.id),
+      child: BlocBuilder<ChatCubit, ChatState>(
+        builder: (context, chatState) {
+          return BlocBuilder<MessageCubit, MessageState>(
+            builder: (context, messageState) {
+              //print({'data', messageState.content[0].data});
 
-          //print(message.unreadBy);
+              final isSender = messageState.senderId == currentUser.id;
 
-          final readBy = state.participants.where(
-            (e) => !message.unreadBy.contains(e.id),
-          );
-          //&& e.contact.id != context.read<UserCubit>().state.user.id
+              final contact = !isSender
+                  ? chatState.participants
+                      .firstWhere((p) => p.id == messageState.senderId)
+                  : null;
 
-          String textMessage = '';
-          List<AttachmentState> photos = [];
-          List<AttachmentState> videos = [];
-          List<AttachmentState> files = [];
+              final readBy = chatState.participants.where(
+                (e) =>
+                    !messageState.unreadBy.contains(e.id) &&
+                    e.id != currentUser.id,
+              );
 
-          message.content.forEach((item) {
-            switch (item.type) {
-              case MessageType.TEXT:
-                textMessage = item.data;
-                break;
-              case MessageType.PHOTO:
-                photos.add(AttachmentState(
-                  name: item.data,
-                  type: AttachmentType.PHOTO,
-                ));
-                break;
-              case MessageType.VIDEO:
-                videos.add(AttachmentState(
-                  name: item.data,
-                  type: AttachmentType.VIDEO,
-                ));
-                break;
-              case MessageType.FILE:
-                files.add(AttachmentState(
-                  name: item.data,
-                  type: AttachmentType.FILE,
-                ));
-                break;
-            }
-          });
-          return Row(
-            mainAxisAlignment:
-                isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              if (!isSender) ...[
-                isLastInSet
-                    ? BlocProvider(
-                        create: (context) => ContactCubit(
-                          contact: contact!,
-                        ),
-                        child: BlocBuilder<ContactCubit, ContactState>(
-                          builder: (context, state) {
-                            return Stack(
-                              children: [
-                                CircleAvatar(
-                                  radius: 14,
-                                  child: state.avatar != null
+              String textMessage = '';
+              List<AttachmentState> photos = [];
+              List<AttachmentState> videos = [];
+              List<AttachmentState> files = [];
+
+              messageState.content.forEach((item) {
+                switch (item.type) {
+                  case MessageType.TEXT:
+                    textMessage = item.data;
+                    break;
+                  case MessageType.PHOTO:
+                    photos.add(AttachmentState(
+                      name: item.data,
+                      type: AttachmentType.PHOTO,
+                    ));
+                    break;
+                  case MessageType.VIDEO:
+                    videos.add(AttachmentState(
+                      name: item.data,
+                      type: AttachmentType.VIDEO,
+                    ));
+                    break;
+                  case MessageType.FILE:
+                    files.add(AttachmentState(
+                      name: item.data,
+                      type: AttachmentType.FILE,
+                    ));
+                    break;
+                }
+              });
+              return Padding(
+                padding: const EdgeInsets.only(top: 5.0),
+                child: Row(
+                  mainAxisAlignment: isSender
+                      ? MainAxisAlignment.end
+                      : MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    if (!isSender) ...[
+                      isLastInSet
+                          ? BlocProvider(
+                              create: (context) => ContactCubit(
+                                contact: contact!,
+                              ),
+                              child: BlocBuilder<ContactCubit, ContactState>(
+                                builder: (context, state) {
+                                  return Stack(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 14,
+                                        child: state.avatar != null
+                                            ? ClipOval(
+                                                child:
+                                                    Image.memory(state.avatar!),
+                                              )
+                                            : Icon(
+                                                Icons.person,
+                                                color: Colors.grey.shade50,
+                                              ),
+                                        backgroundColor: Colors.grey.shade300,
+                                      ),
+                                      Positioned(
+                                        right: 0,
+                                        bottom: 0,
+                                        child: Container(
+                                          height: 12,
+                                          width: 12,
+                                          decoration: BoxDecoration(
+                                            color: state.status == Status.ONLINE
+                                                ? Colors.green
+                                                : Colors.grey,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              width: 2,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            )
+                          : SizedBox(
+                              width: 28,
+                            ),
+                      SizedBox(width: 10.0),
+                    ],
+                    ConstrainedBox(
+                      // decoration: BoxDecoration(
+                      //   color: Colors.grey.shade100,
+                      //   borderRadius: BorderRadius.all(
+                      //     Radius.circular(10),
+                      //   ),
+                      // ),
+                      constraints: BoxConstraints(
+                        maxWidth: MediaQuery.of(context).size.width * 0.7,
+                      ),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            if (photos.isNotEmpty) PhotoMessage(photos: photos),
+                            if (videos.isNotEmpty)
+                              VideosMessage(videos: videos),
+                            if (files.isNotEmpty) FilesMessage(files: files),
+                            SizedBox(height: 5),
+                            if (textMessage.isNotEmpty)
+                              TextMessage(text: textMessage, sender: contact)
+                          ]
+                          // children: message.content
+                          //     .asMap()
+                          //     .map((i, element) => MapEntry(
+                          //           i,
+                          //           GestureDetector(
+                          //             onTap: () => {},
+                          //             child: messageContaint(
+                          //               message.content[i],
+                          //               contact,
+                          //             ),
+                          //           ),
+                          //         ))
+                          //     .values
+                          //     .toList(),
+                          ),
+                    ),
+                    if (isSender) ...[
+                      SizedBox(width: 2.0),
+                      isLastSentMsg
+                          ? readBy.isNotEmpty
+                              ? CircleAvatar(
+                                  radius: 8,
+                                  child: readBy.first.avatar != null
                                       ? ClipOval(
-                                          child: Image.memory(state.avatar!),
+                                          child: Image.memory(
+                                              readBy.first.avatar!),
                                         )
                                       : Icon(
                                           Icons.person,
+                                          size: 12,
                                           color: Colors.grey.shade50,
                                         ),
                                   backgroundColor: Colors.grey.shade300,
-                                ),
-                                Positioned(
-                                  right: 0,
-                                  bottom: 0,
-                                  child: Container(
-                                    height: 12,
-                                    width: 12,
-                                    decoration: BoxDecoration(
-                                      color: state.status == Status.ONLINE
-                                          ? Colors.green
-                                          : Colors.grey,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        width: 2,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                      )
-                    : SizedBox(
-                        width: 28,
-                      ),
-                SizedBox(width: 10.0),
-              ],
-              ConstrainedBox(
-                // decoration: BoxDecoration(
-                //   color: Colors.grey.shade100,
-                //   borderRadius: BorderRadius.all(
-                //     Radius.circular(10),
-                //   ),
-                // ),
-                constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width * 0.7,
+                                )
+                              : Icon(
+                                  messageState.status == MessageStatus.SENDING
+                                      ? Icons.check_circle_outline
+                                      : Icons.check_circle,
+                                  size: 16,
+                                  color: Colors.blue.shade800,
+                                )
+                          : SizedBox(
+                              width: 16,
+                            )
+                    ],
+                  ],
                 ),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      if (photos.isNotEmpty) PhotoMessage(photos: photos),
-                      if (videos.isNotEmpty) VideosMessage(videos: videos),
-                      if (files.isNotEmpty) FilesMessage(files: files),
-                      SizedBox(height: 5),
-                      if (textMessage.isNotEmpty)
-                        TextMessage(text: textMessage, sender: contact)
-                    ]
-                    // children: message.content
-                    //     .asMap()
-                    //     .map((i, element) => MapEntry(
-                    //           i,
-                    //           GestureDetector(
-                    //             onTap: () => {},
-                    //             child: messageContaint(
-                    //               message.content[i],
-                    //               contact,
-                    //             ),
-                    //           ),
-                    //         ))
-                    //     .values
-                    //     .toList(),
-                    ),
-              ),
-              if (isSender) ...[
-                SizedBox(width: 2.0),
-                readBy.isNotEmpty
-                    ? CircleAvatar(
-                        radius: 10,
-                        child: readBy.first.avatar != null
-                            ? ClipOval(
-                                child: Image.memory(readBy.first.avatar!),
-                              )
-                            : Icon(
-                                Icons.person,
-                                size: 16,
-                                color: Colors.grey.shade50,
-                              ),
-                        backgroundColor: Colors.grey.shade300,
-                      )
-                    : Icon(
-                        message.status == MessageStatus.SENDING
-                            ? Icons.check_circle_outline
-                            : Icons.check_circle,
-                        size: 15,
-                        color: Colors.blue.shade800,
-                      )
-              ],
-            ],
+              );
+            },
           );
-        }),
+        },
       ),
     );
   }

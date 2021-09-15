@@ -156,10 +156,16 @@ class _MessageTextFieldState extends State<MessageTextField> {
               SizedBox(width: 15.0),
               Expanded(
                 child: Focus(
-                  onFocusChange: (_) {
-                    context.read<ChatCubit>().toggleTyping(
-                          context.read<UserCubit>().state.user.id,
-                        );
+                  onFocusChange: (hasFocus) {
+                    if (hasFocus) {
+                      context.read<ChatCubit>().startTyping(
+                            context.read<UserCubit>().state.user.id,
+                          );
+                    } else {
+                      context.read<ChatCubit>().stopTyping(
+                            context.read<UserCubit>().state.user.id,
+                          );
+                    }
                   },
                   child: TextFormField(
                     controller: _messageController,
@@ -180,6 +186,7 @@ class _MessageTextFieldState extends State<MessageTextField> {
               ElevatedButton(
                 onPressed: () {
                   context.read<ChatCubit>().sendMessage(
+                        context.read<UserCubit>().state.user.id,
                         _attachmentsCubit.state.selectedAttachments,
                       );
 

@@ -20,10 +20,10 @@ class ChatsCubit extends Cubit<ChatsState> {
 
       emit(state.copyWith(chats: chats, listStatus: ListStatus.success));
     } on DioError catch (e) {
-      print(e);
+      //print(e);
       emit(state.copyWith(listStatus: ListStatus.failure));
     } catch (e) {
-      print(e);
+      //print(e);
       emit(state.copyWith(listStatus: ListStatus.failure));
     }
   }

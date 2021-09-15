@@ -10,7 +10,7 @@ import 'package:safechat/utils/utils.dart';
 part 'contacts_state.dart';
 
 class ContactsCubit extends Cubit<ContactsState> {
-  ContactsCubit() : super(ContactsState());
+  ContactsCubit({contactsState = const ContactsState()}) : super(contactsState);
 
   final ContactsRepository _contactsRepository = ContactsRepository();
 

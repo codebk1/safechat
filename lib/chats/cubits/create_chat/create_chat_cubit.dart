@@ -29,12 +29,12 @@ class CreateChatCubit extends Cubit<CreateChatState> {
         state.selectedParticipants.map((e) => e.id).toList(),
       );
     } on DioError catch (e) {
-      print(e);
+      //print(e);
       emit(state.copyWith(
         status: FormStatus.failure(e.response?.data['message']),
       ));
     } catch (e) {
-      print(e);
+      //print(e);
       emit(state.copyWith(
         status: FormStatus.failure(e.toString()),
       ));

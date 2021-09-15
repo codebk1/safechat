@@ -8,7 +8,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart';
 import 'package:safechat/chats/cubits/attachment/attachment_cubit.dart';
-import 'package:safechat/chats/models/message.dart';
+import 'package:safechat/chats/cubits/message/message_cubit.dart';
 import 'package:safechat/chats/repository/chats_repository.dart';
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/utils/utils.dart';
@@ -28,12 +28,12 @@ class ChatCubit extends Cubit<ChatState> {
             .map((e) => e.id)
             .where((id) => id != data['msg']['sender']);
 
-        final msg = Message.fromJson(data['msg']);
+        final msg = MessageState.fromJson(data['msg']);
 
         print(data['msg']['unreadBy']);
         print({'msg.unreadBy', msg.unreadBy});
 
-        emit(state.copyWith(messages: [
+        emit(state.copyWith(isNewMessage: true, messages: [
           msg.copyWith(
               content: msg.content.map((item) {
             if (item.type == MessageType.TEXT) {
@@ -51,17 +51,20 @@ class ChatCubit extends Cubit<ChatState> {
           }).toList()),
           ...state.messages,
         ]));
+
+        _wsService.socket.emit('messages.readall', {
+          'room': state.id,
+        });
       }
     });
 
     _wsService.socket.on('messages.readby', (data) {
       if (data['room'] == state.id) {
-        print('ZMINAA');
         final newMessages = List.of(state.messages);
 
         for (var i = 0; i < newMessages.length; i++) {
           newMessages[i] = newMessages[i].copyWith(
-              unreadBy: newMessages[i].unreadBy
+              unreadBy: List.of(newMessages[i].unreadBy)
                 ..removeWhere((id) => id == data['userId']));
         }
 
@@ -69,24 +72,15 @@ class ChatCubit extends Cubit<ChatState> {
       }
     });
 
-    _wsService.socket.on('typing.toggle', (participantId) {
-      print('TYPING');
-      emit(state.copyWith(
-        typing: state.typing.contains(participantId)
-            ? [...List.of(state.typing)..remove(participantId)]
-            : [...state.typing, participantId],
-      ));
+    _wsService.socket.on('typing.start', (participantId) {
+      emit(state.copyWith(typing: [...state.typing, participantId]));
     });
 
-    // _wsService.socket.on('typing.start', (participantId) {
-    //   emit(state.copyWith(typing: [...state.typing, participantId]));
-    // });
-
-    // _wsService.socket.on('typing.stop', (participantId) {
-    //   emit(state.copyWith(
-    //     typing: List.of(state.typing)..removeWhere((e) => e == participantId),
-    //   ));
-    // });
+    _wsService.socket.on('typing.stop', (participantId) {
+      emit(state.copyWith(
+        typing: List.of(state.typing)..removeWhere((e) => e == participantId),
+      ));
+    });
   }
 
   final _wsService = SocketService();
@@ -131,7 +125,7 @@ class ChatCubit extends Cubit<ChatState> {
     return await cacheManager.putFile(attachmentName, attachmentFile);
   }
 
-  sendMessage(List<AttachmentState> attachments) async {
+  sendMessage(String senderId, List<AttachmentState> attachments) async {
     DefaultCacheManager cacheManager = DefaultCacheManager();
     List<MultipartFile> encryptedAttachments = [];
     List<MessageItem> items = [];
@@ -199,7 +193,10 @@ class ChatCubit extends Cubit<ChatState> {
         state.message.copyWith(
           status: MessageStatus.SENDING,
           content: [...state.message.content, ...items],
-          unreadBy: [...state.participants.map((e) => e.id)],
+          unreadBy: state.participants
+              .map((e) => e.id)
+              .where((id) => id != senderId)
+              .toList(),
         ),
       );
 
@@ -229,7 +226,7 @@ class ChatCubit extends Cubit<ChatState> {
           encryptedAttachments,
         );
 
-    //toggleTyping(encryptedMessage.sender);
+    stopTyping(encryptedMessage.senderId);
 
     this._wsService.socket.emit('msg', {
       'room': state.id,
@@ -244,8 +241,18 @@ class ChatCubit extends Cubit<ChatState> {
     ));
   }
 
-  readAllMessages() async {
+  readAllMessages(String currentUserId) async {
     print("READ ALL MESSAGES");
+
+    // final newMessages = List.of(state.messages);
+
+    // for (var i = 0; i < newMessages.length; i++) {
+    //   newMessages[i] = newMessages[i].copyWith(
+    //       unreadBy: newMessages[i].unreadBy
+    //         ..removeWhere((id) => id == currentUserId));
+    // }
+
+    // emit(state.copyWith(messages: newMessages));
 
     await _chatsRepository.readAllMessages(state.id);
 
@@ -253,12 +260,6 @@ class ChatCubit extends Cubit<ChatState> {
       'room': state.id,
     });
   }
-
-  // setMessageType(MessageType type) {
-  //   emit(state.copyWith(
-  //     newMessage: state.newMessage.copyWith(type: type),
-  //   ));
-  // }
 
   textMessageChanged(String value) {
     emit(state.copyWith(
@@ -270,25 +271,17 @@ class ChatCubit extends Cubit<ChatState> {
     ));
   }
 
-  toggleTyping(String participantId) {
-    print('TOOOOOOOOOOOOOOOOOOGLE');
-    _wsService.socket.emit('typing.toggle', {
+  startTyping(String participantId) {
+    _wsService.socket.emit('typing.start', {
       'room': state.id,
       'participantId': participantId,
     });
   }
 
-  // startTyping(String participantId) {
-  //   _wsService.socket.emit('typing.start', {
-  //     'room': state.id,
-  //     'participantId': participantId,
-  //   });
-  // }
-
-  // stopTyping(String participantId) {
-  //   _wsService.socket.emit('typing.stop', {
-  //     'room': state.id,
-  //     'participantId': participantId,
-  //   });
-  // }
+  stopTyping(String participantId) {
+    _wsService.socket.emit('typing.stop', {
+      'room': state.id,
+      'participantId': participantId,
+    });
+  }
 }

@@ -6,17 +6,19 @@ class ChatState extends Equatable {
     required this.sharedKey,
     this.participants = const [],
     this.messages = const [],
-    this.message = Message.empty,
+    this.message = MessageState.empty,
     this.typing = const [],
+    this.isNewMessage = false,
     this.listStatus = ListStatus.unknow,
   });
 
   final String id;
   final Uint8List sharedKey;
   final List<ContactState> participants;
-  final List<Message> messages;
-  final Message message;
+  final List<MessageState> messages;
+  final MessageState message;
   final List<String> typing;
+  final bool isNewMessage;
   final ListStatus listStatus;
 
   @override
@@ -25,6 +27,7 @@ class ChatState extends Equatable {
         messages,
         message,
         typing,
+        isNewMessage,
         listStatus,
       ];
 
@@ -32,9 +35,10 @@ class ChatState extends Equatable {
     String? id,
     Uint8List? sharedKey,
     List<ContactState>? participants,
-    List<Message>? messages,
-    Message? message,
+    List<MessageState>? messages,
+    MessageState? message,
     List<String>? typing,
+    bool? isNewMessage,
     ListStatus? listStatus,
   }) {
     return ChatState(
@@ -44,6 +48,7 @@ class ChatState extends Equatable {
       messages: messages ?? this.messages,
       message: message ?? this.message,
       typing: typing ?? this.typing,
+      isNewMessage: isNewMessage ?? this.isNewMessage,
       listStatus: listStatus ?? this.listStatus,
     );
   }

@@ -1,10 +1,9 @@
-import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
+part of 'message_cubit.dart';
 
 enum MessageType { TEXT, PHOTO, VIDEO, FILE }
 enum MessageStatus { SENDING, SENT, FAILURE, UNKNOW }
 
-class MessageItem {
+class MessageItem extends Equatable {
   const MessageItem({
     required this.type,
     required this.data,
@@ -12,6 +11,9 @@ class MessageItem {
 
   final MessageType type;
   final dynamic data;
+
+  @override
+  List<Object?> get props => [type, data];
 
   MessageItem copyWith({
     MessageType? type,
@@ -24,47 +26,47 @@ class MessageItem {
   }
 }
 
-class Message extends Equatable {
-  const Message({
+class MessageState extends Equatable {
+  const MessageState({
     this.id,
-    required this.sender,
+    required this.senderId,
     this.content = const [],
     this.status = MessageStatus.UNKNOW,
     this.unreadBy = const [],
   });
 
   final String? id;
-  final String sender;
+  final String senderId;
   final List<MessageItem> content;
   final MessageStatus status;
   final List<String> unreadBy;
 
   @override
-  List<Object?> get props => [sender, content, status, unreadBy];
+  List<Object?> get props => [id, senderId, content, status, unreadBy];
 
-  static const empty = Message(
-    sender: '',
+  static const empty = MessageState(
+    senderId: '',
   );
 
-  Message copyWith({
+  MessageState copyWith({
     String? id,
-    String? sender,
+    String? senderId,
     List<MessageItem>? content,
     MessageStatus? status,
     List<String>? unreadBy,
   }) {
-    return Message(
+    return MessageState(
       id: id ?? this.id,
-      sender: sender ?? this.sender,
+      senderId: senderId ?? this.senderId,
       content: content ?? this.content,
       status: status ?? this.status,
       unreadBy: unreadBy ?? this.unreadBy,
     );
   }
 
-  Message.fromJson(Map<String, dynamic> json)
+  MessageState.fromJson(Map<String, dynamic> json)
       : id = json['id'],
-        sender = json['sender']!,
+        senderId = json['sender']!,
         content = (json['content']! as List)
             .map((item) => MessageItem(
                 type: MessageType.values.firstWhere(
@@ -77,7 +79,7 @@ class Message extends Equatable {
 
   Map toJson() {
     return {
-      'sender': this.sender,
+      'sender': this.senderId,
       'content': this
           .content
           .map((e) => {

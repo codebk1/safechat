@@ -4,7 +4,7 @@ import 'package:flutter/painting.dart';
 import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
 import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/chats/models/message.dart';
+import 'package:safechat/chats/cubits/message/message_cubit.dart';
 import 'package:safechat/contacts/contacts.dart';
 
 import 'package:safechat/home/view/panels/side_panels.dart';
@@ -93,58 +93,69 @@ class MainPanel extends StatelessWidget {
                                       context.read<UserCubit>().state.user;
 
                                   final chatState = state.chats[index].copyWith(
-                                    message: Message(sender: currentUser.id),
+                                    message: MessageState(
+                                      senderId: currentUser.id,
+                                    ),
                                   );
 
                                   final chatCubit = ChatCubit(
                                     chatState: chatState,
                                   );
 
-                                  final contactCubit = ContactCubit(
-                                    contact: chatState.participants.singleWhere(
-                                      (participant) =>
-                                          participant.id != currentUser.id,
+                                  // final contactCubit = ContactCubit(
+                                  //   contact: chatState.participants
+                                  //       .where(
+                                  //         (participant) =>
+                                  //             participant.id != currentUser.id,
+                                  //       )
+                                  //       .last,
+                                  // );
+
+                                  final contactsCubit = ContactsCubit(
+                                    contactsState: ContactsState(
+                                      contacts: chatState.participants
+                                          .where((p) => p.id != currentUser.id)
+                                          .toList(),
                                     ),
                                   );
 
                                   return MultiBlocProvider(
                                     providers: [
                                       BlocProvider.value(value: chatCubit),
-                                      BlocProvider.value(value: contactCubit),
+                                      BlocProvider.value(value: contactsCubit),
                                     ],
                                     child: BlocBuilder<ChatCubit, ChatState>(
                                       builder: (context, state) {
-                                        print({
-                                          'BAABABABABABBAAB',
-                                          //state.messages[0].unreadBy
-                                        });
-                                        return BlocBuilder<ContactCubit,
-                                            ContactState>(
-                                          builder: (context, contactState) {
+                                        return BlocBuilder<ContactsCubit,
+                                            ContactsState>(
+                                          builder: (context, contactsState) {
                                             return ListTile(
                                               onTap: () {
-                                                //chatCubit.readAllMessages();
                                                 Navigator.of(context).pushNamed(
-                                                    '/chat',
-                                                    arguments: chatCubit);
+                                                  '/chat',
+                                                  arguments: chatCubit,
+                                                );
                                               },
                                               leading: Stack(
                                                 children: [
                                                   CircleAvatar(
-                                                    child:
-                                                        contactState.avatar !=
-                                                                null
-                                                            ? ClipOval(
-                                                                child: Image.memory(
-                                                                    contactState
-                                                                        .avatar!),
-                                                              )
-                                                            : Icon(
-                                                                Icons.person,
-                                                                color: Colors
-                                                                    .grey
-                                                                    .shade50,
-                                                              ),
+                                                    child: contactsState
+                                                                .contacts
+                                                                .first
+                                                                .avatar !=
+                                                            null
+                                                        ? ClipOval(
+                                                            child: Image.memory(
+                                                                contactsState
+                                                                    .contacts
+                                                                    .first
+                                                                    .avatar!),
+                                                          )
+                                                        : Icon(
+                                                            Icons.person,
+                                                            color: Colors
+                                                                .grey.shade50,
+                                                          ),
                                                     backgroundColor:
                                                         Colors.grey.shade300,
                                                   ),
@@ -155,7 +166,9 @@ class MainPanel extends StatelessWidget {
                                                       height: 14,
                                                       width: 14,
                                                       decoration: BoxDecoration(
-                                                        color: contactState
+                                                        color: contactsState
+                                                                    .contacts
+                                                                    .first
                                                                     .status ==
                                                                 Status.ONLINE
                                                             ? Colors.green
@@ -171,16 +184,9 @@ class MainPanel extends StatelessWidget {
                                                 ],
                                               ),
                                               title: Text(
-                                                '${contactState.firstName} ${contactState.lastName}',
+                                                '${contactsState.contacts.first.firstName} ${contactsState.contacts.first.lastName}',
                                                 style: TextStyle(
-                                                  fontWeight: state.messages
-                                                                  .length >
-                                                              0 &&
-                                                          state.messages[0]
-                                                              .unreadBy
-                                                              .contains(
-                                                                  currentUser
-                                                                      .id)
+                                                  fontWeight: state.isNewMessage
                                                       ? FontWeight.bold
                                                       : FontWeight.normal,
                                                 ),
@@ -188,25 +194,20 @@ class MainPanel extends StatelessWidget {
                                               subtitle: Text(
                                                 state.messages.length > 0
                                                     ? state
-                                                                .messages[0]
-                                                                .content[0]
+                                                                .messages
+                                                                .first
+                                                                .content
+                                                                .first
                                                                 .type ==
                                                             MessageType.TEXT
-                                                        ? state.messages[0]
-                                                            .content[0].data
-                                                        : '${state.participants[0].firstName} wysłał załącznik(-i).'
+                                                        ? state.messages.first
+                                                            .content.first.data
+                                                        : '${contactsState.contacts.first.firstName} wysłał załącznik(-i).'
                                                     : 'Wyślij pierwszą wiadomość',
                                                 overflow: TextOverflow.ellipsis,
                                                 maxLines: 1,
                                                 style: TextStyle(
-                                                  fontWeight: state.messages
-                                                                  .length >
-                                                              0 &&
-                                                          state.messages[0]
-                                                              .unreadBy
-                                                              .contains(
-                                                                  currentUser
-                                                                      .id)
+                                                  fontWeight: state.isNewMessage
                                                       ? FontWeight.bold
                                                       : FontWeight.normal,
                                                 ),
