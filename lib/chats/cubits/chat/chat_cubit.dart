@@ -22,18 +22,14 @@ class ChatCubit extends Cubit<ChatState> {
     _wsService.socket.emit('join-chat', state.id);
 
     _wsService.socket.on('msg', (data) {
-      print({'participants', state.participants.length});
       if (data['room'] == state.id) {
-        data['msg']['unreadBy'] = state.participants
-            .map((e) => e.id)
-            .where((id) => id != data['msg']['sender']);
+        data['msg']['unreadBy'] = state.participants.map((e) => e.id).where(
+              (id) => id != data['msg']['sender'],
+            );
 
         final msg = MessageState.fromJson(data['msg']);
 
-        print(data['msg']['unreadBy']);
-        print({'msg.unreadBy', msg.unreadBy});
-
-        emit(state.copyWith(isNewMessage: true, messages: [
+        emit(state.copyWith(messages: [
           msg.copyWith(
               content: msg.content.map((item) {
             if (item.type == MessageType.TEXT) {
@@ -52,9 +48,9 @@ class ChatCubit extends Cubit<ChatState> {
           ...state.messages,
         ]));
 
-        _wsService.socket.emit('messages.readall', {
-          'room': state.id,
-        });
+        // _wsService.socket.emit('messages.readall', {
+        //   'room': state.id,
+        // });
       }
     });
 
@@ -72,14 +68,21 @@ class ChatCubit extends Cubit<ChatState> {
       }
     });
 
-    _wsService.socket.on('typing.start', (participantId) {
-      emit(state.copyWith(typing: [...state.typing, participantId]));
+    _wsService.socket.on('typing.start', (data) {
+      if (data['room'] == state.id) {
+        emit(state.copyWith(typing: [...state.typing, data['participantId']]));
+      }
     });
 
-    _wsService.socket.on('typing.stop', (participantId) {
-      emit(state.copyWith(
-        typing: List.of(state.typing)..removeWhere((e) => e == participantId),
-      ));
+    _wsService.socket.on('typing.stop', (data) {
+      if (data['room'] == state.id) {
+        emit(state.copyWith(
+          typing: List.of(state.typing)
+            ..removeWhere(
+              (e) => e == data['participantId'],
+            ),
+        ));
+      }
     });
   }
 
@@ -242,23 +245,24 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   readAllMessages(String currentUserId) async {
-    print("READ ALL MESSAGES");
+    if (state.messages.any((msg) => msg.unreadBy.contains(currentUserId))) {
+      print("READ ALL MESSAGES");
+      final newMessages = List.of(state.messages);
 
-    // final newMessages = List.of(state.messages);
+      for (var i = 0; i < newMessages.length; i++) {
+        newMessages[i] = newMessages[i].copyWith(
+            unreadBy: List.of(newMessages[i].unreadBy)
+              ..removeWhere((id) => id == currentUserId));
+      }
 
-    // for (var i = 0; i < newMessages.length; i++) {
-    //   newMessages[i] = newMessages[i].copyWith(
-    //       unreadBy: newMessages[i].unreadBy
-    //         ..removeWhere((id) => id == currentUserId));
-    // }
+      emit(state.copyWith(messages: newMessages));
 
-    // emit(state.copyWith(messages: newMessages));
+      await _chatsRepository.readAllMessages(state.id);
 
-    await _chatsRepository.readAllMessages(state.id);
-
-    _wsService.socket.emit('messages.readall', {
-      'room': state.id,
-    });
+      _wsService.socket.emit('messages.readall', {
+        'room': state.id,
+      });
+    }
   }
 
   textMessageChanged(String value) {

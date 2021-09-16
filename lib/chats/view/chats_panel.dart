@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
@@ -92,128 +94,74 @@ class MainPanel extends StatelessWidget {
                                   final currentUser =
                                       context.read<UserCubit>().state.user;
 
-                                  final chatState = state.chats[index].copyWith(
-                                    message: MessageState(
-                                      senderId: currentUser.id,
-                                    ),
-                                  );
-
                                   final chatCubit = ChatCubit(
-                                    chatState: chatState,
-                                  );
-
-                                  // final contactCubit = ContactCubit(
-                                  //   contact: chatState.participants
-                                  //       .where(
-                                  //         (participant) =>
-                                  //             participant.id != currentUser.id,
-                                  //       )
-                                  //       .last,
-                                  // );
-
-                                  final contactsCubit = ContactsCubit(
-                                    contactsState: ContactsState(
-                                      contacts: chatState.participants
-                                          .where((p) => p.id != currentUser.id)
-                                          .toList(),
+                                    chatState: state.chats[index].copyWith(
+                                      message: MessageState(
+                                        senderId: currentUser.id,
+                                      ),
                                     ),
                                   );
 
-                                  return MultiBlocProvider(
-                                    providers: [
-                                      BlocProvider.value(value: chatCubit),
-                                      BlocProvider.value(value: contactsCubit),
-                                    ],
+                                  return BlocProvider.value(
+                                    value: chatCubit,
                                     child: BlocBuilder<ChatCubit, ChatState>(
                                       builder: (context, state) {
-                                        return BlocBuilder<ContactsCubit,
-                                            ContactsState>(
-                                          builder: (context, contactsState) {
-                                            return ListTile(
-                                              onTap: () {
-                                                Navigator.of(context).pushNamed(
-                                                  '/chat',
-                                                  arguments: chatCubit,
-                                                );
-                                              },
-                                              leading: Stack(
-                                                children: [
-                                                  CircleAvatar(
-                                                    child: contactsState
-                                                                .contacts
-                                                                .first
-                                                                .avatar !=
-                                                            null
-                                                        ? ClipOval(
-                                                            child: Image.memory(
-                                                                contactsState
-                                                                    .contacts
-                                                                    .first
-                                                                    .avatar!),
-                                                          )
-                                                        : Icon(
-                                                            Icons.person,
-                                                            color: Colors
-                                                                .grey.shade50,
-                                                          ),
-                                                    backgroundColor:
-                                                        Colors.grey.shade300,
-                                                  ),
-                                                  Positioned(
-                                                    right: 0,
-                                                    bottom: 0,
-                                                    child: Container(
-                                                      height: 14,
-                                                      width: 14,
-                                                      decoration: BoxDecoration(
-                                                        color: contactsState
-                                                                    .contacts
-                                                                    .first
-                                                                    .status ==
-                                                                Status.ONLINE
-                                                            ? Colors.green
-                                                            : Colors.grey,
-                                                        shape: BoxShape.circle,
-                                                        border: Border.all(
-                                                          width: 2,
-                                                          color: Colors.white,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              title: Text(
-                                                '${contactsState.contacts.first.firstName} ${contactsState.contacts.first.lastName}',
-                                                style: TextStyle(
-                                                  fontWeight: state.isNewMessage
-                                                      ? FontWeight.bold
-                                                      : FontWeight.normal,
-                                                ),
-                                              ),
-                                              subtitle: Text(
-                                                state.messages.length > 0
-                                                    ? state
-                                                                .messages
-                                                                .first
-                                                                .content
-                                                                .first
-                                                                .type ==
-                                                            MessageType.TEXT
-                                                        ? state.messages.first
-                                                            .content.first.data
-                                                        : '${contactsState.contacts.first.firstName} wysłał załącznik(-i).'
-                                                    : 'Wyślij pierwszą wiadomość',
-                                                overflow: TextOverflow.ellipsis,
-                                                maxLines: 1,
-                                                style: TextStyle(
-                                                  fontWeight: state.isNewMessage
-                                                      ? FontWeight.bold
-                                                      : FontWeight.normal,
-                                                ),
-                                              ),
+                                        var participants =
+                                            List.of(state.participants)
+                                              ..removeWhere(
+                                                (p) => p.id == currentUser.id,
+                                              );
+
+                                        var isUnreadMsg = state.messages.any(
+                                          (e) => e.unreadBy.contains(
+                                            currentUser.id,
+                                          ),
+                                        );
+
+                                        return ListTile(
+                                          onTap: () {
+                                            chatCubit.readAllMessages(
+                                              currentUser.id,
+                                            );
+
+                                            Navigator.of(context).pushNamed(
+                                              '/chat',
+                                              arguments: chatCubit,
                                             );
                                           },
+                                          leading: ChatAvatar(
+                                            participants: participants,
+                                          ),
+                                          title: Text(
+                                            state.participants.length > 1
+                                                ? participants
+                                                    .map((e) => e.firstName)
+                                                    .join(', ')
+                                                : '${participants.first.firstName} ${participants.first.lastName}',
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontWeight: isUnreadMsg
+                                                  ? FontWeight.bold
+                                                  : FontWeight.normal,
+                                            ),
+                                          ),
+                                          subtitle: Text(
+                                            state.messages.length > 0
+                                                ? state.messages.first.content
+                                                            .first.type ==
+                                                        MessageType.TEXT
+                                                    ? state.messages.first
+                                                        .content.first.data
+                                                    : '${participants.first.firstName} wysłał załącznik(-i).'
+                                                : 'Wyślij pierwszą wiadomość',
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                            style: TextStyle(
+                                              fontWeight: isUnreadMsg
+                                                  ? FontWeight.bold
+                                                  : FontWeight.normal,
+                                            ),
+                                          ),
                                         );
                                       },
                                     ),
@@ -225,6 +173,121 @@ class MainPanel extends StatelessWidget {
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+class ChatAvatar extends StatelessWidget {
+  const ChatAvatar({
+    Key? key,
+    required this.participants,
+  }) : super(key: key);
+
+  final List<ContactState> participants;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => ContactsCubit(
+        contactsState: ContactsState(contacts: participants),
+      ),
+      child: BlocBuilder<ContactsCubit, ContactsState>(
+        builder: (context, state) {
+          return Stack(
+            children: [
+              ClipOval(
+                child: Container(
+                  width: 45,
+                  height: 45,
+                  color: Colors.grey.shade100,
+                  child: Flex(
+                    direction: Axis.vertical,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Flexible(
+                        //fit: FlexFit.tight,
+                        child: Flex(
+                          direction: Axis.horizontal,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: state.contacts
+                              .take(2)
+                              .map(
+                                (contact) => Flexible(
+                                  fit: FlexFit.tight,
+                                  child: FittedBox(
+                                    fit: BoxFit.cover,
+                                    clipBehavior: Clip.antiAlias,
+                                    child: contact.avatar != null
+                                        ? Image.memory(
+                                            contact.avatar!,
+                                          )
+                                        : Icon(
+                                            Icons.person,
+                                            color: Colors.grey.shade300,
+                                          ),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      ),
+                      if (state.contacts.length > 2)
+                        Flexible(
+                          fit: FlexFit.tight,
+                          child: Flex(
+                            direction: Axis.horizontal,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: state.contacts
+                                .skip(2)
+                                .take(2)
+                                .map(
+                                  (contact) => Flexible(
+                                    fit: FlexFit.tight,
+                                    child: FittedBox(
+                                      fit: BoxFit.cover,
+                                      clipBehavior: Clip.antiAlias,
+                                      child: contact.avatar != null
+                                          ? Image.memory(
+                                              contact.avatar!,
+                                            )
+                                          : Icon(
+                                              Icons.person,
+                                              color: Colors.grey.shade300,
+                                            ),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  height: 14,
+                  width: 14,
+                  decoration: BoxDecoration(
+                    color: state.contacts.any(
+                      (contact) => contact.status == Status.ONLINE,
+                    )
+                        ? Colors.green
+                        : Colors.grey,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      width: 2,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

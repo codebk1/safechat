@@ -8,7 +8,7 @@ class ChatState extends Equatable {
     this.messages = const [],
     this.message = MessageState.empty,
     this.typing = const [],
-    this.isNewMessage = false,
+    this.opened = false,
     this.listStatus = ListStatus.unknow,
   });
 
@@ -18,7 +18,7 @@ class ChatState extends Equatable {
   final List<MessageState> messages;
   final MessageState message;
   final List<String> typing;
-  final bool isNewMessage;
+  final bool opened;
   final ListStatus listStatus;
 
   @override
@@ -27,7 +27,7 @@ class ChatState extends Equatable {
         messages,
         message,
         typing,
-        isNewMessage,
+        opened,
         listStatus,
       ];
 
@@ -38,7 +38,7 @@ class ChatState extends Equatable {
     List<MessageState>? messages,
     MessageState? message,
     List<String>? typing,
-    bool? isNewMessage,
+    bool? opened,
     ListStatus? listStatus,
   }) {
     return ChatState(
@@ -48,7 +48,7 @@ class ChatState extends Equatable {
       messages: messages ?? this.messages,
       message: message ?? this.message,
       typing: typing ?? this.typing,
-      isNewMessage: isNewMessage ?? this.isNewMessage,
+      opened: opened ?? this.opened,
       listStatus: listStatus ?? this.listStatus,
     );
   }

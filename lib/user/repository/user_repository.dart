@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:safechat/user/models/user.dart';
 import 'package:safechat/utils/utils.dart';
@@ -16,11 +17,29 @@ class UserRepository {
   Future<User> getUser() async {
     final res = await _apiService.get('/user/profile');
 
-    if (res.data['profile']['avatar'] != null) {
+    final avatarName = res.data['profile']['avatar'];
+
+    if (avatarName != null) {
       final decryptedAvatar = _encryptionService.chachaDecrypt(
-        res.data['profile']['avatar'],
+        avatarName,
         _encryptionService.sharedKey!,
       );
+
+      // final cacheManager = DefaultCacheManager();
+
+      // var cachedFile = await cacheManager.getFileFromCache(avatarName);
+
+      // if (cachedFile != null) {
+      //   res.data['profile']['avatar'] = cachedFile.file;
+      // }
+
+      // final attachmentFile = await _chatsRepository.getAttachment(
+      //   state.id,
+      //   attachmentName,
+      //   state.sharedKey,
+      // );
+
+      // res.data['profile']['avatar'] = await cacheManager.putFile(avatarName, attachmentFile);
 
       final directory = await getApplicationDocumentsDirectory();
       final avatar = File('${directory.path}/${res.data["id"]}.jpg')

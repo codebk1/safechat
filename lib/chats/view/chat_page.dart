@@ -9,6 +9,7 @@ import 'package:safechat/chats/cubits/attachment/attachment_cubit.dart';
 
 import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
 import 'package:safechat/chats/cubits/message/message_cubit.dart';
+import 'package:safechat/chats/view/chats_panel.dart';
 import 'package:safechat/chats/view/widgets/message_text_field.dart';
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/router.dart';
@@ -27,9 +28,9 @@ class ChatPage extends StatelessWidget {
       value: chatCubit..readAllMessages(currentUser.id),
       child: WillPopScope(
         onWillPop: () {
-          chatCubit.emit(chatCubit.state.copyWith(
-            isNewMessage: false,
-          ));
+          // chatCubit.emit(chatCubit.state.copyWith(
+          //   isNewMessage: false,
+          // ));
 
           return Future.value(true);
         },
@@ -48,44 +49,17 @@ class ChatPage extends StatelessWidget {
               color: Colors.grey.shade800,
             ),
             title: BlocProvider(
-              create: (context) => ContactCubit(
-                contact: chatCubit.state.participants
-                    .where((p) => p.id != currentUser.id)
-                    .first,
+              create: (context) => ContactsCubit(
+                contactsState: ContactsState(
+                    contacts: chatCubit.state.participants
+                        .where((p) => p.id != currentUser.id)
+                        .toList()),
               ),
-              child: BlocBuilder<ContactCubit, ContactState>(
+              child: BlocBuilder<ContactsCubit, ContactsState>(
                 builder: (context, state) {
                   return Row(
                     children: [
-                      Stack(
-                        children: [
-                          CircleAvatar(
-                            child: Icon(
-                              Icons.person,
-                              color: Colors.grey.shade50,
-                            ),
-                            backgroundColor: Colors.grey.shade300,
-                          ),
-                          Positioned(
-                            right: 0,
-                            bottom: 0,
-                            child: Container(
-                              height: 14,
-                              width: 14,
-                              decoration: BoxDecoration(
-                                color: state.status == Status.ONLINE
-                                    ? Colors.green
-                                    : Colors.grey,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  width: 2,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                      ChatAvatar(participants: state.contacts),
                       SizedBox(
                         width: 15.0,
                       ),
@@ -93,12 +67,21 @@ class ChatPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${state.firstName} ${state.lastName}',
+                            state.contacts.length > 1
+                                ? state.contacts
+                                    .map((e) => e.firstName)
+                                    .join(', ')
+                                : '${state.contacts.first.firstName} ${state.contacts.first.lastName}',
+                            overflow: TextOverflow.ellipsis,
                             style: Theme.of(context).textTheme.headline6,
                           ),
                           Text(
-                            'Aktywny 5min temu',
-                            style: Theme.of(context).textTheme.subtitle2,
+                            'Ostatnia aktywność 5min temu',
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .subtitle2!
+                                .copyWith(fontSize: 12),
                           ),
                         ],
                       ),
@@ -131,8 +114,9 @@ class MessagesSection extends StatelessWidget {
       builder: (context, state) {
         final currentUser = context.read<UserCubit>().state.user;
 
-        final lastSenderMsg =
-            state.messages.where((msg) => msg.senderId == currentUser.id).first;
+        final lastSenderMsg = state.messages.where(
+          (msg) => msg.senderId == currentUser.id,
+        );
 
         return Column(
           children: [
@@ -180,8 +164,10 @@ class MessagesSection extends StatelessWidget {
                                   messageState: state.messages[index],
                                 ),
                                 isLastInSet: isLastInSet,
-                                isLastSentMsg:
-                                    lastSenderMsg == state.messages[index],
+                                isLastSentMsg: lastSenderMsg.isNotEmpty
+                                    ? lastSenderMsg.first ==
+                                        state.messages[index]
+                                    : false,
                               ),
                             );
                           }),
@@ -246,11 +232,11 @@ class MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final currentUser = context.read<UserCubit>().state.user;
 
-    return BlocProvider.value(
-      value: messageCubit..readMessage(currentUser.id),
-      child: BlocBuilder<ChatCubit, ChatState>(
-        builder: (context, chatState) {
-          return BlocBuilder<MessageCubit, MessageState>(
+    return BlocBuilder<ChatCubit, ChatState>(
+      builder: (context, chatState) {
+        return BlocProvider.value(
+          value: messageCubit..readMessage(currentUser.id, chatState.id),
+          child: BlocBuilder<MessageCubit, MessageState>(
             builder: (context, messageState) {
               //print({'data', messageState.content[0].data});
 
@@ -305,130 +291,157 @@ class MessageBubble extends StatelessWidget {
                       : MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    if (!isSender) ...[
-                      isLastInSet
-                          ? BlocProvider(
-                              create: (context) => ContactCubit(
-                                contact: contact!,
-                              ),
-                              child: BlocBuilder<ContactCubit, ContactState>(
-                                builder: (context, state) {
-                                  return Stack(
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 14,
-                                        child: state.avatar != null
-                                            ? ClipOval(
-                                                child:
-                                                    Image.memory(state.avatar!),
-                                              )
-                                            : Icon(
-                                                Icons.person,
-                                                color: Colors.grey.shade50,
+                    Row(
+                      children: [
+                        if (!isSender) ...[
+                          isLastInSet
+                              ? BlocProvider(
+                                  create: (context) => ContactCubit(
+                                    contact: contact!,
+                                  ),
+                                  child:
+                                      BlocBuilder<ContactCubit, ContactState>(
+                                    builder: (context, state) {
+                                      return Stack(
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 14,
+                                            child: state.avatar != null
+                                                ? ClipOval(
+                                                    child: Image.memory(
+                                                        state.avatar!),
+                                                  )
+                                                : Icon(
+                                                    Icons.person,
+                                                    color: Colors.grey.shade50,
+                                                  ),
+                                            backgroundColor:
+                                                Colors.grey.shade300,
+                                          ),
+                                          Positioned(
+                                            right: 0,
+                                            bottom: 0,
+                                            child: Container(
+                                              height: 12,
+                                              width: 12,
+                                              decoration: BoxDecoration(
+                                                color: state.status ==
+                                                        Status.ONLINE
+                                                    ? Colors.green
+                                                    : Colors.grey,
+                                                shape: BoxShape.circle,
+                                                border: Border.all(
+                                                  width: 2,
+                                                  color: Colors.white,
+                                                ),
                                               ),
-                                        backgroundColor: Colors.grey.shade300,
-                                      ),
-                                      Positioned(
-                                        right: 0,
-                                        bottom: 0,
-                                        child: Container(
-                                          height: 12,
-                                          width: 12,
-                                          decoration: BoxDecoration(
-                                            color: state.status == Status.ONLINE
-                                                ? Colors.green
-                                                : Colors.grey,
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              width: 2,
-                                              color: Colors.white,
                                             ),
                                           ),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            )
-                          : SizedBox(
-                              width: 28,
-                            ),
-                      SizedBox(width: 10.0),
-                    ],
-                    ConstrainedBox(
-                      // decoration: BoxDecoration(
-                      //   color: Colors.grey.shade100,
-                      //   borderRadius: BorderRadius.all(
-                      //     Radius.circular(10),
-                      //   ),
-                      // ),
-                      constraints: BoxConstraints(
-                        maxWidth: MediaQuery.of(context).size.width * 0.7,
-                      ),
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            if (photos.isNotEmpty) PhotoMessage(photos: photos),
-                            if (videos.isNotEmpty)
-                              VideosMessage(videos: videos),
-                            if (files.isNotEmpty) FilesMessage(files: files),
-                            SizedBox(height: 5),
-                            if (textMessage.isNotEmpty)
-                              TextMessage(text: textMessage, sender: contact)
-                          ]
-                          // children: message.content
-                          //     .asMap()
-                          //     .map((i, element) => MapEntry(
-                          //           i,
-                          //           GestureDetector(
-                          //             onTap: () => {},
-                          //             child: messageContaint(
-                          //               message.content[i],
-                          //               contact,
-                          //             ),
-                          //           ),
-                          //         ))
-                          //     .values
-                          //     .toList(),
-                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                )
+                              : SizedBox(
+                                  width: 28,
+                                ),
+                          SizedBox(width: 10.0),
+                        ],
+                      ],
                     ),
-                    if (isSender) ...[
-                      SizedBox(width: 2.0),
-                      isLastSentMsg
-                          ? readBy.isNotEmpty
-                              ? CircleAvatar(
-                                  radius: 8,
-                                  child: readBy.first.avatar != null
-                                      ? ClipOval(
-                                          child: Image.memory(
-                                              readBy.first.avatar!),
+                    Flex(
+                      direction: chatState.participants.length > 2
+                          ? Axis.vertical
+                          : Axis.horizontal,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width * 0.7,
+                          ),
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                if (photos.isNotEmpty)
+                                  PhotoMessage(photos: photos),
+                                if (videos.isNotEmpty)
+                                  VideosMessage(videos: videos),
+                                if (files.isNotEmpty)
+                                  FilesMessage(files: files),
+                                SizedBox(height: 5),
+                                if (textMessage.isNotEmpty)
+                                  TextMessage(
+                                      text: textMessage, sender: contact)
+                              ]),
+                        ),
+                        if (isSender) ...[
+                          if (chatState.participants.length == 2)
+                            SizedBox(width: 2.0),
+                          isLastSentMsg
+                              ? readBy.isNotEmpty
+                                  ? chatState.participants.length > 2
+                                      ? Row(
+                                          children: readBy
+                                              .map((e) => Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                      2.0,
+                                                    ),
+                                                    child: CircleAvatar(
+                                                      radius: 8,
+                                                      child: e.avatar != null
+                                                          ? ClipOval(
+                                                              child:
+                                                                  Image.memory(e
+                                                                      .avatar!),
+                                                            )
+                                                          : Icon(
+                                                              Icons.person,
+                                                              size: 12,
+                                                              color: Colors
+                                                                  .grey.shade50,
+                                                            ),
+                                                      backgroundColor:
+                                                          Colors.grey.shade300,
+                                                    ),
+                                                  ))
+                                              .toList(),
                                         )
-                                      : Icon(
-                                          Icons.person,
-                                          size: 12,
-                                          color: Colors.grey.shade50,
-                                        ),
-                                  backgroundColor: Colors.grey.shade300,
+                                      : CircleAvatar(
+                                          radius: 8,
+                                          child: readBy.first.avatar != null
+                                              ? ClipOval(
+                                                  child: Image.memory(
+                                                      readBy.first.avatar!),
+                                                )
+                                              : Icon(
+                                                  Icons.person,
+                                                  size: 12,
+                                                  color: Colors.grey.shade50,
+                                                ),
+                                          backgroundColor: Colors.grey.shade300,
+                                        )
+                                  : Icon(
+                                      messageState.status ==
+                                              MessageStatus.SENDING
+                                          ? Icons.check_circle_outline
+                                          : Icons.check_circle,
+                                      size: 16,
+                                      color: Colors.blue.shade800,
+                                    )
+                              : SizedBox(
+                                  width: 16,
                                 )
-                              : Icon(
-                                  messageState.status == MessageStatus.SENDING
-                                      ? Icons.check_circle_outline
-                                      : Icons.check_circle,
-                                  size: 16,
-                                  color: Colors.blue.shade800,
-                                )
-                          : SizedBox(
-                              width: 16,
-                            )
-                    ],
+                        ],
+                      ],
+                    ),
                   ],
                 ),
               );
             },
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }
