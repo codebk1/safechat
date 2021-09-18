@@ -1,9 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 import 'package:safechat/user/user.dart';
 import 'package:safechat/contacts/contacts.dart';
@@ -12,6 +11,7 @@ import 'package:safechat/utils/utils.dart';
 class ContactsRepository {
   final Dio _apiService = ApiService().init();
   final EncryptionService _encryptionService = EncryptionService();
+  final DefaultCacheManager _cacheManager = DefaultCacheManager();
 
   Future<List<ContactState>> getContacts() async {
     final res = await _apiService.get('/user/contacts');
@@ -53,6 +53,15 @@ class ContactsRepository {
     );
   }
 
+  Future<Uint8List> getAvatar(String name, Uint8List sharedKey) async {
+    final res = await _apiService.get('/user/profile/avatar/$name');
+
+    return _encryptionService.chachaDecrypt(
+      res.data,
+      sharedKey,
+    );
+  }
+
   Future<void> acceptInvitation(String contactId) async {
     final contactUser = await _apiService.get(
       '/user/key/public/id/$contactId',
@@ -83,13 +92,9 @@ class ContactsRepository {
   Future<List<ContactState>> getDecryptedContactsList(
       List<dynamic> contactsData,
       [Uint8List? sharedKey]) async {
-    //final directory = await getApplicationDocumentsDirectory();
-
     final List<ContactState> contacts = [];
 
     for (var i = 0; i < contactsData.length; i++) {
-      //print(contactsData[i]);
-
       if (sharedKey != null) {
         contactsData[i]['sharedKey'] = _encryptionService.chachaDecrypt(
           contactsData[i]['sharedKey'],
@@ -102,7 +107,6 @@ class ContactsRepository {
       }
 
       var contact = ContactState.fromJson(contactsData[i]);
-      //print(contact);
 
       if (contact.sharedKey != null) {
         contact = contact.copyWith(
@@ -121,15 +125,18 @@ class ContactsRepository {
         );
 
         if (contact.avatar != null) {
-          final decryptedAvatar = _encryptionService.chachaDecrypt(
-            base64.encode(contact.avatar!),
-            contact.sharedKey!,
-          );
+          var cachedFile = await _cacheManager.getFileFromCache(contact.avatar);
 
-          //final avatar = ;
-          //print(contact.avatar);
+          if (cachedFile != null) {
+            contact = contact.copyWith(avatar: cachedFile.file);
+          } else {
+            print(contact.avatar);
+            final avatar = await getAvatar(contact.avatar, contact.sharedKey!);
 
-          contact = contact.copyWith(avatar: decryptedAvatar);
+            contact = contact.copyWith(
+              avatar: await _cacheManager.putFile(contact.avatar, avatar),
+            );
+          }
         }
       }
 

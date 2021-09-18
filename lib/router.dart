@@ -99,7 +99,7 @@ class AppRouter {
             child: CreateChatPage(),
           ),
         );
-      case '/chat/video':
+      case '/chat/media':
         final args = routeSettings.arguments as MediaPageArguments;
         return PageRouteBuilder(
           pageBuilder: (_, __, ___) => MultiBlocProvider(

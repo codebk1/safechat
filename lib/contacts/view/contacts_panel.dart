@@ -106,20 +106,20 @@ class ContactsPanel extends StatelessWidget {
                                                   leading: Stack(
                                                     children: [
                                                       CircleAvatar(
-                                                        child:
-                                                            state.avatar != null
-                                                                ? ClipOval(
-                                                                    child: Image
-                                                                        .memory(
-                                                                            state.avatar!),
-                                                                  )
-                                                                : Icon(
-                                                                    Icons
-                                                                        .person,
-                                                                    color: Colors
-                                                                        .grey
-                                                                        .shade50,
-                                                                  ),
+                                                        child: state.avatar !=
+                                                                null
+                                                            ? ClipOval(
+                                                                child:
+                                                                    Image.file(
+                                                                  state.avatar!,
+                                                                ),
+                                                              )
+                                                            : Icon(
+                                                                Icons.person,
+                                                                color: Colors
+                                                                    .grey
+                                                                    .shade50,
+                                                              ),
                                                         backgroundColor: Colors
                                                             .grey.shade300,
                                                       ),

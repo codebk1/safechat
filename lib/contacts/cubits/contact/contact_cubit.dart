@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:safechat/chats/repository/chats_repository.dart';
 import 'package:safechat/contacts/repository/contacts_repository.dart';
 import 'package:safechat/utils/socket_service.dart';
@@ -25,6 +26,7 @@ class ContactCubit extends Cubit<ContactState> {
   final SocketService _wsService = SocketService();
   final ContactsRepository _contactsRepository = ContactsRepository();
   final ChatsRepository _chatsRepository = ChatsRepository();
+  final DefaultCacheManager _cacheManager = DefaultCacheManager();
 
   Future<void> createChat() async {
     try {
@@ -41,6 +43,18 @@ class ContactCubit extends Cubit<ContactState> {
       // ));
     }
   }
+
+  // Future<File> getAvatar(String name) async {
+  //   var cachedFile = await _cacheManager.getFileFromCache(name);
+
+  //   if (cachedFile != null) {
+  //     return cachedFile.file;
+  //   }
+
+  //   final avatar = await _contactsRepository.getAvatar(name, state.sharedKey!);
+
+  //   return await _cacheManager.putFile(name, avatar);
+  // }
 
   Future<void> acceptInvitation() async {
     try {

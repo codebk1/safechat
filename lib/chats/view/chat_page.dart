@@ -25,12 +25,15 @@ class ChatPage extends StatelessWidget {
     final currentUser = context.read<UserCubit>().state.user;
 
     return BlocProvider.value(
-      value: chatCubit..readAllMessages(currentUser.id),
+      value: chatCubit
+        ..emit(chatCubit.state.copyWith(
+          opened: true,
+        )),
       child: WillPopScope(
         onWillPop: () {
-          // chatCubit.emit(chatCubit.state.copyWith(
-          //   isNewMessage: false,
-          // ));
+          chatCubit.emit(chatCubit.state.copyWith(
+            opened: false,
+          ));
 
           return Future.value(true);
         },
@@ -235,7 +238,7 @@ class MessageBubble extends StatelessWidget {
     return BlocBuilder<ChatCubit, ChatState>(
       builder: (context, chatState) {
         return BlocProvider.value(
-          value: messageCubit..readMessage(currentUser.id, chatState.id),
+          value: messageCubit, //..readMessage(currentUser.id, chatState.id),
           child: BlocBuilder<MessageCubit, MessageState>(
             builder: (context, messageState) {
               //print({'data', messageState.content[0].data});
@@ -308,7 +311,7 @@ class MessageBubble extends StatelessWidget {
                                             radius: 14,
                                             child: state.avatar != null
                                                 ? ClipOval(
-                                                    child: Image.memory(
+                                                    child: Image.file(
                                                         state.avatar!),
                                                   )
                                                 : Icon(
@@ -391,9 +394,8 @@ class MessageBubble extends StatelessWidget {
                                                       radius: 8,
                                                       child: e.avatar != null
                                                           ? ClipOval(
-                                                              child:
-                                                                  Image.memory(e
-                                                                      .avatar!),
+                                                              child: Image.file(
+                                                                  e.avatar!),
                                                             )
                                                           : Icon(
                                                               Icons.person,
@@ -411,7 +413,7 @@ class MessageBubble extends StatelessWidget {
                                           radius: 8,
                                           child: readBy.first.avatar != null
                                               ? ClipOval(
-                                                  child: Image.memory(
+                                                  child: Image.file(
                                                       readBy.first.avatar!),
                                                 )
                                               : Icon(
@@ -539,7 +541,7 @@ class PhotoMessage extends StatelessWidget {
                   return GestureDetector(
                     onTap: () {
                       Navigator.of(context).pushNamed(
-                        '/chat/video',
+                        '/chat/media',
                         arguments: MediaPageArguments(
                           context.read<ChatCubit>(),
                           photos[index],

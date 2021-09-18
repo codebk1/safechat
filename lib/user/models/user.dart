@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:equatable/equatable.dart';
 
 class User extends Equatable {
@@ -15,7 +13,7 @@ class User extends Equatable {
   final String email;
   final String firstName;
   final String lastName;
-  final File? avatar;
+  final dynamic avatar;
 
   @override
   List<Object?> get props => [email, firstName, lastName, avatar];
@@ -39,7 +37,7 @@ class User extends Equatable {
     String? email,
     String? firstName,
     String? lastName,
-    File? avatar,
+    dynamic avatar,
   }) {
     return User(
       id: id ?? this.id,

@@ -33,8 +33,8 @@ class ProfileCubit extends Cubit<ProfileState> {
     if (pickedPhoto != null) {
       emit(state.copyWith(loadingAvatar: true));
 
-      Uint8List data = await pickedPhoto.readAsBytes();
-      List<int> processedAvatar = await computeCropAvatar(data);
+      var data = await pickedPhoto.readAsBytes();
+      var processedAvatar = await computeCropAvatar(data) as Uint8List;
 
       await _userCubit.updateAvatar(processedAvatar);
 
@@ -95,7 +95,7 @@ List<int> cropAvatar(Uint8List data) {
     150,
   );
 
-  List<int> avatar = encodePng(croppedPhoto);
+  List<int> avatar = encodeJpg(croppedPhoto);
 
   return avatar;
 }

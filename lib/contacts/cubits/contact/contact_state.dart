@@ -19,7 +19,7 @@ class ContactState extends Equatable {
   final String email;
   final String firstName;
   final String lastName;
-  final Uint8List? avatar;
+  final dynamic avatar;
   final Status status;
   final CurrentState currentState;
   final Uint8List? sharedKey;
@@ -39,7 +39,7 @@ class ContactState extends Equatable {
     String? email,
     String? firstName,
     String? lastName,
-    Uint8List? avatar,
+    dynamic avatar,
     Status? status,
     CurrentState? currentState,
     Uint8List? sharedKey,
@@ -60,9 +60,7 @@ class ContactState extends Equatable {
         email = json['email']!,
         firstName = json['profile']['firstName']!,
         lastName = json['profile']['lastName']!,
-        avatar = json['profile']['avatar'] != null
-            ? base64.decode(json['profile']['avatar'])
-            : null,
+        avatar = json['profile']['avatar'],
         status = json['online']! == 1 ? Status.ONLINE : Status.OFFLINE,
         currentState = CurrentState.values.firstWhere((e) =>
             e.toString().split('.').last == (json['state'] ?? 'ACCEPTED')),

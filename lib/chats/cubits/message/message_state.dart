@@ -42,7 +42,7 @@ class MessageState extends Equatable {
   final List<String> unreadBy;
 
   @override
-  List<Object?> get props => [id, senderId, content, status, unreadBy];
+  List<Object?> get props => [senderId, content, status, unreadBy];
 
   static const empty = MessageState(
     senderId: '',
@@ -79,6 +79,7 @@ class MessageState extends Equatable {
 
   Map toJson() {
     return {
+      'id': this.id,
       'sender': this.senderId,
       'content': this
           .content
@@ -87,6 +88,7 @@ class MessageState extends Equatable {
                 'data': e.data,
               })
           .toList(),
+      'unreadBy': this.unreadBy
     };
   }
 }

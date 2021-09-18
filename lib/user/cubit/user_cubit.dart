@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:safechat/utils/socket_service.dart';
 
 import 'package:socket_io_client/socket_io_client.dart' as IO;
@@ -41,6 +43,7 @@ class UserCubit extends Cubit<UserState> {
   final AuthRepository _authRepository;
   final UserRepository _userRepository;
   final SocketService _wsService = SocketService();
+  final DefaultCacheManager _cacheManager = DefaultCacheManager();
 
   Future<void> authenticate() async {
     try {
@@ -80,6 +83,18 @@ class UserCubit extends Cubit<UserState> {
     ));
   }
 
+  Future<File> getAvatar(String name) async {
+    var cachedFile = await _cacheManager.getFileFromCache(name);
+
+    if (cachedFile != null) {
+      return cachedFile.file;
+    }
+
+    final avatar = await _userRepository.getAvatar(name);
+
+    return await _cacheManager.putFile(name, avatar);
+  }
+
   Future<void> updateProfile(String fN, String lN) async {
     await _userRepository.updateProfile(fN, lN);
 
@@ -88,16 +103,13 @@ class UserCubit extends Cubit<UserState> {
     ));
   }
 
-  updateAvatar(List<int> processedAvatar) async {
-    final directory = await getApplicationDocumentsDirectory();
-    final avatarFile = File('${directory.path}/${state.user.id}.jpg');
-
-    imageCache!.evict(FileImage(avatarFile));
-    final avatar = await avatarFile.writeAsBytes(processedAvatar);
+  updateAvatar(Uint8List processedAvatar) async {
+    final avatarName = '${state.user.id}.jpg';
+    final avatar = await _cacheManager.putFile(avatarName, processedAvatar);
 
     await _userRepository.updateAvatar(state.user.id, avatar);
 
-    emit(state.copyWith(user: state.user.copyWith(avatar: avatar)));
+    emit(state.copyWith(user: state.user.copyWith(avatar: avatarName)));
   }
 
   removeAvatar() async {

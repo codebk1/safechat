@@ -202,7 +202,9 @@ class CreateChatPage extends StatelessWidget {
                                                                           null
                                                                       ? ClipOval(
                                                                           child:
-                                                                              Image.memory(state.avatar!),
+                                                                              Image.file(
+                                                                            state.avatar!,
+                                                                          ),
                                                                         )
                                                                       : Icon(
                                                                           Icons

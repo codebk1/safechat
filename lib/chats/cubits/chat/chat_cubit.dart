@@ -11,23 +11,32 @@ import 'package:safechat/chats/cubits/attachment/attachment_cubit.dart';
 import 'package:safechat/chats/cubits/message/message_cubit.dart';
 import 'package:safechat/chats/repository/chats_repository.dart';
 import 'package:safechat/contacts/contacts.dart';
+import 'package:safechat/user/models/user.dart';
 import 'package:safechat/utils/utils.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
 part 'chat_state.dart';
 
 class ChatCubit extends Cubit<ChatState> {
-  ChatCubit({required ChatState chatState}) : super(chatState) {
-    // print({'INIT CHAT', state.id});
+  ChatCubit({
+    required ChatState chatState,
+    required User currentUser,
+  }) : super(chatState) {
     _wsService.socket.emit('join-chat', state.id);
 
     _wsService.socket.on('msg', (data) {
       if (data['room'] == state.id) {
-        data['msg']['unreadBy'] = state.participants.map((e) => e.id).where(
-              (id) => id != data['msg']['sender'],
-            );
+        var msg = MessageState.fromJson(data['msg']);
 
-        final msg = MessageState.fromJson(data['msg']);
+        if (state.opened) {
+          msg = msg.copyWith(
+            unreadBy: List.of(msg.unreadBy)..remove(currentUser.id),
+          );
+
+          _wsService.socket.emit('messages.readall', {
+            'room': state.id,
+          });
+        }
 
         emit(state.copyWith(messages: [
           msg.copyWith(
@@ -47,10 +56,6 @@ class ChatCubit extends Cubit<ChatState> {
           }).toList()),
           ...state.messages,
         ]));
-
-        // _wsService.socket.emit('messages.readall', {
-        //   'room': state.id,
-        // });
       }
     });
 

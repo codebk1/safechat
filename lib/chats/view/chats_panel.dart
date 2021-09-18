@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
@@ -95,12 +96,12 @@ class MainPanel extends StatelessWidget {
                                       context.read<UserCubit>().state.user;
 
                                   final chatCubit = ChatCubit(
-                                    chatState: state.chats[index].copyWith(
-                                      message: MessageState(
-                                        senderId: currentUser.id,
+                                      chatState: state.chats[index].copyWith(
+                                        message: MessageState(
+                                          senderId: currentUser.id,
+                                        ),
                                       ),
-                                    ),
-                                  );
+                                      currentUser: currentUser);
 
                                   return BlocProvider.value(
                                     value: chatCubit,
@@ -133,7 +134,7 @@ class MainPanel extends StatelessWidget {
                                             participants: participants,
                                           ),
                                           title: Text(
-                                            state.participants.length > 1
+                                            participants.length > 1
                                                 ? participants
                                                     .map((e) => e.firstName)
                                                     .join(', ')
@@ -219,7 +220,7 @@ class ChatAvatar extends StatelessWidget {
                                     fit: BoxFit.cover,
                                     clipBehavior: Clip.antiAlias,
                                     child: contact.avatar != null
-                                        ? Image.memory(
+                                        ? Image.file(
                                             contact.avatar!,
                                           )
                                         : Icon(
@@ -248,7 +249,7 @@ class ChatAvatar extends StatelessWidget {
                                       fit: BoxFit.cover,
                                       clipBehavior: Clip.antiAlias,
                                       child: contact.avatar != null
-                                          ? Image.memory(
+                                          ? Image.file(
                                               contact.avatar!,
                                             )
                                           : Icon(

@@ -4,7 +4,6 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:safechat/user/models/user.dart';
 import 'package:safechat/utils/utils.dart';
 
@@ -13,59 +12,48 @@ class UserRepository {
 
   final Dio _apiService = ApiService().init();
   final EncryptionService _encryptionService = EncryptionService();
+  final DefaultCacheManager _cacheManager = DefaultCacheManager();
 
   Future<User> getUser() async {
     final res = await _apiService.get('/user/profile');
 
-    final avatarName = res.data['profile']['avatar'];
+    var user = User.fromJson(res.data);
 
-    if (avatarName != null) {
-      final decryptedAvatar = _encryptionService.chachaDecrypt(
-        avatarName,
-        _encryptionService.sharedKey!,
-      );
+    if (user.avatar != null) {
+      var cachedFile = await _cacheManager.getFileFromCache(user.avatar);
 
-      // final cacheManager = DefaultCacheManager();
+      if (cachedFile != null) {
+        user = user.copyWith(avatar: cachedFile.file);
+      } else {
+        final avatar = await getAvatar(user.avatar);
 
-      // var cachedFile = await cacheManager.getFileFromCache(avatarName);
-
-      // if (cachedFile != null) {
-      //   res.data['profile']['avatar'] = cachedFile.file;
-      // }
-
-      // final attachmentFile = await _chatsRepository.getAttachment(
-      //   state.id,
-      //   attachmentName,
-      //   state.sharedKey,
-      // );
-
-      // res.data['profile']['avatar'] = await cacheManager.putFile(avatarName, attachmentFile);
-
-      final directory = await getApplicationDocumentsDirectory();
-      final avatar = File('${directory.path}/${res.data["id"]}.jpg')
-        ..writeAsBytes(decryptedAvatar);
-
-      res.data['profile']['avatar'] = avatar;
+        user = user.copyWith(
+          avatar: await _cacheManager.putFile(user.avatar, avatar),
+        );
+      }
     }
 
-    final user = User.fromJson(res.data);
+    return user.copyWith(
+        firstName: utf8.decode(
+          _encryptionService.chachaDecrypt(
+            user.firstName,
+            _encryptionService.sharedKey!,
+          ),
+        ),
+        lastName: utf8.decode(
+          _encryptionService.chachaDecrypt(
+            user.lastName,
+            _encryptionService.sharedKey!,
+          ),
+        ));
+  }
 
-    return User(
-      id: user.id,
-      email: user.email,
-      firstName: utf8.decode(
-        _encryptionService.chachaDecrypt(
-          user.firstName,
-          _encryptionService.sharedKey!,
-        ),
-      ),
-      lastName: utf8.decode(
-        _encryptionService.chachaDecrypt(
-          user.lastName,
-          _encryptionService.sharedKey!,
-        ),
-      ),
-      avatar: user.avatar,
+  Future<Uint8List> getAvatar(String name) async {
+    final res = await _apiService.get('/user/profile/avatar/$name');
+
+    return _encryptionService.chachaDecrypt(
+      res.data,
+      _encryptionService.sharedKey!,
     );
   }
 

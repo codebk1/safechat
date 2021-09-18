@@ -52,18 +52,4 @@ class ChatState extends Equatable {
       listStatus: listStatus ?? this.listStatus,
     );
   }
-
-  // do wywalenia
-  // ChatState.fromJson(Map<String, dynamic> json)
-  //     : id = json['id'],
-  //       sharedKey = json['sharedKey']!,
-  //       participants = (json['participants']! as List)
-  //           .map((participant) => ContactState.fromJson(participant))
-  //           .toList(),
-  //       messages = (json['messages']! as List)
-  //           .map((msg) => Message.fromJson(msg))
-  //           .toList(),
-  //       message = Message.empty,
-  //       typing = [],
-  //       listStatus = ListStatus.unknow;
 }
