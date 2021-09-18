@@ -8,16 +8,16 @@ class AttachmentsState extends Equatable {
   });
 
   final bool loading;
-  final List<AttachmentState> attachments;
-  final List<AttachmentState> selectedAttachments;
+  final List<Attachment> attachments;
+  final List<Attachment> selectedAttachments;
 
   @override
   List<Object> get props => [loading, attachments, selectedAttachments];
 
   AttachmentsState copyWith({
     bool? loading,
-    List<AttachmentState>? attachments,
-    List<AttachmentState>? selectedAttachments,
+    List<Attachment>? attachments,
+    List<Attachment>? selectedAttachments,
   }) {
     return AttachmentsState(
       loading: loading ?? this.loading,

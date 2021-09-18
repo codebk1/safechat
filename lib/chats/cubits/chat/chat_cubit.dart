@@ -7,8 +7,8 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart';
-import 'package:safechat/chats/cubits/attachment/attachment_cubit.dart';
-import 'package:safechat/chats/cubits/message/message_cubit.dart';
+import 'package:safechat/chats/models/attachment.dart';
+import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/chats/repository/chats_repository.dart';
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/user/models/user.dart';
@@ -26,7 +26,7 @@ class ChatCubit extends Cubit<ChatState> {
 
     _wsService.socket.on('msg', (data) {
       if (data['room'] == state.id) {
-        var msg = MessageState.fromJson(data['msg']);
+        var msg = Message.fromJson(data['msg']);
 
         if (state.opened) {
           msg = msg.copyWith(
@@ -109,7 +109,7 @@ class ChatCubit extends Cubit<ChatState> {
     ));
   }
 
-  Future<File> getAttachment(AttachmentState attachment,
+  Future<File> getAttachment(Attachment attachment,
       {bool thumbnail = true}) async {
     final cacheManager = DefaultCacheManager();
     var attachmentName = attachment.name;
@@ -133,7 +133,7 @@ class ChatCubit extends Cubit<ChatState> {
     return await cacheManager.putFile(attachmentName, attachmentFile);
   }
 
-  sendMessage(String senderId, List<AttachmentState> attachments) async {
+  sendMessage(String senderId, List<Attachment> attachments) async {
     DefaultCacheManager cacheManager = DefaultCacheManager();
     List<MultipartFile> encryptedAttachments = [];
     List<MessageItem> items = [];

@@ -5,19 +5,24 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:mime/mime.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:safechat/chats/cubits/attachment/attachment_cubit.dart';
+import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
+import 'package:safechat/chats/models/attachment.dart';
+import 'package:safechat/chats/repository/chats_repository.dart';
 
 part 'attachments_state.dart';
 
 class AttachmentsCubit extends Cubit<AttachmentsState> {
-  AttachmentsCubit() : super(AttachmentsState());
+  AttachmentsCubit({List<Attachment> attachments = const []})
+      : super(AttachmentsState(attachments: attachments));
+
+  final _chatsRepository = ChatsRepository();
 
   Future loadAttachments() async {
     print('GET PHOTOTSSSSSS');
     if (await Permission.storage.request().isGranted) {
       emit(state.copyWith(loading: true));
 
-      List<AttachmentState> _attachments = [];
+      List<Attachment> _attachments = [];
 
       var _downloadDirFiles = await this._listDirectory(
         Directory('/storage/emulated/0/Download'),
@@ -42,7 +47,7 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
               _type = AttachmentType.FILE;
           }
 
-          _attachments.add(AttachmentState(
+          _attachments.add(Attachment(
             name: entity.absolute.path,
             type: _type,
           ));
@@ -58,6 +63,47 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
     }
   }
 
+  Future<File> downloadAttachment(String attachmentName, ChatState chat) async {
+    emit(state.copyWith(
+      attachments: List.of(state.attachments)
+          .map((attachment) => attachment.name == attachmentName
+              ? attachment.copyWith(downloading: true)
+              : attachment)
+          .toList(),
+    ));
+
+    final attachmentData = await _chatsRepository.getAttachment(
+      chat.id,
+      attachmentName,
+      chat.sharedKey,
+    );
+
+    final attachment = await File(
+      '/storage/emulated/0/Download/$attachmentName',
+    ).writeAsBytes(attachmentData);
+
+    emit(state.copyWith(
+      attachments: List.of(state.attachments)
+          .map((attachment) => attachment.name == attachmentName
+              ? attachment.copyWith(downloading: false)
+              : attachment)
+          .toList(),
+    ));
+
+    return attachment;
+  }
+
+  toggleAttachment(Attachment attachment) {
+    emit(state.copyWith(
+      selectedAttachments: state.selectedAttachments.contains(attachment)
+          ? [
+              ...List.of(state.selectedAttachments)
+                ..removeWhere((e) => e == attachment)
+            ]
+          : [...state.selectedAttachments, attachment],
+    ));
+  }
+
   Future<List<FileSystemEntity>> _listDirectory(Directory dir) {
     var files = <FileSystemEntity>[];
     var completer = Completer<List<FileSystemEntity>>();
@@ -67,16 +113,5 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
         onDone: () => completer.complete(files));
 
     return completer.future;
-  }
-
-  toggleAttachment(AttachmentState attachment) {
-    emit(state.copyWith(
-      selectedAttachments: state.selectedAttachments.contains(attachment)
-          ? [
-              ...List.of(state.selectedAttachments)
-                ..removeWhere((e) => e == attachment)
-            ]
-          : [...state.selectedAttachments, attachment],
-    ));
   }
 }

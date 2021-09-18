@@ -13,7 +13,7 @@ class ContactsState extends Equatable {
   final Email email;
   final FormStatus status;
   final ListStatus listStatus;
-  final List<ContactState> contacts;
+  final List<Contact> contacts;
 
   int get pendingContacts =>
       this.contacts.where((e) => e.currentState == CurrentState.PENDING).length;
@@ -35,7 +35,7 @@ class ContactsState extends Equatable {
     Email? email,
     FormStatus? status,
     ListStatus? listStatus,
-    List<ContactState>? contacts,
+    List<Contact>? contacts,
   }) {
     return ContactsState(
       email: email ?? this.email,

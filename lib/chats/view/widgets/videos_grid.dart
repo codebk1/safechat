@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/chats/cubits/attachment/attachment_cubit.dart';
 import 'package:safechat/chats/cubits/attachments/attachments_cubit.dart';
+import 'package:safechat/chats/models/attachment.dart';
 import 'package:safechat/chats/view/widgets/video_thumbnail.dart';
 
 class VideosGrid extends StatelessWidget {
@@ -12,7 +12,7 @@ class VideosGrid extends StatelessWidget {
     required this.attachments,
   }) : super(key: key);
 
-  final List<AttachmentState> attachments;
+  final List<Attachment> attachments;
 
   @override
   Widget build(BuildContext context) {

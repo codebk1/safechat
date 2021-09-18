@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/chats/cubits/attachment/attachment_cubit.dart';
 import 'package:safechat/chats/cubits/attachments/attachments_cubit.dart';
+import 'package:safechat/chats/models/attachment.dart';
 
 class FilesList extends StatelessWidget {
   const FilesList({
@@ -11,7 +11,7 @@ class FilesList extends StatelessWidget {
     required this.attachments,
   }) : super(key: key);
 
-  final List<AttachmentState> attachments;
+  final List<Attachment> attachments;
 
   @override
   Widget build(BuildContext context) {

@@ -6,7 +6,7 @@ class ChatState extends Equatable {
     required this.sharedKey,
     this.participants = const [],
     this.messages = const [],
-    this.message = MessageState.empty,
+    this.message = Message.empty,
     this.typing = const [],
     this.opened = false,
     this.listStatus = ListStatus.unknow,
@@ -14,9 +14,9 @@ class ChatState extends Equatable {
 
   final String id;
   final Uint8List sharedKey;
-  final List<ContactState> participants;
-  final List<MessageState> messages;
-  final MessageState message;
+  final List<Contact> participants;
+  final List<Message> messages;
+  final Message message;
   final List<String> typing;
   final bool opened;
   final ListStatus listStatus;
@@ -34,9 +34,9 @@ class ChatState extends Equatable {
   ChatState copyWith({
     String? id,
     Uint8List? sharedKey,
-    List<ContactState>? participants,
-    List<MessageState>? messages,
-    MessageState? message,
+    List<Contact>? participants,
+    List<Message>? messages,
+    Message? message,
     List<String>? typing,
     bool? opened,
     ListStatus? listStatus,

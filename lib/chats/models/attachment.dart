@@ -1,9 +1,9 @@
-part of 'attachment_cubit.dart';
+import 'package:equatable/equatable.dart';
 
 enum AttachmentType { PHOTO, VIDEO, FILE }
 
-class AttachmentState extends Equatable {
-  const AttachmentState({
+class Attachment extends Equatable {
+  const Attachment({
     required this.name,
     required this.type,
     this.downloading = false,
@@ -16,12 +16,12 @@ class AttachmentState extends Equatable {
   @override
   List<Object> get props => [name, type, downloading];
 
-  AttachmentState copyWith({
+  Attachment copyWith({
     String? name,
     AttachmentType? type,
     bool? downloading,
   }) {
-    return AttachmentState(
+    return Attachment(
       name: name ?? this.name,
       type: type ?? this.type,
       downloading: downloading ?? this.downloading,

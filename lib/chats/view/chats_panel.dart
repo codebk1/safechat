@@ -1,16 +1,14 @@
-import 'dart:io';
-import 'dart:math';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
 import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/chats/cubits/message/message_cubit.dart';
+import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/contacts/contacts.dart';
 
 import 'package:safechat/home/view/panels/side_panels.dart';
+import 'package:safechat/router.dart';
 import 'package:safechat/user/user.dart';
 
 class MainPanel extends StatelessWidget {
@@ -95,25 +93,36 @@ class MainPanel extends StatelessWidget {
                                   final currentUser =
                                       context.read<UserCubit>().state.user;
 
-                                  final chatCubit = ChatCubit(
-                                      chatState: state.chats[index].copyWith(
-                                        message: MessageState(
-                                          senderId: currentUser.id,
+                                  final contacts =
+                                      List.of(state.chats[index].participants)
+                                        ..removeWhere(
+                                          (p) => p.id == currentUser.id,
+                                        );
+
+                                  return MultiBlocProvider(
+                                    providers: [
+                                      BlocProvider(
+                                        create: (_) => ChatCubit(
+                                          chatState:
+                                              state.chats[index].copyWith(
+                                            message: Message(
+                                              senderId: currentUser.id,
+                                            ),
+                                          ),
+                                          currentUser: currentUser,
                                         ),
                                       ),
-                                      currentUser: currentUser);
-
-                                  return BlocProvider.value(
-                                    value: chatCubit,
+                                      BlocProvider(
+                                        create: (_) => ContactsCubit(
+                                          contactsState:
+                                              ContactsState(contacts: contacts),
+                                        ),
+                                      ),
+                                    ],
                                     child: BlocBuilder<ChatCubit, ChatState>(
-                                      builder: (context, state) {
-                                        var participants =
-                                            List.of(state.participants)
-                                              ..removeWhere(
-                                                (p) => p.id == currentUser.id,
-                                              );
-
-                                        var isUnreadMsg = state.messages.any(
+                                      builder: (context, chatState) {
+                                        var isUnreadMsg =
+                                            chatState.messages.any(
                                           (e) => e.unreadBy.contains(
                                             currentUser.id,
                                           ),
@@ -121,24 +130,27 @@ class MainPanel extends StatelessWidget {
 
                                         return ListTile(
                                           onTap: () {
-                                            chatCubit.readAllMessages(
-                                              currentUser.id,
-                                            );
+                                            context
+                                                .read<ChatCubit>()
+                                                .readAllMessages(
+                                                  currentUser.id,
+                                                );
 
                                             Navigator.of(context).pushNamed(
                                               '/chat',
-                                              arguments: chatCubit,
+                                              arguments: ChatPageArguments(
+                                                context.read<ChatCubit>(),
+                                                context.read<ContactsCubit>(),
+                                              ),
                                             );
                                           },
-                                          leading: ChatAvatar(
-                                            participants: participants,
-                                          ),
+                                          leading: ChatAvatar(),
                                           title: Text(
-                                            participants.length > 1
-                                                ? participants
+                                            contacts.length > 1
+                                                ? contacts
                                                     .map((e) => e.firstName)
                                                     .join(', ')
-                                                : '${participants.first.firstName} ${participants.first.lastName}',
+                                                : '${contacts.first.firstName} ${contacts.first.lastName}',
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
                                               fontWeight: isUnreadMsg
@@ -147,13 +159,17 @@ class MainPanel extends StatelessWidget {
                                             ),
                                           ),
                                           subtitle: Text(
-                                            state.messages.length > 0
-                                                ? state.messages.first.content
-                                                            .first.type ==
+                                            chatState.messages.length > 0
+                                                ? chatState
+                                                            .messages
+                                                            .first
+                                                            .content
+                                                            .first
+                                                            .type ==
                                                         MessageType.TEXT
-                                                    ? state.messages.first
+                                                    ? chatState.messages.first
                                                         .content.first.data
-                                                    : '${participants.first.firstName} wysłał załącznik(-i).'
+                                                    : '${contacts.first.firstName} wysłał załącznik(-i).'
                                                 : 'Wyślij pierwszą wiadomość',
                                             overflow: TextOverflow.ellipsis,
                                             maxLines: 1,
@@ -182,36 +198,58 @@ class MainPanel extends StatelessWidget {
 class ChatAvatar extends StatelessWidget {
   const ChatAvatar({
     Key? key,
-    required this.participants,
   }) : super(key: key);
-
-  final List<ContactState> participants;
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => ContactsCubit(
-        contactsState: ContactsState(contacts: participants),
-      ),
-      child: BlocBuilder<ContactsCubit, ContactsState>(
-        builder: (context, state) {
-          return Stack(
-            children: [
-              ClipOval(
-                child: Container(
-                  width: 45,
-                  height: 45,
-                  color: Colors.grey.shade100,
-                  child: Flex(
-                    direction: Axis.vertical,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
+    return BlocBuilder<ContactsCubit, ContactsState>(
+      builder: (context, state) {
+        return Stack(
+          children: [
+            ClipOval(
+              child: Container(
+                width: 45,
+                height: 45,
+                color: Colors.grey.shade100,
+                child: Flex(
+                  direction: Axis.vertical,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Flexible(
+                      //fit: FlexFit.tight,
+                      child: Flex(
+                        direction: Axis.horizontal,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: state.contacts
+                            .take(2)
+                            .map(
+                              (contact) => Flexible(
+                                fit: FlexFit.tight,
+                                child: FittedBox(
+                                  fit: BoxFit.cover,
+                                  clipBehavior: Clip.antiAlias,
+                                  child: contact.avatar != null
+                                      ? Image.file(
+                                          contact.avatar!,
+                                        )
+                                      : Icon(
+                                          Icons.person,
+                                          color: Colors.grey.shade300,
+                                        ),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                    if (state.contacts.length > 2)
                       Flexible(
-                        //fit: FlexFit.tight,
+                        fit: FlexFit.tight,
                         child: Flex(
                           direction: Axis.horizontal,
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: state.contacts
+                              .skip(2)
                               .take(2)
                               .map(
                                 (contact) => Flexible(
@@ -233,63 +271,33 @@ class ChatAvatar extends StatelessWidget {
                               .toList(),
                         ),
                       ),
-                      if (state.contacts.length > 2)
-                        Flexible(
-                          fit: FlexFit.tight,
-                          child: Flex(
-                            direction: Axis.horizontal,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: state.contacts
-                                .skip(2)
-                                .take(2)
-                                .map(
-                                  (contact) => Flexible(
-                                    fit: FlexFit.tight,
-                                    child: FittedBox(
-                                      fit: BoxFit.cover,
-                                      clipBehavior: Clip.antiAlias,
-                                      child: contact.avatar != null
-                                          ? Image.file(
-                                              contact.avatar!,
-                                            )
-                                          : Icon(
-                                              Icons.person,
-                                              color: Colors.grey.shade300,
-                                            ),
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                        ),
-                    ],
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: Container(
+                height: 14,
+                width: 14,
+                decoration: BoxDecoration(
+                  color: state.contacts.any(
+                    (contact) => contact.status == Status.ONLINE,
+                  )
+                      ? Colors.green
+                      : Colors.grey,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    width: 2,
+                    color: Colors.white,
                   ),
                 ),
               ),
-              Positioned(
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  height: 14,
-                  width: 14,
-                  decoration: BoxDecoration(
-                    color: state.contacts.any(
-                      (contact) => contact.status == Status.ONLINE,
-                    )
-                        ? Colors.green
-                        : Colors.grey,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      width: 2,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

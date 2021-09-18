@@ -1,30 +1,27 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_file/open_file.dart';
-import 'package:safechat/chats/cubits/attachment/attachment_cubit.dart';
+import 'package:safechat/chats/cubits/attachments/attachments_cubit.dart';
 import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
+import 'package:safechat/chats/models/attachment.dart';
 import 'package:video_player/video_player.dart';
 
 class MediaPage extends StatelessWidget {
   const MediaPage({
     Key? key,
-    required this.attachment,
   }) : super(key: key);
-
-  final AttachmentState attachment;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        actions: [
-          BlocBuilder<AttachmentCubit, AttachmentState>(
-            builder: (context, state) {
-              return state.downloading
+    return BlocBuilder<AttachmentsCubit, AttachmentsState>(
+      builder: (context, state) {
+        return Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            actions: [
+              state.attachments.first.downloading
                   ? Center(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -40,9 +37,9 @@ class MediaPage extends StatelessWidget {
                   : IconButton(
                       onPressed: () async {
                         final file = await context
-                            .read<AttachmentCubit>()
+                            .read<AttachmentsCubit>()
                             .downloadAttachment(
-                              attachment.name,
+                              state.attachments.first.name,
                               context.read<ChatCubit>().state,
                             );
 
@@ -74,36 +71,36 @@ class MediaPage extends StatelessWidget {
                         }
                       },
                       icon: Icon(Icons.download),
-                    );
-            },
+                    ),
+            ],
+            backgroundColor: Colors.black,
+            titleSpacing: 0,
+            elevation: 0,
+            iconTheme: IconThemeData(
+              color: Colors.white,
+            ),
           ),
-        ],
-        backgroundColor: Colors.black,
-        titleSpacing: 0,
-        elevation: 0,
-        iconTheme: IconThemeData(
-          color: Colors.white,
-        ),
-      ),
-      body: FutureBuilder(
-          future: context.read<ChatCubit>().getAttachment(
-                attachment,
-                thumbnail: false,
-              ),
-          builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-            if (snapshot.hasData) {
-              return attachment.type == AttachmentType.PHOTO
-                  ? Photo(photo: snapshot.data)
-                  : Video(video: snapshot.data);
-            } else {
-              return Center(
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
-                ),
-              );
-            }
-          }),
+          body: FutureBuilder(
+              future: context.read<ChatCubit>().getAttachment(
+                    state.attachments.first,
+                    thumbnail: false,
+                  ),
+              builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                if (snapshot.hasData) {
+                  return state.attachments.first.type == AttachmentType.PHOTO
+                      ? Photo(photo: snapshot.data)
+                      : Video(video: snapshot.data);
+                } else {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  );
+                }
+              }),
+        );
+      },
     );
   }
 }

@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/chats/cubits/attachment/attachment_cubit.dart';
 import 'package:safechat/chats/cubits/attachments/attachments_cubit.dart';
 import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
+import 'package:safechat/chats/models/attachment.dart';
 import 'package:safechat/chats/view/widgets/files_list.dart';
 import 'package:safechat/chats/view/widgets/photos_grid.dart';
 import 'package:safechat/chats/view/widgets/video_thumbnail.dart';
@@ -55,8 +55,7 @@ class _MessageTextFieldState extends State<MessageTextField> {
                             BuildContext context,
                             int index,
                           ) {
-                            Widget _attachmentThumbnail(
-                                AttachmentState attachment) {
+                            Widget _attachmentThumbnail(Attachment attachment) {
                               final file = File(attachment.name);
 
                               switch (attachment.type) {

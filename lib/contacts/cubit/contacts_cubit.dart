@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
+import 'package:safechat/chats/repository/chats_repository.dart';
 
 import 'package:safechat/user/user.dart';
 import 'package:safechat/common/common.dart';
@@ -10,9 +11,30 @@ import 'package:safechat/utils/utils.dart';
 part 'contacts_state.dart';
 
 class ContactsCubit extends Cubit<ContactsState> {
-  ContactsCubit({contactsState = const ContactsState()}) : super(contactsState);
+  ContactsCubit({ContactsState contactsState = const ContactsState()})
+      : super(contactsState) {
+    _wsService.socket.on('status', (data) {
+      print('STATUS');
 
-  final ContactsRepository _contactsRepository = ContactsRepository();
+      if (state.contacts.isNotEmpty) {
+        final index = state.contacts.indexWhere((c) => c.id == data['id']);
+
+        if (index != -1) {
+          final newContacts = List.of(state.contacts);
+
+          newContacts[index] = state.contacts[index].copyWith(
+            status: data['status'] == 'online' ? Status.ONLINE : Status.OFFLINE,
+          );
+
+          emit(state.copyWith(contacts: newContacts));
+        }
+      }
+    });
+  }
+
+  final _wsService = SocketService();
+  final _contactsRepository = ContactsRepository();
+  final _chatsRepository = ChatsRepository();
 
   Future<void> getContacts({bool onlyAccepted = false}) async {
     try {
@@ -86,6 +108,58 @@ class ContactsCubit extends Cubit<ContactsState> {
         status: FormStatus.failure(e.toString()),
       ));
     }
+  }
+
+  Future<void> createChat(String contactId) async {
+    try {
+      await _chatsRepository.createChat([contactId]);
+    } on DioError catch (e) {
+      print(e);
+      // emit(state.copyWith(
+      //   status: FormStatus.failure(e.response?.data['message']),
+      // ));
+    } catch (e) {
+      print(e);
+      // emit(state.copyWith(
+      //   status: FormStatus.failure(e.toString()),
+      // ));
+    }
+  }
+
+  Future<void> acceptInvitation(String contactId) async {
+    try {
+      await _contactsRepository.acceptInvitation(contactId);
+
+      emit(state.copyWith(
+        contacts: List.of(state.contacts)
+          ..firstWhere((c) => c.id == contactId).copyWith(
+            currentState: CurrentState.ACCEPTED,
+          ),
+      ));
+    } on DioError catch (e) {
+      print(e);
+      // emit(state.copyWith(
+      //   status: FormStatus.failure(e.response?.data['message']),
+      // ));
+    } catch (e) {
+      print(e);
+      // emit(state.copyWith(
+      //   status: FormStatus.failure(e.toString()),
+      // ));
+    }
+  }
+
+  toggleActionsMenu(String contactId) {
+    final index = state.contacts.indexWhere((c) => c.id == contactId);
+    final newContacts = List.of(state.contacts);
+
+    newContacts[index] = state.contacts[index].copyWith(
+        currentState:
+            state.contacts[index].currentState == CurrentState.DELETING
+                ? CurrentState.ACCEPTED
+                : CurrentState.DELETING);
+
+    emit(state.copyWith(contacts: newContacts));
   }
 
   // Future<void> acceptInvitation(ContactState contactState) async {

@@ -1,4 +1,5 @@
-part of 'message_cubit.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
 enum MessageType { TEXT, PHOTO, VIDEO, FILE }
 enum MessageStatus { SENDING, SENT, FAILURE, UNKNOW }
@@ -26,8 +27,8 @@ class MessageItem extends Equatable {
   }
 }
 
-class MessageState extends Equatable {
-  const MessageState({
+class Message extends Equatable {
+  const Message({
     this.id,
     required this.senderId,
     this.content = const [],
@@ -44,18 +45,18 @@ class MessageState extends Equatable {
   @override
   List<Object?> get props => [senderId, content, status, unreadBy];
 
-  static const empty = MessageState(
+  static const empty = Message(
     senderId: '',
   );
 
-  MessageState copyWith({
+  Message copyWith({
     String? id,
     String? senderId,
     List<MessageItem>? content,
     MessageStatus? status,
     List<String>? unreadBy,
   }) {
-    return MessageState(
+    return Message(
       id: id ?? this.id,
       senderId: senderId ?? this.senderId,
       content: content ?? this.content,
@@ -64,7 +65,7 @@ class MessageState extends Equatable {
     );
   }
 
-  MessageState.fromJson(Map<String, dynamic> json)
+  Message.fromJson(Map<String, dynamic> json)
       : id = json['id'],
         senderId = json['sender']!,
         content = (json['content']! as List)

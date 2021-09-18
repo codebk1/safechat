@@ -168,88 +168,71 @@ class CreateChatPage extends StatelessWidget {
                                                 BuildContext context,
                                                 int index,
                                               ) {
-                                                final contactState =
+                                                final contact =
                                                     state.contacts[index];
 
-                                                return BlocProvider(
-                                                  create: (context) =>
-                                                      ContactCubit(
-                                                    contact: contactState,
+                                                return CheckboxListTile(
+                                                  value: createChatState
+                                                      .selectedParticipants
+                                                      .contains(
+                                                    state,
                                                   ),
-                                                  child: BlocBuilder<
-                                                      ContactCubit,
-                                                      ContactState>(
-                                                    builder: (context, state) {
-                                                      return CheckboxListTile(
-                                                        value: createChatState
-                                                            .selectedParticipants
-                                                            .contains(
-                                                          state,
-                                                        ),
-                                                        onChanged: (selected) {
-                                                          context
-                                                              .read<
-                                                                  CreateChatCubit>()
-                                                              .toggleParticipant(
-                                                                state,
-                                                              );
-                                                        },
-                                                        secondary: Stack(
-                                                          children: [
-                                                            CircleAvatar(
-                                                              child:
-                                                                  state.avatar !=
-                                                                          null
-                                                                      ? ClipOval(
-                                                                          child:
-                                                                              Image.file(
-                                                                            state.avatar!,
-                                                                          ),
-                                                                        )
-                                                                      : Icon(
-                                                                          Icons
-                                                                              .person,
-                                                                          color: Colors
-                                                                              .grey
-                                                                              .shade50,
-                                                                        ),
-                                                              backgroundColor:
-                                                                  Colors.grey
-                                                                      .shade300,
-                                                            ),
-                                                            Positioned(
-                                                              right: 0,
-                                                              bottom: 0,
-                                                              child: Container(
-                                                                height: 14,
-                                                                width: 14,
-                                                                decoration:
-                                                                    BoxDecoration(
-                                                                  color: state.status ==
-                                                                          Status
-                                                                              .ONLINE
-                                                                      ? Colors
-                                                                          .green
-                                                                      : Colors
-                                                                          .grey,
-                                                                  shape: BoxShape
-                                                                      .circle,
-                                                                  border: Border
-                                                                      .all(
-                                                                    width: 2,
-                                                                    color: Colors
-                                                                        .white,
-                                                                  ),
+                                                  onChanged: (selected) {
+                                                    context
+                                                        .read<CreateChatCubit>()
+                                                        .toggleParticipant(
+                                                          contact,
+                                                        );
+                                                  },
+                                                  secondary: Stack(
+                                                    children: [
+                                                      CircleAvatar(
+                                                        child: contact.avatar !=
+                                                                null
+                                                            ? ClipOval(
+                                                                child:
+                                                                    Image.file(
+                                                                  contact
+                                                                      .avatar!,
                                                                 ),
+                                                              )
+                                                            : Icon(
+                                                                Icons.person,
+                                                                color: Colors
+                                                                    .grey
+                                                                    .shade50,
                                                               ),
+                                                        backgroundColor: Colors
+                                                            .grey.shade300,
+                                                      ),
+                                                      Positioned(
+                                                        right: 0,
+                                                        bottom: 0,
+                                                        child: Container(
+                                                          height: 14,
+                                                          width: 14,
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color: contact
+                                                                        .status ==
+                                                                    Status
+                                                                        .ONLINE
+                                                                ? Colors.green
+                                                                : Colors.grey,
+                                                            shape:
+                                                                BoxShape.circle,
+                                                            border: Border.all(
+                                                              width: 2,
+                                                              color:
+                                                                  Colors.white,
                                                             ),
-                                                          ],
+                                                          ),
                                                         ),
-                                                        title: Text(
-                                                          '${state.firstName} ${state.lastName}',
-                                                        ),
-                                                      );
-                                                    },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  title: Text(
+                                                    '${contact.firstName} ${contact.lastName}',
                                                   ),
                                                 );
                                               }),

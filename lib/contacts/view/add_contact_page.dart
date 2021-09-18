@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:safechat/contacts/cubit/cubits.dart';
 
 import 'package:safechat/user/user.dart';
-import 'package:safechat/contacts/contacts.dart';
 
 class AddContactPage extends StatefulWidget {
   @override

@@ -1,10 +1,12 @@
-part of 'contact_cubit.dart';
+import 'dart:typed_data';
+
+import 'package:equatable/equatable.dart';
 
 enum Status { ONLINE, OFFLINE }
 enum CurrentState { NEW, PENDING, ACCEPTED, REJECTED, DELETING }
 
-class ContactState extends Equatable {
-  const ContactState({
+class Contact extends Equatable {
+  const Contact({
     required this.id,
     required this.email,
     required this.firstName,
@@ -34,7 +36,7 @@ class ContactState extends Equatable {
         currentState,
       ];
 
-  ContactState copyWith({
+  Contact copyWith({
     String? id,
     String? email,
     String? firstName,
@@ -44,7 +46,7 @@ class ContactState extends Equatable {
     CurrentState? currentState,
     Uint8List? sharedKey,
   }) {
-    return ContactState(
+    return Contact(
         id: id ?? this.id,
         email: email ?? this.email,
         firstName: firstName ?? this.firstName,
@@ -55,7 +57,7 @@ class ContactState extends Equatable {
         sharedKey: sharedKey ?? this.sharedKey);
   }
 
-  ContactState.fromJson(Map<String, dynamic> json)
+  Contact.fromJson(Map<String, dynamic> json)
       : id = json['id']!,
         email = json['email']!,
         firstName = json['profile']['firstName']!,

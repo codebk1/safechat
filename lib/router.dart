@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/chats/cubits/attachments/attachments_cubit.dart';
 import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
 import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
 import 'package:safechat/chats/cubits/create_chat/create_chat_cubit.dart';
@@ -19,7 +18,8 @@ import 'package:safechat/login/login.dart';
 import 'package:safechat/signup/signup.dart';
 import 'package:safechat/home/home.dart';
 
-import 'chats/cubits/attachment/attachment_cubit.dart';
+import 'chats/cubits/attachments/attachments_cubit.dart';
+import 'chats/models/attachment.dart';
 
 class AppRouter {
   Route? onGenerateRoute(RouteSettings routeSettings) {
@@ -81,10 +81,11 @@ class AppRouter {
           ),
         );
       case '/chat':
-        final args = routeSettings.arguments as ChatCubit;
+        final args = routeSettings.arguments as ChatPageArguments;
         return PageRouteBuilder(
           pageBuilder: (_, __, ___) => ChatPage(
-            chatCubit: args, //..getMessages(),
+            chatCubit: args.chatCubit,
+            contactsCubit: args.contactsCubit,
           ),
         );
       case '/chats/create':
@@ -108,14 +109,12 @@ class AppRouter {
                 value: args.chatCubit,
               ),
               BlocProvider(
-                create: (_) => AttachmentCubit(
-                  attachmentState: args.attachmentState,
+                create: (_) => AttachmentsCubit(
+                  attachments: [args.attachment],
                 ),
               ),
             ],
-            child: MediaPage(
-              attachment: args.attachmentState,
-            ),
+            child: MediaPage(),
           ),
         );
       default:
@@ -126,7 +125,14 @@ class AppRouter {
 
 class MediaPageArguments {
   final ChatCubit chatCubit;
-  final AttachmentState attachmentState;
+  final Attachment attachment;
 
-  MediaPageArguments(this.chatCubit, this.attachmentState);
+  MediaPageArguments(this.chatCubit, this.attachment);
+}
+
+class ChatPageArguments {
+  final ChatCubit chatCubit;
+  final ContactsCubit contactsCubit;
+
+  ChatPageArguments(this.chatCubit, this.contactsCubit);
 }

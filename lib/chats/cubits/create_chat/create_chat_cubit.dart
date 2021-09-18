@@ -12,7 +12,7 @@ class CreateChatCubit extends Cubit<CreateChatState> {
 
   final ChatsRepository _chatsRepository = ChatsRepository();
 
-  toggleParticipant(ContactState participant) {
+  toggleParticipant(Contact participant) {
     emit(state.copyWith(
       selectedParticipants: state.selectedParticipants.contains(participant)
           ? [

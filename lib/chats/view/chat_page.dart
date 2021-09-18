@@ -5,10 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rive/rive.dart';
-import 'package:safechat/chats/cubits/attachment/attachment_cubit.dart';
+import 'package:safechat/chats/cubits/attachments/attachments_cubit.dart';
 
 import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
-import 'package:safechat/chats/cubits/message/message_cubit.dart';
+import 'package:safechat/chats/models/attachment.dart';
+import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/chats/view/chats_panel.dart';
 import 'package:safechat/chats/view/widgets/message_text_field.dart';
 import 'package:safechat/contacts/contacts.dart';
@@ -16,19 +17,29 @@ import 'package:safechat/router.dart';
 import 'package:safechat/user/user.dart';
 
 class ChatPage extends StatelessWidget {
-  const ChatPage({Key? key, required this.chatCubit}) : super(key: key);
+  const ChatPage({
+    Key? key,
+    required this.chatCubit,
+    required this.contactsCubit,
+  }) : super(key: key);
 
   final ChatCubit chatCubit;
+  final ContactsCubit contactsCubit;
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = context.read<UserCubit>().state.user;
-
-    return BlocProvider.value(
-      value: chatCubit
-        ..emit(chatCubit.state.copyWith(
-          opened: true,
-        )),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider.value(
+          value: chatCubit
+            ..emit(chatCubit.state.copyWith(
+              opened: true,
+            )),
+        ),
+        BlocProvider.value(
+          value: contactsCubit,
+        ),
+      ],
       child: WillPopScope(
         onWillPop: () {
           chatCubit.emit(chatCubit.state.copyWith(
@@ -51,47 +62,39 @@ class ChatPage extends StatelessWidget {
             iconTheme: IconThemeData(
               color: Colors.grey.shade800,
             ),
-            title: BlocProvider(
-              create: (context) => ContactsCubit(
-                contactsState: ContactsState(
-                    contacts: chatCubit.state.participants
-                        .where((p) => p.id != currentUser.id)
-                        .toList()),
-              ),
-              child: BlocBuilder<ContactsCubit, ContactsState>(
-                builder: (context, state) {
-                  return Row(
-                    children: [
-                      ChatAvatar(participants: state.contacts),
-                      SizedBox(
-                        width: 15.0,
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            state.contacts.length > 1
-                                ? state.contacts
-                                    .map((e) => e.firstName)
-                                    .join(', ')
-                                : '${state.contacts.first.firstName} ${state.contacts.first.lastName}',
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.headline6,
-                          ),
-                          Text(
-                            'Ostatnia aktywność 5min temu',
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .subtitle2!
-                                .copyWith(fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ],
-                  );
-                },
-              ),
+            title: BlocBuilder<ContactsCubit, ContactsState>(
+              builder: (context, state) {
+                return Row(
+                  children: [
+                    ChatAvatar(),
+                    SizedBox(
+                      width: 15.0,
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          state.contacts.length > 1
+                              ? state.contacts
+                                  .map((e) => e.firstName)
+                                  .join(', ')
+                              : '${state.contacts.first.firstName} ${state.contacts.first.lastName}',
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.headline6,
+                        ),
+                        Text(
+                          'Ostatnia aktywność 5min temu',
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context)
+                              .textTheme
+                              .subtitle2!
+                              .copyWith(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
             ),
           ),
           body: GestureDetector(
@@ -163,9 +166,7 @@ class MessagesSection extends StatelessWidget {
                                 horizontal: 15.0,
                               ),
                               child: MessageBubble(
-                                messageCubit: MessageCubit(
-                                  messageState: state.messages[index],
-                                ),
+                                message: state.messages[index],
                                 isLastInSet: isLastInSet,
                                 isLastSentMsg: lastSenderMsg.isNotEmpty
                                     ? lastSenderMsg.first ==
@@ -222,12 +223,12 @@ class MessagesSection extends StatelessWidget {
 class MessageBubble extends StatelessWidget {
   const MessageBubble({
     Key? key,
-    required this.messageCubit,
+    required this.message,
     required this.isLastInSet,
     required this.isLastSentMsg,
   }) : super(key: key);
 
-  final MessageCubit messageCubit;
+  final Message message;
   final bool isLastInSet;
   final bool isLastSentMsg;
 
@@ -237,210 +238,189 @@ class MessageBubble extends StatelessWidget {
 
     return BlocBuilder<ChatCubit, ChatState>(
       builder: (context, chatState) {
-        return BlocProvider.value(
-          value: messageCubit, //..readMessage(currentUser.id, chatState.id),
-          child: BlocBuilder<MessageCubit, MessageState>(
-            builder: (context, messageState) {
-              //print({'data', messageState.content[0].data});
+        final isSender = message.senderId == currentUser.id;
 
-              final isSender = messageState.senderId == currentUser.id;
+        // TODO: refactor to use Contact object in Message model instead of just senderId
+        final sender = chatState.participants.firstWhere(
+          (e) => e.id == message.senderId,
+        );
 
-              final contact = !isSender
-                  ? chatState.participants
-                      .firstWhere((p) => p.id == messageState.senderId)
-                  : null;
+        final readBy = chatState.participants.where(
+          (e) => !message.unreadBy.contains(e.id) && e.id != currentUser.id,
+        );
 
-              final readBy = chatState.participants.where(
-                (e) =>
-                    !messageState.unreadBy.contains(e.id) &&
-                    e.id != currentUser.id,
-              );
+        String textMessage = '';
+        List<Attachment> photos = [];
+        List<Attachment> videos = [];
+        List<Attachment> files = [];
 
-              String textMessage = '';
-              List<AttachmentState> photos = [];
-              List<AttachmentState> videos = [];
-              List<AttachmentState> files = [];
+        message.content.forEach((item) {
+          switch (item.type) {
+            case MessageType.TEXT:
+              textMessage = item.data;
+              break;
+            case MessageType.PHOTO:
+              photos.add(Attachment(
+                name: item.data,
+                type: AttachmentType.PHOTO,
+              ));
+              break;
+            case MessageType.VIDEO:
+              videos.add(Attachment(
+                name: item.data,
+                type: AttachmentType.VIDEO,
+              ));
+              break;
+            case MessageType.FILE:
+              files.add(Attachment(
+                name: item.data,
+                type: AttachmentType.FILE,
+              ));
+              break;
+          }
+        });
+        return Padding(
+          padding: const EdgeInsets.only(top: 5.0),
+          child: Row(
+            mainAxisAlignment:
+                isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Row(
+                children: [
+                  if (!isSender) ...[
+                    isLastInSet
+                        ? BlocBuilder<ContactsCubit, ContactsState>(
+                            builder: (context, state) {
+                              final contact = state.contacts.firstWhere(
+                                (p) => p.id == message.senderId,
+                              );
 
-              messageState.content.forEach((item) {
-                switch (item.type) {
-                  case MessageType.TEXT:
-                    textMessage = item.data;
-                    break;
-                  case MessageType.PHOTO:
-                    photos.add(AttachmentState(
-                      name: item.data,
-                      type: AttachmentType.PHOTO,
-                    ));
-                    break;
-                  case MessageType.VIDEO:
-                    videos.add(AttachmentState(
-                      name: item.data,
-                      type: AttachmentType.VIDEO,
-                    ));
-                    break;
-                  case MessageType.FILE:
-                    files.add(AttachmentState(
-                      name: item.data,
-                      type: AttachmentType.FILE,
-                    ));
-                    break;
-                }
-              });
-              return Padding(
-                padding: const EdgeInsets.only(top: 5.0),
-                child: Row(
-                  mainAxisAlignment: isSender
-                      ? MainAxisAlignment.end
-                      : MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Row(
-                      children: [
-                        if (!isSender) ...[
-                          isLastInSet
-                              ? BlocProvider(
-                                  create: (context) => ContactCubit(
-                                    contact: contact!,
-                                  ),
-                                  child:
-                                      BlocBuilder<ContactCubit, ContactState>(
-                                    builder: (context, state) {
-                                      return Stack(
-                                        children: [
-                                          CircleAvatar(
-                                            radius: 14,
-                                            child: state.avatar != null
-                                                ? ClipOval(
-                                                    child: Image.file(
-                                                        state.avatar!),
-                                                  )
-                                                : Icon(
-                                                    Icons.person,
-                                                    color: Colors.grey.shade50,
-                                                  ),
-                                            backgroundColor:
-                                                Colors.grey.shade300,
-                                          ),
-                                          Positioned(
-                                            right: 0,
-                                            bottom: 0,
-                                            child: Container(
-                                              height: 12,
-                                              width: 12,
-                                              decoration: BoxDecoration(
-                                                color: state.status ==
-                                                        Status.ONLINE
-                                                    ? Colors.green
-                                                    : Colors.grey,
-                                                shape: BoxShape.circle,
-                                                border: Border.all(
-                                                  width: 2,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
+                              return Stack(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 14,
+                                    child: contact.avatar != null
+                                        ? ClipOval(
+                                            child: Image.file(
+                                              contact.avatar,
                                             ),
+                                          )
+                                        : Icon(
+                                            Icons.person,
+                                            color: Colors.grey.shade50,
                                           ),
-                                        ],
-                                      );
-                                    },
+                                    backgroundColor: Colors.grey.shade300,
                                   ),
-                                )
-                              : SizedBox(
-                                  width: 28,
-                                ),
-                          SizedBox(width: 10.0),
-                        ],
-                      ],
-                    ),
-                    Flex(
-                      direction: chatState.participants.length > 2
-                          ? Axis.vertical
-                          : Axis.horizontal,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxWidth: MediaQuery.of(context).size.width * 0.7,
+                                  Positioned(
+                                    right: 0,
+                                    bottom: 0,
+                                    child: Container(
+                                      height: 12,
+                                      width: 12,
+                                      decoration: BoxDecoration(
+                                        color: contact.status == Status.ONLINE
+                                            ? Colors.green
+                                            : Colors.grey,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          width: 2,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          )
+                        : SizedBox(
+                            width: 28,
                           ),
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                if (photos.isNotEmpty)
-                                  PhotoMessage(photos: photos),
-                                if (videos.isNotEmpty)
-                                  VideosMessage(videos: videos),
-                                if (files.isNotEmpty)
-                                  FilesMessage(files: files),
-                                SizedBox(height: 5),
-                                if (textMessage.isNotEmpty)
-                                  TextMessage(
-                                      text: textMessage, sender: contact)
-                              ]),
-                        ),
-                        if (isSender) ...[
-                          if (chatState.participants.length == 2)
-                            SizedBox(width: 2.0),
-                          isLastSentMsg
-                              ? readBy.isNotEmpty
-                                  ? chatState.participants.length > 2
-                                      ? Row(
-                                          children: readBy
-                                              .map((e) => Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                      2.0,
-                                                    ),
-                                                    child: CircleAvatar(
-                                                      radius: 8,
-                                                      child: e.avatar != null
-                                                          ? ClipOval(
-                                                              child: Image.file(
-                                                                  e.avatar!),
-                                                            )
-                                                          : Icon(
-                                                              Icons.person,
-                                                              size: 12,
-                                                              color: Colors
-                                                                  .grey.shade50,
-                                                            ),
-                                                      backgroundColor:
-                                                          Colors.grey.shade300,
-                                                    ),
-                                                  ))
-                                              .toList(),
-                                        )
-                                      : CircleAvatar(
-                                          radius: 8,
-                                          child: readBy.first.avatar != null
-                                              ? ClipOval(
-                                                  child: Image.file(
-                                                      readBy.first.avatar!),
-                                                )
-                                              : Icon(
-                                                  Icons.person,
-                                                  size: 12,
-                                                  color: Colors.grey.shade50,
-                                                ),
-                                          backgroundColor: Colors.grey.shade300,
-                                        )
-                                  : Icon(
-                                      messageState.status ==
-                                              MessageStatus.SENDING
-                                          ? Icons.check_circle_outline
-                                          : Icons.check_circle,
-                                      size: 16,
-                                      color: Colors.blue.shade800,
-                                    )
-                              : SizedBox(
-                                  width: 16,
-                                )
-                        ],
-                      ],
-                    ),
+                    SizedBox(width: 10.0),
                   ],
-                ),
-              );
-            },
+                ],
+              ),
+              Flex(
+                direction: chatState.participants.length > 2
+                    ? Axis.vertical
+                    : Axis.horizontal,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: MediaQuery.of(context).size.width * 0.7,
+                    ),
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          if (photos.isNotEmpty) PhotoMessage(photos: photos),
+                          if (videos.isNotEmpty) VideosMessage(videos: videos),
+                          if (files.isNotEmpty) FilesMessage(files: files),
+                          SizedBox(height: 5),
+                          if (textMessage.isNotEmpty)
+                            TextMessage(text: textMessage, sender: sender)
+                        ]),
+                  ),
+                  if (isSender) ...[
+                    if (chatState.participants.length == 2)
+                      SizedBox(width: 2.0),
+                    isLastSentMsg
+                        ? readBy.isNotEmpty
+                            ? chatState.participants.length > 2
+                                ? Row(
+                                    children: readBy
+                                        .map((e) => Padding(
+                                              padding: const EdgeInsets.all(
+                                                2.0,
+                                              ),
+                                              child: CircleAvatar(
+                                                radius: 8,
+                                                child: e.avatar != null
+                                                    ? ClipOval(
+                                                        child: Image.file(
+                                                            e.avatar!),
+                                                      )
+                                                    : Icon(
+                                                        Icons.person,
+                                                        size: 12,
+                                                        color:
+                                                            Colors.grey.shade50,
+                                                      ),
+                                                backgroundColor:
+                                                    Colors.grey.shade300,
+                                              ),
+                                            ))
+                                        .toList(),
+                                  )
+                                : CircleAvatar(
+                                    radius: 8,
+                                    child: readBy.first.avatar != null
+                                        ? ClipOval(
+                                            child: Image.file(
+                                                readBy.first.avatar!),
+                                          )
+                                        : Icon(
+                                            Icons.person,
+                                            size: 12,
+                                            color: Colors.grey.shade50,
+                                          ),
+                                    backgroundColor: Colors.grey.shade300,
+                                  )
+                            : Icon(
+                                message.status == MessageStatus.SENDING
+                                    ? Icons.check_circle_outline
+                                    : Icons.check_circle,
+                                size: 16,
+                                color: Colors.blue.shade800,
+                              )
+                        : SizedBox(
+                            width: 16,
+                          )
+                  ],
+                ],
+              ),
+            ],
           ),
         );
       },
@@ -451,26 +431,23 @@ class MessageBubble extends StatelessWidget {
 class TextMessage extends StatelessWidget {
   const TextMessage({
     Key? key,
-    this.text,
+    required this.text,
     required this.sender,
   }) : super(key: key);
 
-  final String? text;
-  final ContactState? sender;
+  final String text;
+  final Contact sender;
 
   @override
   Widget build(BuildContext context) {
-    //print({'MSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS', text, sender});
+    final isOwnMsg = sender.id == context.read<UserCubit>().state.user.id;
 
     return Container(
-      // constraints: BoxConstraints(
-      //   maxWidth: MediaQuery.of(context).size.width * 0.7,
-      // ),
-      padding: sender == null
+      padding: isOwnMsg
           ? const EdgeInsets.all(10.0)
           : const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
       decoration: BoxDecoration(
-        color: Colors.blue.shade800.withOpacity(sender == null ? 1 : 0.1),
+        color: Colors.blue.shade800.withOpacity(isOwnMsg ? 1 : 0.1),
         borderRadius: BorderRadius.circular(10),
         // borderRadius: BorderRadius.only(
         //     topLeft: Radius.circular(10),
@@ -481,31 +458,23 @@ class TextMessage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (sender != null)
+          if (!isOwnMsg)
             Row(
-              //mainAxisAlignment: MainAxisAlignment.spaceBetween,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  sender!.firstName,
+                  sender.firstName,
                   style: Theme.of(context)
                       .textTheme
                       .subtitle2!
                       .copyWith(fontSize: 10),
                 ),
-                // Text(
-                //   '16:49',
-                //   style: Theme.of(context)
-                //       .textTheme
-                //       .subtitle2!
-                //       .copyWith(fontSize: 10),
-                // ),
               ],
             ),
           Text(
-            text!,
+            text,
             style: TextStyle(
-              color: sender == null ? Colors.white : Colors.grey.shade800,
+              color: isOwnMsg ? Colors.white : Colors.grey.shade800,
             ),
           ),
         ],
@@ -520,7 +489,7 @@ class PhotoMessage extends StatelessWidget {
     required this.photos,
   }) : super(key: key);
 
-  final List<AttachmentState> photos;
+  final List<Attachment> photos;
 
   @override
   Widget build(BuildContext context) {
@@ -593,7 +562,7 @@ class VideosMessage extends StatelessWidget {
     required this.videos,
   }) : super(key: key);
 
-  final List<AttachmentState> videos;
+  final List<Attachment> videos;
 
   @override
   Widget build(BuildContext context) {
@@ -686,7 +655,7 @@ class FilesMessage extends StatelessWidget {
     required this.files,
   }) : super(key: key);
 
-  final List<AttachmentState> files;
+  final List<Attachment> files;
 
   @override
   Widget build(BuildContext context) {
@@ -697,19 +666,20 @@ class FilesMessage extends StatelessWidget {
           Radius.circular(10),
         ),
       ),
-      child: Column(
-        children: List<Widget>.generate(files.length, (index) {
-          return BlocProvider(
-            create: (context) => AttachmentCubit(attachmentState: files[index]),
-            child: Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.all(10.0),
-                  child: Row(
-                    children: [
-                      BlocBuilder<AttachmentCubit, AttachmentState>(
-                        builder: (context, state) {
-                          return state.downloading
+      child: BlocProvider(
+        create: (context) => AttachmentsCubit(attachments: files),
+        child: BlocBuilder<AttachmentsCubit, AttachmentsState>(
+          builder: (context, state) {
+            return Column(
+              children:
+                  List<Widget>.generate(state.attachments.length, (index) {
+                return Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.all(10.0),
+                      child: Row(
+                        children: [
+                          state.attachments[index].downloading
                               ? SizedBox(
                                   width: 24,
                                   height: 24,
@@ -721,9 +691,9 @@ class FilesMessage extends StatelessWidget {
                               : GestureDetector(
                                   onTap: () async {
                                     final attachment = await context
-                                        .read<AttachmentCubit>()
+                                        .read<AttachmentsCubit>()
                                         .downloadAttachment(
-                                          files[index].name,
+                                          state.attachments[index].name,
                                           context.read<ChatCubit>().state,
                                         );
 
@@ -755,23 +725,23 @@ class FilesMessage extends StatelessWidget {
                                     }
                                   },
                                   child: Icon(Icons.download),
-                                );
-                        },
+                                ),
+                          SizedBox(width: 15.0),
+                          Text(state.attachments[index].name),
+                        ],
                       ),
-                      SizedBox(width: 15.0),
-                      Text(files[index].name),
-                    ],
-                  ),
-                ),
-                if (index != files.length - 1)
-                  Divider(
-                    color: Colors.grey.shade300,
-                    height: 1,
-                  ),
-              ],
-            ),
-          );
-        }),
+                    ),
+                    if (index != state.attachments.length - 1)
+                      Divider(
+                        color: Colors.grey.shade300,
+                        height: 1,
+                      ),
+                  ],
+                );
+              }),
+            );
+          },
+        ),
       ),
     );
   }

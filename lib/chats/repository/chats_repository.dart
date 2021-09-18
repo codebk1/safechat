@@ -4,7 +4,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
-import 'package:safechat/chats/cubits/message/message_cubit.dart';
+import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/contacts/contacts.dart';
 
 import 'package:safechat/utils/utils.dart';
@@ -33,11 +33,11 @@ class ChatsRepository {
 
       //print(chatParticipants);
 
-      List<MessageState> chatMessages = [];
+      List<Message> chatMessages = [];
 
       for (var j = 0; j < chatsData[i]['messages'].length; j++) {
         // DODAC ID DO WIADOMOSCI
-        final msg = MessageState.fromJson(chatsData[i]['messages'][j]);
+        final msg = Message.fromJson(chatsData[i]['messages'][j]);
 
         chatMessages.add(msg.copyWith(
             content: msg.content.map((item) {
@@ -112,15 +112,14 @@ class ChatsRepository {
     }
   }
 
-  Future<List<MessageState>> getMessages(
-      String chatId, Uint8List sharedKey) async {
+  Future<List<Message>> getMessages(String chatId, Uint8List sharedKey) async {
     final res = await _apiService.get('/chat/$chatId/messages/');
     final messagesData = res.data as List;
 
-    List<MessageState> messages = [];
+    List<Message> messages = [];
 
     for (var i = 0; i < messagesData.length; i++) {
-      final msg = MessageState.fromJson(messagesData[i]);
+      final msg = Message.fromJson(messagesData[i]);
 
       messages.add(msg.copyWith(
           content: msg.content.map((item) {
@@ -180,7 +179,7 @@ class ChatsRepository {
 
   Future<void> addMessage(
     String chatId,
-    MessageState encryptedMessage,
+    Message encryptedMessage,
     List<MultipartFile> encryptedAttachments,
   ) async {
     final formData = FormData.fromMap(

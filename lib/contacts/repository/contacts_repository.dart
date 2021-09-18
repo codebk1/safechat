@@ -3,9 +3,9 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:safechat/contacts/contacts.dart';
 
 import 'package:safechat/user/user.dart';
-import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/utils/utils.dart';
 
 class ContactsRepository {
@@ -13,14 +13,14 @@ class ContactsRepository {
   final EncryptionService _encryptionService = EncryptionService();
   final DefaultCacheManager _cacheManager = DefaultCacheManager();
 
-  Future<List<ContactState>> getContacts() async {
+  Future<List<Contact>> getContacts() async {
     final res = await _apiService.get('/user/contacts');
 
     return await getDecryptedContactsList(res.data as List)
       ..toList();
   }
 
-  Future<ContactState> addContact(User user, String contactEmail) async {
+  Future<Contact> addContact(User user, String contactEmail) async {
     final encodedContactEmail = base64.encode(utf8.encode(contactEmail));
 
     final contactPublicKeyRes = await _apiService.get(
@@ -44,7 +44,7 @@ class ContactsRepository {
       'contactEmail': contactEmail,
     });
 
-    return ContactState(
+    return Contact(
       id: res.data['id'],
       email: res.data['email'],
       firstName: '',
@@ -89,10 +89,9 @@ class ContactsRepository {
     });
   }
 
-  Future<List<ContactState>> getDecryptedContactsList(
-      List<dynamic> contactsData,
+  Future<List<Contact>> getDecryptedContactsList(List<dynamic> contactsData,
       [Uint8List? sharedKey]) async {
-    final List<ContactState> contacts = [];
+    final List<Contact> contacts = [];
 
     for (var i = 0; i < contactsData.length; i++) {
       if (sharedKey != null) {
@@ -106,7 +105,7 @@ class ContactsRepository {
             : null;
       }
 
-      var contact = ContactState.fromJson(contactsData[i]);
+      var contact = Contact.fromJson(contactsData[i]);
 
       if (contact.sharedKey != null) {
         contact = contact.copyWith(
