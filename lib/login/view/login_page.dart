@@ -16,6 +16,8 @@ import 'package:safechat/login/login.dart';
 // }
 
 class LoginPage extends StatefulWidget {
+  const LoginPage({Key? key}) : super(key: key);
+
   @override
   _LoginPageState createState() => _LoginPageState();
 }
@@ -46,11 +48,11 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 content: Row(
                   children: <Widget>[
-                    Icon(
+                    const Icon(
                       Icons.error,
                       color: Colors.white,
                     ),
-                    SizedBox(
+                    const SizedBox(
                       width: 10.0,
                     ),
                     Text(state.status.error),
@@ -194,7 +196,7 @@ class _LoginPageState extends State<LoginPage> {
                                                 ? Transform.scale(
                                                     scale: 0.6,
                                                     child:
-                                                        CircularProgressIndicator(
+                                                        const CircularProgressIndicator(
                                                       color: Colors.white,
                                                       strokeWidth: 2.0,
                                                     ),
@@ -258,11 +260,11 @@ class _EmailTextFormField extends StatelessWidget {
         return TextFormField(
           onChanged: (value) => context.read<LoginCubit>().emailChanged(value),
           autovalidateMode: AutovalidateMode.onUserInteraction,
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             labelText: 'Email',
           ),
           validator: (String? value) {
-            if (value!.length == 0) {
+            if (value!.isEmpty) {
               return 'Email jest wymagany.';
             }
           },
@@ -287,7 +289,7 @@ class _PasswordTextFormField extends StatelessWidget {
             labelText: 'Hasło',
           ),
           validator: (String? value) {
-            if (value!.length == 0) {
+            if (value!.isEmpty) {
               return 'Hasło jest wymagane.';
             }
           },

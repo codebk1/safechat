@@ -23,7 +23,7 @@ class ContactsCubit extends Cubit<ContactsState> {
           final newContacts = List.of(state.contacts);
 
           newContacts[index] = state.contacts[index].copyWith(
-            status: data['status'] == 'online' ? Status.ONLINE : Status.OFFLINE,
+            status: data['status'] == 'online' ? Status.online : Status.offline,
           );
 
           emit(state.copyWith(contacts: newContacts));
@@ -48,8 +48,9 @@ class ContactsCubit extends Cubit<ContactsState> {
             ),
       );
 
-      if (onlyAccepted)
-        contacts.removeWhere((c) => c.currentState != CurrentState.ACCEPTED);
+      if (onlyAccepted) {
+        contacts.removeWhere((c) => c.currentState != CurrentState.accepted);
+      }
 
       emit(state.copyWith(contacts: contacts, listStatus: ListStatus.success));
     } on DioError catch (e) {
@@ -67,7 +68,7 @@ class ContactsCubit extends Cubit<ContactsState> {
 
   Future<void> addContact(User user) async {
     try {
-      emit(state.copyWith(status: FormStatus.loading()));
+      emit(state.copyWith(status: const FormStatus.loading()));
 
       final newContact = await _contactsRepository.addContact(
         user,
@@ -79,7 +80,8 @@ class ContactsCubit extends Cubit<ContactsState> {
         ...state.contacts,
       ];
 
-      emit(state.copyWith(status: FormStatus.success(), contacts: contacts));
+      emit(state.copyWith(
+          status: const FormStatus.success(), contacts: contacts));
     } on DioError catch (e) {
       emit(state.copyWith(
         status: FormStatus.failure(e.response?.data['message']),
@@ -133,7 +135,7 @@ class ContactsCubit extends Cubit<ContactsState> {
       emit(state.copyWith(
         contacts: List.of(state.contacts)
           ..firstWhere((c) => c.id == contactId).copyWith(
-            currentState: CurrentState.ACCEPTED,
+            currentState: CurrentState.accepted,
           ),
       ));
     } on DioError catch (e) {
@@ -155,9 +157,9 @@ class ContactsCubit extends Cubit<ContactsState> {
 
     newContacts[index] = state.contacts[index].copyWith(
         currentState:
-            state.contacts[index].currentState == CurrentState.DELETING
-                ? CurrentState.ACCEPTED
-                : CurrentState.DELETING);
+            state.contacts[index].currentState == CurrentState.deleting
+                ? CurrentState.accepted
+                : CurrentState.deleting);
 
     emit(state.copyWith(contacts: newContacts));
   }
@@ -170,14 +172,14 @@ class ContactsCubit extends Cubit<ContactsState> {
   //     final index = newContacts
   //         .indexWhere((e) => e.contact.id == contactState.contact.id);
   //     newContacts[index] =
-  //         contactState.copyWith(currentState: CurrentState.ACCEPTED);
+  //         contactState.copyWith(currentState: CurrentState.accepted);
 
   //     emit(state.copyWith(contacts: newContacts));
 
   //     // emit(state.copyWith(
   //     //   contacts: List.of(state.contacts)
   //     //     ..map((e) => e.id == contact.id
-  //     //         ? contact.copyWith(state: ContactState.ACCEPTED)
+  //     //         ? contact.copyWith(state: ContactState.accepted)
   //     //         : e),
   //     // ));
   //   } on DioError catch (e) {
@@ -194,7 +196,7 @@ class ContactsCubit extends Cubit<ContactsState> {
   void emailChanged(String value) {
     emit(state.copyWith(
       email: Email(value),
-      status: FormStatus.init(),
+      status: const FormStatus.init(),
     ));
   }
 }

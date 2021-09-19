@@ -16,10 +16,10 @@ class ContactsState extends Equatable {
   final List<Contact> contacts;
 
   int get pendingContacts =>
-      this.contacts.where((e) => e.currentState == CurrentState.PENDING).length;
+      contacts.where((e) => e.currentState == CurrentState.pending).length;
 
   int get newContacts =>
-      this.contacts.where((e) => e.currentState == CurrentState.NEW).length;
+      contacts.where((e) => e.currentState == CurrentState.inviting).length;
 
   // Map<String, List<Contact>> get sortedContacts {
   //   return this.contacts.fold<Map<String, List<Contact>>>(

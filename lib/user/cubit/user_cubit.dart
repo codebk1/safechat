@@ -3,22 +3,20 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/painting.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:safechat/utils/socket_service.dart';
 
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:socket_io_client/socket_io_client.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:path_provider/path_provider.dart';
 
 import 'package:safechat/user/user.dart';
-import 'package:socket_io_client/socket_io_client.dart';
 
 part 'user_state.dart';
 
 class UserCubit extends Cubit<UserState> {
-  UserCubit(this._authRepository, this._userRepository) : super(UserState()) {
+  UserCubit(this._authRepository, this._userRepository)
+      : super(const UserState()) {
     print('INIT USER SOCKET');
 
     _wsService.socket.onConnectError((data) {
@@ -29,7 +27,7 @@ class UserCubit extends Cubit<UserState> {
     _wsService.socket.onConnect((_) {
       print('connected: ${state.user.id}');
 
-      //emit(state.copyWith(user: state.user.copyWith(status: Status.ONLINE)));
+      //emit(state.copyWith(user: state.user.copyWith(status: Status.online)));
       _wsService.socket.emit('online', state.user.id);
     });
 

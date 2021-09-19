@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-enum AttachmentType { PHOTO, VIDEO, FILE }
+enum AttachmentType { photo, video, file }
 
 class Attachment extends Equatable {
   const Attachment({

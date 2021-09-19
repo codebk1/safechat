@@ -36,8 +36,8 @@ class ProfilePage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _AvatarPicker(),
-                    SizedBox(
+                    const _AvatarPicker(),
+                    const SizedBox(
                       height: 25.0,
                     ),
                     Padding(
@@ -45,24 +45,24 @@ class ProfilePage extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
+                          const Text(
                             'Dane konta',
                           ),
                           IconButton(
                             onPressed: () {
                               Navigator.of(context).pushNamed('/profile/edit');
                             },
-                            icon: Icon(Icons.edit),
+                            icon: const Icon(Icons.edit),
                             splashRadius: 20.0,
                           ),
                         ],
                       ),
                     ),
                     Container(
-                      padding: EdgeInsets.all(15.0),
+                      padding: const EdgeInsets.all(15.0),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade50,
-                        borderRadius: BorderRadius.all(
+                        borderRadius: const BorderRadius.all(
                           Radius.circular(10.0),
                         ),
                       ),
@@ -86,11 +86,11 @@ class ProfilePage extends StatelessWidget {
                                       ),
                                       Text(
                                         state.user.firstName,
-                                        style: TextStyle(fontSize: 18.0),
+                                        style: const TextStyle(fontSize: 18.0),
                                       ),
                                     ],
                                   ),
-                                  SizedBox(width: 35.0),
+                                  const SizedBox(width: 35.0),
                                   Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -103,7 +103,7 @@ class ProfilePage extends StatelessWidget {
                                       ),
                                       Text(
                                         state.user.lastName,
-                                        style: TextStyle(fontSize: 18.0),
+                                        style: const TextStyle(fontSize: 18.0),
                                       ),
                                     ],
                                   ),
@@ -128,19 +128,19 @@ class ProfilePage extends StatelessWidget {
                         },
                       ),
                     ),
-                    SizedBox(height: 25.0),
-                    Padding(
-                      padding: const EdgeInsets.all(15.0),
+                    const SizedBox(height: 25.0),
+                    const Padding(
+                      padding: EdgeInsets.all(15.0),
                       child: Text(
                         'Zarządzanie kontem',
                       ),
                     ),
                     Container(
                       width: double.infinity,
-                      padding: EdgeInsets.all(15.0),
+                      padding: const EdgeInsets.all(15.0),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade50,
-                        borderRadius: BorderRadius.all(
+                        borderRadius: const BorderRadius.all(
                           Radius.circular(10.0),
                         ),
                       ),
@@ -200,7 +200,7 @@ class __AvatarPickerState extends State<_AvatarPicker> {
               BlocBuilder<ProfileCubit, ProfileState>(
                 builder: (context, state) {
                   return state.loadingAvatar
-                      ? CircularProgressIndicator(
+                      ? const CircularProgressIndicator(
                           strokeWidth: 2,
                         )
                       : BlocBuilder<UserCubit, UserState>(
@@ -212,7 +212,7 @@ class __AvatarPickerState extends State<_AvatarPicker> {
                                   ? ClipOval(
                                       child: Image.file(state.user.avatar!),
                                     )
-                                  : Icon(
+                                  : const Icon(
                                       Icons.person,
                                       size: 45.0,
                                       color: Colors.white,
@@ -236,7 +236,7 @@ class __AvatarPickerState extends State<_AvatarPicker> {
                       color: Colors.white,
                     ),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.edit,
                     color: Colors.white,
                     size: 20,
@@ -246,7 +246,7 @@ class __AvatarPickerState extends State<_AvatarPicker> {
             ],
           ),
         ),
-        SizedBox(
+        const SizedBox(
           width: 15.0,
         ),
         BlocBuilder<UserCubit, UserState>(
@@ -256,7 +256,7 @@ class __AvatarPickerState extends State<_AvatarPicker> {
               children: [
                 Text(
                   state.user.email,
-                  style: TextStyle(fontSize: 18.0),
+                  style: const TextStyle(fontSize: 18.0),
                 ),
                 TextButton(
                   onPressed: context.read<ProfileCubit>().removeAvatar,

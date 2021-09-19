@@ -131,19 +131,22 @@ class SidePanelsState extends State<SidePanels>
       final RenderBox? box =
           _panelKey.currentContext?.findRenderObject() as RenderBox?;
 
-      if (box != null)
+      if (box != null) {
         setState(() {
           _width = box.size.width;
         });
+      }
     });
   }
 
   void _handleHorizontalDragUpdate(DragUpdateDetails details) {
     double delta = details.primaryDelta! / _width;
 
-    if (delta > 0 && _controller.value == 1)
+    if (delta > 0 && _controller.value == 1) {
       _position = Direction.left;
-    else if (delta < 0 && _controller.value == 1) _position = Direction.right;
+    } else if (delta < 0 && _controller.value == 1) {
+      _position = Direction.right;
+    }
 
     double offset =
         _position == Direction.left ? widget.offset.left : widget.offset.right;
@@ -240,7 +243,7 @@ class SidePanelsState extends State<SidePanels>
           .evaluate(_controller),
     );
 
-    if (_controller.value != 1.0)
+    if (_controller.value != 1.0) {
       return BlockSemantics(
         child: GestureDetector(
           excludeFromSemantics: defaultTargetPlatform == TargetPlatform.android,
@@ -251,6 +254,7 @@ class SidePanelsState extends State<SidePanels>
           ),
         ),
       );
+    }
 
     return null;
   }

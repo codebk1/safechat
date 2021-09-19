@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:pointycastle/asn1/primitives/asn1_integer.dart';
@@ -33,9 +32,9 @@ class AuthRepository {
     g: PrimeGroups.g_1024,
   );
 
-  final FlutterSecureStorage _storage = FlutterSecureStorage();
-  final Dio _apiService = ApiService().init();
-  final EncryptionService _encryptionService = EncryptionService()..init();
+  final _storage = const FlutterSecureStorage();
+  final _apiService = ApiService().init();
+  final _encryptionService = EncryptionService()..init();
 
   Future<void> login(String email, String password) async {
     final res = await _apiService.post('/auth/challenge', data: {

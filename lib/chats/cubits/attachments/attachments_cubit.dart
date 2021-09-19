@@ -18,33 +18,33 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
   final _chatsRepository = ChatsRepository();
 
   Future loadAttachments() async {
-    print('GET PHOTOTSSSSSS');
+    print('GET photoTSSSSSS');
     if (await Permission.storage.request().isGranted) {
       emit(state.copyWith(loading: true));
 
       List<Attachment> _attachments = [];
 
-      var _downloadDirFiles = await this._listDirectory(
+      var _downloadDirFiles = await _listDirectory(
         Directory('/storage/emulated/0/Download'),
       );
-      var _dcimDirFiles = await this._listDirectory(
+      var _dcimDirFiles = await _listDirectory(
         Directory('/storage/emulated/0/DCIM'),
       );
 
-      [..._downloadDirFiles, ..._dcimDirFiles].forEach((entity) {
+      for (var entity in [..._downloadDirFiles, ..._dcimDirFiles]) {
         var _mime = lookupMimeType(entity.path);
         AttachmentType _type;
 
         if (_mime != null) {
           switch (_mime.split('/')[0]) {
             case 'image':
-              _type = AttachmentType.PHOTO;
+              _type = AttachmentType.photo;
               break;
             case 'video':
-              _type = AttachmentType.VIDEO;
+              _type = AttachmentType.video;
               break;
             default:
-              _type = AttachmentType.FILE;
+              _type = AttachmentType.file;
           }
 
           _attachments.add(Attachment(
@@ -52,7 +52,7 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
             type: _type,
           ));
         }
-      });
+      }
 
       // _attachments.sort((a, b) => b.file
       //     .lastModifiedSync()

@@ -41,7 +41,7 @@ class ChatsRepository {
 
         chatMessages.add(msg.copyWith(
             content: msg.content.map((item) {
-          if (item.type == MessageType.TEXT) {
+          if (item.type == MessageType.text) {
             return item.copyWith(
                 data: utf8.decode(_encryptionService.chachaDecrypt(
               item.data,
@@ -123,7 +123,7 @@ class ChatsRepository {
 
       messages.add(msg.copyWith(
           content: msg.content.map((item) {
-        if (item.type == MessageType.TEXT) {
+        if (item.type == MessageType.text) {
           return item.copyWith(
               data: utf8.decode(_encryptionService.chachaDecrypt(
             item.data,

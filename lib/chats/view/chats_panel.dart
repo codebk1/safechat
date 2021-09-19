@@ -29,7 +29,7 @@ class MainPanel extends StatelessWidget {
         onPressed: () {
           Navigator.of(context).pushNamed('/chats/create');
         },
-        child: Icon(Icons.add_comment),
+        child: const Icon(Icons.add_comment),
         elevation: 0,
         focusElevation: 0,
       ),
@@ -64,7 +64,7 @@ class MainPanel extends StatelessWidget {
               ],
             ),
           ),
-          Divider(
+          const Divider(
             height: 1,
           ),
           BlocBuilder<ChatsCubit, ChatsState>(
@@ -80,7 +80,7 @@ class MainPanel extends StatelessWidget {
                   : Expanded(
                       child: RefreshIndicator(
                         onRefresh: () => context.read<ChatsCubit>().getChats(),
-                        child: state.chats.length == 0
+                        child: state.chats.isEmpty
                             ? Center(
                                 child: Text(
                                   'Brak konwersacji',
@@ -144,7 +144,7 @@ class MainPanel extends StatelessWidget {
                                               ),
                                             );
                                           },
-                                          leading: ChatAvatar(),
+                                          leading: const ChatAvatar(),
                                           title: Text(
                                             contacts.length > 1
                                                 ? contacts
@@ -159,14 +159,14 @@ class MainPanel extends StatelessWidget {
                                             ),
                                           ),
                                           subtitle: Text(
-                                            chatState.messages.length > 0
+                                            chatState.messages.isNotEmpty
                                                 ? chatState
                                                             .messages
                                                             .first
                                                             .content
                                                             .first
                                                             .type ==
-                                                        MessageType.TEXT
+                                                        MessageType.text
                                                     ? chatState.messages.first
                                                         .content.first.data
                                                     : '${contacts.first.firstName} wysłał załącznik(-i).'
@@ -283,7 +283,7 @@ class ChatAvatar extends StatelessWidget {
                 width: 14,
                 decoration: BoxDecoration(
                   color: state.contacts.any(
-                    (contact) => contact.status == Status.ONLINE,
+                    (contact) => contact.status == Status.online,
                   )
                       ? Colors.green
                       : Colors.grey,

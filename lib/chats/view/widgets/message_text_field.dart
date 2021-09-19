@@ -21,8 +21,8 @@ class MessageTextField extends StatefulWidget {
 }
 
 class _MessageTextFieldState extends State<MessageTextField> {
-  TextEditingController _messageController = TextEditingController();
-  AttachmentsCubit _attachmentsCubit = AttachmentsCubit();
+  final _messageController = TextEditingController();
+  final _attachmentsCubit = AttachmentsCubit();
 
   @override
   void dispose() {
@@ -59,25 +59,25 @@ class _MessageTextFieldState extends State<MessageTextField> {
                               final file = File(attachment.name);
 
                               switch (attachment.type) {
-                                case AttachmentType.PHOTO:
+                                case AttachmentType.photo:
                                   return Image.file(
                                     file,
                                     fit: BoxFit.cover,
                                   );
-                                case AttachmentType.VIDEO:
+                                case AttachmentType.video:
                                   return VideoThumbnail(
                                     video: file,
                                   );
 
-                                case AttachmentType.FILE:
+                                case AttachmentType.file:
                                   return Container(
-                                    padding: EdgeInsets.all(5),
+                                    padding: const EdgeInsets.all(5),
                                     color: Colors.grey.shade300,
                                     child: Column(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Icon(
+                                        const Icon(
                                           Icons.text_snippet,
                                           color: Colors.white,
                                         ),
@@ -97,7 +97,7 @@ class _MessageTextFieldState extends State<MessageTextField> {
                               }
                             }
 
-                            return Container(
+                            return SizedBox(
                               width: 100,
                               child: Stack(
                                 fit: StackFit.expand,
@@ -137,7 +137,7 @@ class _MessageTextFieldState extends State<MessageTextField> {
                           },
                         ),
                       )
-                    : SizedBox.shrink();
+                    : const SizedBox.shrink();
               },
             ),
           ),
@@ -152,7 +152,7 @@ class _MessageTextFieldState extends State<MessageTextField> {
                   color: Colors.grey.shade500,
                 ),
               ),
-              SizedBox(width: 15.0),
+              const SizedBox(width: 15.0),
               Expanded(
                 child: Focus(
                   onFocusChange: (hasFocus) {
@@ -174,7 +174,7 @@ class _MessageTextFieldState extends State<MessageTextField> {
                     keyboardType: TextInputType.multiline,
                     minLines: 1,
                     maxLines: 15,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: "Napisz wiadomość...",
                       border: InputBorder.none,
                       focusedBorder: InputBorder.none,
@@ -196,10 +196,13 @@ class _MessageTextFieldState extends State<MessageTextField> {
 
                   _messageController.clear();
                 },
-                child: Icon(Icons.send_outlined, color: Colors.white),
+                child: const Icon(
+                  Icons.send_outlined,
+                  color: Colors.white,
+                ),
                 style: ElevatedButton.styleFrom(
-                  shape: CircleBorder(),
-                  padding: EdgeInsets.all(10),
+                  shape: const CircleBorder(),
+                  padding: const EdgeInsets.all(10),
                   primary: Colors.blue.shade800,
                   elevation: 0,
                 ),
@@ -214,7 +217,7 @@ class _MessageTextFieldState extends State<MessageTextField> {
   Future<dynamic> _openAttachmentsPicker(BuildContext context) {
     return showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(10.0),
         ),
@@ -224,11 +227,11 @@ class _MessageTextFieldState extends State<MessageTextField> {
           value: _attachmentsCubit..loadAttachments(),
           child: BlocBuilder<AttachmentsCubit, AttachmentsState>(
             builder: (context, state) {
-              return Container(
+              return SizedBox(
                 height: MediaQuery.of(context).size.height * 0.4,
                 //padding: EdgeInsets.all(10.0),
                 child: state.loading
-                    ? Center(
+                    ? const Center(
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                         ),
@@ -241,11 +244,11 @@ class _MessageTextFieldState extends State<MessageTextField> {
                               //margin: EdgeInsets.only(bottom: 5.0),
                               decoration: BoxDecoration(
                                 color: Colors.grey.shade900,
-                                borderRadius: BorderRadius.vertical(
+                                borderRadius: const BorderRadius.vertical(
                                   top: Radius.circular(10),
                                 ),
                               ),
-                              child: TabBar(
+                              child: const TabBar(
                                 tabs: [
                                   Tab(icon: Icon(Icons.photo_library)),
                                   Tab(icon: Icon(Icons.video_library)),
@@ -260,19 +263,19 @@ class _MessageTextFieldState extends State<MessageTextField> {
                                     PhotosGrid(
                                       attachments: state.attachments
                                           .where((e) =>
-                                              e.type == AttachmentType.PHOTO)
+                                              e.type == AttachmentType.photo)
                                           .toList(),
                                     ),
                                     VideosGrid(
                                       attachments: state.attachments
                                           .where((e) =>
-                                              e.type == AttachmentType.VIDEO)
+                                              e.type == AttachmentType.video)
                                           .toList(),
                                     ),
                                     FilesList(
                                       attachments: state.attachments
                                           .where((e) =>
-                                              e.type == AttachmentType.FILE)
+                                              e.type == AttachmentType.file)
                                           .toList(),
                                     ),
                                   ]),
@@ -284,11 +287,11 @@ class _MessageTextFieldState extends State<MessageTextField> {
                                         onPressed: () {
                                           Navigator.pop(context);
                                         },
-                                        child: Icon(Icons.add,
+                                        child: const Icon(Icons.add,
                                             color: Colors.white),
                                         style: ElevatedButton.styleFrom(
-                                          shape: CircleBorder(),
-                                          padding: EdgeInsets.all(
+                                          shape: const CircleBorder(),
+                                          padding: const EdgeInsets.all(
                                             15,
                                           ),
                                           primary: Colors.blue.shade800,

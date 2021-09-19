@@ -27,7 +27,7 @@ class MediaPage extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         child: Transform.scale(
                           scale: 0.6,
-                          child: CircularProgressIndicator(
+                          child: const CircularProgressIndicator(
                             color: Colors.white,
                             strokeWidth: 1,
                           ),
@@ -55,7 +55,7 @@ class MediaPage extends StatelessWidget {
                                   label: 'Wyświetl',
                                 ),
                                 content: Row(
-                                  children: <Widget>[
+                                  children: const <Widget>[
                                     Icon(
                                       Icons.error,
                                       color: Colors.white,
@@ -70,13 +70,13 @@ class MediaPage extends StatelessWidget {
                             );
                         }
                       },
-                      icon: Icon(Icons.download),
+                      icon: const Icon(Icons.download),
                     ),
             ],
             backgroundColor: Colors.black,
             titleSpacing: 0,
             elevation: 0,
-            iconTheme: IconThemeData(
+            iconTheme: const IconThemeData(
               color: Colors.white,
             ),
           ),
@@ -87,11 +87,11 @@ class MediaPage extends StatelessWidget {
                   ),
               builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
                 if (snapshot.hasData) {
-                  return state.attachments.first.type == AttachmentType.PHOTO
+                  return state.attachments.first.type == AttachmentType.photo
                       ? Photo(photo: snapshot.data)
                       : Video(video: snapshot.data);
                 } else {
-                  return Center(
+                  return const Center(
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
                       color: Colors.white,
@@ -123,13 +123,11 @@ class Photo extends StatelessWidget {
           if (wasSynchronouslyLoaded) {
             return child;
           }
-          return Container(
-            child: AnimatedOpacity(
-              child: child,
-              opacity: frame == null ? 0 : 1,
-              duration: const Duration(seconds: 1),
-              curve: Curves.easeOut,
-            ),
+          return AnimatedOpacity(
+            child: child,
+            opacity: frame == null ? 0 : 1,
+            duration: const Duration(seconds: 1),
+            curve: Curves.easeOut,
           );
         },
       ),
@@ -184,7 +182,7 @@ class _VideoMessageThumbnailState extends State<Video> {
                   child: Stack(children: [
                     VideoPlayer(_controller),
                     !_controller.value.isPlaying
-                        ? Align(
+                        ? const Align(
                             alignment: Alignment.center,
                             child: Icon(
                               Icons.play_circle,
@@ -192,7 +190,7 @@ class _VideoMessageThumbnailState extends State<Video> {
                               size: 55,
                             ),
                           )
-                        : SizedBox.shrink(),
+                        : const SizedBox.shrink(),
                   ]),
                 ),
                 Padding(

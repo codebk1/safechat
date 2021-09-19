@@ -53,7 +53,7 @@ class ChatPage extends StatelessWidget {
             actions: [
               IconButton(
                 onPressed: () {},
-                icon: Icon(Icons.info),
+                icon: const Icon(Icons.info),
               ),
             ],
             backgroundColor: Colors.white,
@@ -66,8 +66,8 @@ class ChatPage extends StatelessWidget {
               builder: (context, state) {
                 return Row(
                   children: [
-                    ChatAvatar(),
-                    SizedBox(
+                    const ChatAvatar(),
+                    const SizedBox(
                       width: 15.0,
                     ),
                     Column(
@@ -105,7 +105,7 @@ class ChatPage extends StatelessWidget {
                 FocusManager.instance.primaryFocus!.unfocus();
               }
             },
-            child: MessagesSection(),
+            child: const MessagesSection(),
           ),
         ),
       ),
@@ -114,6 +114,8 @@ class ChatPage extends StatelessWidget {
 }
 
 class MessagesSection extends StatelessWidget {
+  const MessagesSection({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChatCubit, ChatState>(
@@ -127,7 +129,7 @@ class MessagesSection extends StatelessWidget {
         return Column(
           children: [
             Expanded(
-              child: state.messages.length == 0
+              child: state.messages.isEmpty
                   ? Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -143,7 +145,7 @@ class MessagesSection extends StatelessWidget {
                       ],
                     )
                   : state.listStatus == ListStatus.loading
-                      ? Center(
+                      ? const Center(
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                           ),
@@ -199,10 +201,10 @@ class MessagesSection extends StatelessWidget {
                           .subtitle2!
                           .copyWith(fontSize: 12.0),
                     ),
-                    SizedBox(
+                    const SizedBox(
                       width: 5.0,
                     ),
-                    Container(
+                    const SizedBox(
                       width: 30,
                       height: 15,
                       child: RiveAnimation.asset(
@@ -212,7 +214,7 @@ class MessagesSection extends StatelessWidget {
                   ],
                 ),
               ),
-            MessageTextField(),
+            const MessageTextField(),
           ],
         );
       },
@@ -254,31 +256,31 @@ class MessageBubble extends StatelessWidget {
         List<Attachment> videos = [];
         List<Attachment> files = [];
 
-        message.content.forEach((item) {
+        for (var item in message.content) {
           switch (item.type) {
-            case MessageType.TEXT:
+            case MessageType.text:
               textMessage = item.data;
               break;
-            case MessageType.PHOTO:
+            case MessageType.photo:
               photos.add(Attachment(
                 name: item.data,
-                type: AttachmentType.PHOTO,
+                type: AttachmentType.photo,
               ));
               break;
-            case MessageType.VIDEO:
+            case MessageType.video:
               videos.add(Attachment(
                 name: item.data,
-                type: AttachmentType.VIDEO,
+                type: AttachmentType.video,
               ));
               break;
-            case MessageType.FILE:
+            case MessageType.file:
               files.add(Attachment(
                 name: item.data,
-                type: AttachmentType.FILE,
+                type: AttachmentType.file,
               ));
               break;
           }
-        });
+        }
         return Padding(
           padding: const EdgeInsets.only(top: 5.0),
           child: Row(
@@ -319,7 +321,7 @@ class MessageBubble extends StatelessWidget {
                                       height: 12,
                                       width: 12,
                                       decoration: BoxDecoration(
-                                        color: contact.status == Status.ONLINE
+                                        color: contact.status == Status.online
                                             ? Colors.green
                                             : Colors.grey,
                                         shape: BoxShape.circle,
@@ -334,10 +336,8 @@ class MessageBubble extends StatelessWidget {
                               );
                             },
                           )
-                        : SizedBox(
-                            width: 28,
-                          ),
-                    SizedBox(width: 10.0),
+                        : const SizedBox(width: 28),
+                    const SizedBox(width: 10.0),
                   ],
                 ],
               ),
@@ -357,14 +357,14 @@ class MessageBubble extends StatelessWidget {
                           if (photos.isNotEmpty) PhotoMessage(photos: photos),
                           if (videos.isNotEmpty) VideosMessage(videos: videos),
                           if (files.isNotEmpty) FilesMessage(files: files),
-                          SizedBox(height: 5),
+                          const SizedBox(height: 5),
                           if (textMessage.isNotEmpty)
                             TextMessage(text: textMessage, sender: sender)
                         ]),
                   ),
                   if (isSender) ...[
                     if (chatState.participants.length == 2)
-                      SizedBox(width: 2.0),
+                      const SizedBox(width: 2.0),
                     isLastSentMsg
                         ? readBy.isNotEmpty
                             ? chatState.participants.length > 2
@@ -408,15 +408,13 @@ class MessageBubble extends StatelessWidget {
                                     backgroundColor: Colors.grey.shade300,
                                   )
                             : Icon(
-                                message.status == MessageStatus.SENDING
+                                message.status == MessageStatus.sending
                                     ? Icons.check_circle_outline
                                     : Icons.check_circle,
                                 size: 16,
                                 color: Colors.blue.shade800,
                               )
-                        : SizedBox(
-                            width: 16,
-                          )
+                        : const SizedBox(width: 16)
                   ],
                 ],
               ),
@@ -495,7 +493,7 @@ class PhotoMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     return GridView.builder(
         shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: min(photos.length, 3),
           crossAxisSpacing: 5,
@@ -518,7 +516,7 @@ class PhotoMessage extends StatelessWidget {
                       );
                     },
                     child: ClipRRect(
-                      borderRadius: BorderRadius.all(
+                      borderRadius: const BorderRadius.all(
                         Radius.circular(10),
                       ),
                       child: Image.file(
@@ -529,13 +527,11 @@ class PhotoMessage extends StatelessWidget {
                           if (wasSynchronouslyLoaded) {
                             return child;
                           }
-                          return Container(
-                            child: AnimatedOpacity(
-                              child: child,
-                              opacity: frame == null ? 0 : 1,
-                              duration: const Duration(seconds: 1),
-                              curve: Curves.easeOut,
-                            ),
+                          return AnimatedOpacity(
+                            child: child,
+                            opacity: frame == null ? 0 : 1,
+                            duration: const Duration(seconds: 1),
+                            curve: Curves.easeOut,
                           );
                         },
                         cacheWidth: (MediaQuery.of(context).size.width).round(),
@@ -568,7 +564,7 @@ class VideosMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     return GridView.builder(
         shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: min(videos.length, 3),
           crossAxisSpacing: 5,
@@ -581,7 +577,7 @@ class VideosMessage extends StatelessWidget {
               builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
                 if (snapshot.hasData) {
                   return ClipRRect(
-                    borderRadius: BorderRadius.all(
+                    borderRadius: const BorderRadius.all(
                       Radius.circular(10),
                     ),
                     child: GestureDetector(
@@ -609,22 +605,20 @@ class VideosMessage extends StatelessWidget {
                               if (wasSynchronouslyLoaded) {
                                 return child;
                               }
-                              return Container(
-                                child: AnimatedOpacity(
-                                  child: child,
-                                  opacity: frame == null ? 0 : 1,
-                                  duration: const Duration(seconds: 1),
-                                  curve: Curves.easeOut,
-                                ),
+                              return AnimatedOpacity(
+                                child: child,
+                                opacity: frame == null ? 0 : 1,
+                                duration: const Duration(seconds: 1),
+                                curve: Curves.easeOut,
                               );
                             },
                           ),
-                          DecoratedBox(
+                          const DecoratedBox(
                             decoration: BoxDecoration(
                               color: Colors.black26,
                             ),
                           ),
-                          Align(
+                          const Align(
                             alignment: Alignment.center,
                             child: Icon(
                               Icons.play_circle,
@@ -662,7 +656,7 @@ class FilesMessage extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
-        borderRadius: BorderRadius.all(
+        borderRadius: const BorderRadius.all(
           Radius.circular(10),
         ),
       ),
@@ -676,7 +670,7 @@ class FilesMessage extends StatelessWidget {
                 return Column(
                   children: [
                     Padding(
-                      padding: EdgeInsets.all(10.0),
+                      padding: const EdgeInsets.all(10.0),
                       child: Row(
                         children: [
                           state.attachments[index].downloading
@@ -709,7 +703,7 @@ class FilesMessage extends StatelessWidget {
                                               label: 'Wyświetl',
                                             ),
                                             content: Row(
-                                              children: <Widget>[
+                                              children: const <Widget>[
                                                 Icon(
                                                   Icons.error,
                                                   color: Colors.white,
@@ -724,9 +718,9 @@ class FilesMessage extends StatelessWidget {
                                         );
                                     }
                                   },
-                                  child: Icon(Icons.download),
+                                  child: const Icon(Icons.download),
                                 ),
-                          SizedBox(width: 15.0),
+                          const SizedBox(width: 15.0),
                           Text(state.attachments[index].name),
                         ],
                       ),

@@ -37,15 +37,15 @@ class _VideoThumbnailState extends State<VideoThumbnail> {
       Align(
         alignment: Alignment.bottomRight,
         child: Container(
-          margin: EdgeInsets.all(5.0),
-          padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 2.0),
+          margin: const EdgeInsets.all(5.0),
+          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 2.0),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(5),
             color: Colors.black54,
           ),
           child: Text(
             '${_controller.value.duration.inSeconds}s',
-            style: TextStyle(color: Colors.white),
+            style: const TextStyle(color: Colors.white),
           ),
         ),
       ),

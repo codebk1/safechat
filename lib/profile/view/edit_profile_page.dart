@@ -6,6 +6,8 @@ import 'package:safechat/profile/cubit/profile_cubit.dart';
 import 'package:safechat/user/user.dart';
 
 class EditProfilePage extends StatefulWidget {
+  const EditProfilePage({Key? key}) : super(key: key);
+
   @override
   _EditProfilePageState createState() => _EditProfilePageState();
 }
@@ -33,11 +35,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 ),
                 content: Row(
                   children: <Widget>[
-                    Icon(
+                    const Icon(
                       Icons.error,
                       color: Colors.white,
                     ),
-                    SizedBox(
+                    const SizedBox(
                       width: 10.0,
                     ),
                     Text(state.status.error),
@@ -80,11 +82,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           child: Column(
                             children: [
                               _FirstNameTextFormField(),
-                              SizedBox(
+                              const SizedBox(
                                 height: 15.0,
                               ),
                               _LastNameTextFormField(),
-                              SizedBox(
+                              const SizedBox(
                                 height: 15.0,
                               ),
                               Ink(
@@ -107,7 +109,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                         height: 60.0,
                                         child: Center(
                                           child: state.status.isLoading
-                                              ? CircularProgressIndicator(
+                                              ? const CircularProgressIndicator(
                                                   color: Colors.white,
                                                   strokeWidth: 2.0,
                                                 )
@@ -153,11 +155,11 @@ class _FirstNameTextFormField extends StatelessWidget {
           onChanged: (value) =>
               context.read<ProfileCubit>().firstNameChanged(value),
           autovalidateMode: AutovalidateMode.onUserInteraction,
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             labelText: 'Imię',
           ),
           validator: (String? value) {
-            if (value!.length == 0) {
+            if (value!.isEmpty) {
               return 'Imię jest wymagane.';
             }
           },
@@ -178,11 +180,11 @@ class _LastNameTextFormField extends StatelessWidget {
           onChanged: (value) =>
               context.read<ProfileCubit>().lastNameChanged(value),
           autovalidateMode: AutovalidateMode.onUserInteraction,
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             labelText: 'Naziwsko',
           ),
           validator: (String? value) {
-            if (value!.length == 0) {
+            if (value!.isEmpty) {
               return 'Nazwisko jest wymagane.';
             }
           },

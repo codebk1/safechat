@@ -36,7 +36,7 @@ class SplashScreen extends StatelessWidget {
               allowDrawingOutsideViewBox: true,
               width: 180,
             ),
-            SizedBox(
+            const SizedBox(
               height: 35.0,
             ),
             CircularProgressIndicator(

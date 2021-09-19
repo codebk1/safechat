@@ -41,7 +41,7 @@ class ChatCubit extends Cubit<ChatState> {
         emit(state.copyWith(messages: [
           msg.copyWith(
               content: msg.content.map((item) {
-            if (item.type == MessageType.TEXT) {
+            if (item.type == MessageType.text) {
               return item.copyWith(
                 data: utf8.decode(
                   _encryptionService.chachaDecrypt(
@@ -114,7 +114,7 @@ class ChatCubit extends Cubit<ChatState> {
     final cacheManager = DefaultCacheManager();
     var attachmentName = attachment.name;
 
-    if (attachment.type != AttachmentType.FILE && thumbnail) {
+    if (attachment.type != AttachmentType.file && thumbnail) {
       attachmentName = '${attachment.name.split('.').first}_thumb.jpg';
     }
 
@@ -152,12 +152,12 @@ class ChatCubit extends Cubit<ChatState> {
       final file = File(attachments[i].name).readAsBytesSync();
 
       // generate thumbnail for video or photo
-      if (attachments[i].type != AttachmentType.FILE) {
+      if (attachments[i].type != AttachmentType.file) {
         final thumbName = '${attachmentName.split('.').first}_thumb.jpg';
 
         Uint8List? thumb;
 
-        if (attachments[i].type == AttachmentType.VIDEO) {
+        if (attachments[i].type == AttachmentType.video) {
           thumb = await VideoThumbnail.thumbnailData(
             video: attachments[i].name,
             imageFormat: ImageFormat.JPEG,
@@ -199,7 +199,7 @@ class ChatCubit extends Cubit<ChatState> {
       ..insert(
         0,
         state.message.copyWith(
-          status: MessageStatus.SENDING,
+          status: MessageStatus.sending,
           content: [...state.message.content, ...items],
           unreadBy: state.participants
               .map((e) => e.id)
@@ -216,7 +216,7 @@ class ChatCubit extends Cubit<ChatState> {
     // szyfrowanie wiadomości tekstowej
     final encryptedMessage = state.messages[0].copyWith(
       content: state.messages[0].content.map((e) {
-        if (e.type == MessageType.TEXT) {
+        if (e.type == MessageType.text) {
           return e.copyWith(
               data: base64.encode(_encryptionService.chachaEncrypt(
             utf8.encode(e.data) as Uint8List,
@@ -228,22 +228,22 @@ class ChatCubit extends Cubit<ChatState> {
       }).toList(),
     );
 
-    await this._chatsRepository.addMessage(
-          state.id,
-          encryptedMessage,
-          encryptedAttachments,
-        );
+    await _chatsRepository.addMessage(
+      state.id,
+      encryptedMessage,
+      encryptedAttachments,
+    );
 
     stopTyping(encryptedMessage.senderId);
 
-    this._wsService.socket.emit('msg', {
+    _wsService.socket.emit('msg', {
       'room': state.id,
       'msg': encryptedMessage.toJson(),
     });
 
     emit(state.copyWith(
       messages: [
-        state.messages[0].copyWith(status: MessageStatus.SENT),
+        state.messages[0].copyWith(status: MessageStatus.sent),
         ...state.messages.sublist(1)
       ],
     ));
@@ -274,8 +274,8 @@ class ChatCubit extends Cubit<ChatState> {
     emit(state.copyWith(
       message: state.message.copyWith(
         content: List.of(state.message.content)
-          ..removeWhere((e) => e.type == MessageType.TEXT)
-          ..add(MessageItem(type: MessageType.TEXT, data: value)),
+          ..removeWhere((e) => e.type == MessageType.text)
+          ..add(MessageItem(type: MessageType.text, data: value)),
       ),
     ));
   }

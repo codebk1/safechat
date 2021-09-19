@@ -23,7 +23,7 @@ class EncryptionService {
 
   Future<void> init() async {
     print('ENCRYPTION SERVICE INIT');
-    final storage = FlutterSecureStorage();
+    const storage = FlutterSecureStorage();
 
     final publicKey = await storage.read(key: 'publicKey');
     final privateKey = await storage.read(key: 'privateKey');
@@ -42,7 +42,7 @@ class EncryptionService {
     final encryptor = OAEPEncoding(RSAEngine())
       ..init(
         true,
-        PublicKeyParameter<RSAPublicKey>(key ?? this.publicKey as RSAPublicKey),
+        PublicKeyParameter<RSAPublicKey>(key ?? publicKey as RSAPublicKey),
       );
 
     final encryptedData = _processInBlocks(encryptor, data);
@@ -162,6 +162,7 @@ class EncryptionService {
     var parser = ASN1Parser(publicKeyDER);
     var sequence = parser.nextObject() as ASN1Sequence;
 
+    // ignore: prefer_typing_uninitialized_variables
     var modulus, exponent;
 
     modulus = sequence.elements![0] as ASN1Integer;
@@ -174,9 +175,10 @@ class EncryptionService {
 
   RSAPrivateKey parsePrivateKeyFromPem(pemString) {
     Uint8List privateKeyDER = base64.decode(pemString);
-    var asn1Parser = new ASN1Parser(privateKeyDER);
+    var asn1Parser = ASN1Parser(privateKeyDER);
     var topLevelSeq = asn1Parser.nextObject() as ASN1Sequence;
 
+    // ignore: prefer_typing_uninitialized_variables
     var modulus, privateExponent, p, q;
 
     modulus = topLevelSeq.elements![0] as ASN1Integer;

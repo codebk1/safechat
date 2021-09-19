@@ -6,6 +6,8 @@ import 'package:safechat/contacts/cubit/cubits.dart';
 import 'package:safechat/user/user.dart';
 
 class AddContactPage extends StatefulWidget {
+  const AddContactPage({Key? key}) : super(key: key);
+
   @override
   _AddContactPageState createState() => _AddContactPageState();
 }
@@ -56,11 +58,11 @@ class _AddContactPageState extends State<AddContactPage> {
                 ),
                 content: Row(
                   children: <Widget>[
-                    Icon(
+                    const Icon(
                       Icons.error,
                       color: Colors.white,
                     ),
-                    SizedBox(
+                    const SizedBox(
                       width: 10.0,
                     ),
                     Text(state.status.error),
@@ -93,14 +95,14 @@ class _AddContactPageState extends State<AddContactPage> {
                   'Dodaj swojego znajomego',
                   style: Theme.of(context).textTheme.headline5,
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 15.0,
                 ),
                 Text(
                   'Podaj email i wyślij zaproszenie.',
                   style: Theme.of(context).textTheme.subtitle2,
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 20.0,
                 ),
                 Form(
@@ -108,7 +110,7 @@ class _AddContactPageState extends State<AddContactPage> {
                   child: Column(
                     children: [
                       _EmailTextFormField(),
-                      SizedBox(
+                      const SizedBox(
                         height: 15.0,
                       ),
                       Ink(
@@ -131,7 +133,7 @@ class _AddContactPageState extends State<AddContactPage> {
                                 height: 60.0,
                                 child: Center(
                                   child: state.status.isLoading
-                                      ? CircularProgressIndicator(
+                                      ? const CircularProgressIndicator(
                                           color: Colors.white,
                                           strokeWidth: 2.0,
                                         )
@@ -172,11 +174,11 @@ class _EmailTextFormField extends StatelessWidget {
           onChanged: (value) =>
               context.read<ContactsCubit>().emailChanged(value),
           autovalidateMode: AutovalidateMode.onUserInteraction,
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             labelText: 'Email',
           ),
           validator: (String? value) {
-            if (value!.length == 0) {
+            if (value!.isEmpty) {
               return 'Email jest wymagany.';
             }
           },

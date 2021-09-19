@@ -6,16 +6,20 @@ import 'package:safechat/user/user.dart';
 import 'package:safechat/signup/signup.dart';
 
 class SignupPage extends StatelessWidget {
+  const SignupPage({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => SignupCubit(context.read<AuthRepository>()),
-      child: SignupView(),
+      child: const SignupView(),
     );
   }
 }
 
 class SignupView extends StatefulWidget {
+  const SignupView({Key? key}) : super(key: key);
+
   @override
   _SignupViewState createState() => _SignupViewState();
 }
@@ -40,9 +44,9 @@ class _SignupViewState extends State<SignupView> {
                 //       ScaffoldMessenger.of(context).hideCurrentSnackBar(),
                 //   label: 'Zamknij',
                 // ),
-                duration: Duration(seconds: 1),
+                duration: const Duration(seconds: 1),
                 content: Row(
-                  children: <Widget>[
+                  children: const <Widget>[
                     Icon(
                       Icons.check_circle,
                       color: Colors.white,
@@ -71,11 +75,11 @@ class _SignupViewState extends State<SignupView> {
                 ),
                 content: Row(
                   children: <Widget>[
-                    Icon(
+                    const Icon(
                       Icons.error,
                       color: Colors.white,
                     ),
-                    SizedBox(
+                    const SizedBox(
                       width: 10.0,
                     ),
                     Text(state.status.error),
@@ -225,7 +229,7 @@ class _SignupViewState extends State<SignupView> {
                                         height: 60.0,
                                         child: Center(
                                           child: state.status.isLoading
-                                              ? CircularProgressIndicator(
+                                              ? const CircularProgressIndicator(
                                                   color: Colors.white,
                                                   strokeWidth: 2.0,
                                                 )
@@ -291,7 +295,7 @@ class _FirstNameTextFormField extends StatelessWidget {
             labelText: 'Imię',
           ),
           validator: (String? value) {
-            if (value!.length == 0) {
+            if (value!.isEmpty) {
               return 'Imię jest wymagane.';
             }
           },
@@ -314,7 +318,7 @@ class _LastNameTextFormField extends StatelessWidget {
             labelText: 'Naziwsko',
           ),
           validator: (String? value) {
-            if (value!.length == 0) {
+            if (value!.isEmpty) {
               return 'Nazwisko jest wymagane.';
             }
           },
@@ -336,7 +340,7 @@ class _EmailTextFormField extends StatelessWidget {
             labelText: 'Email',
           ),
           validator: (String? value) {
-            if (value!.length == 0) {
+            if (value!.isEmpty) {
               return 'Email jest wymagany.';
             }
           },
@@ -360,7 +364,7 @@ class _PasswordTextFormField extends StatelessWidget {
             labelText: 'Hasło',
           ),
           validator: (String? value) {
-            if (value!.length == 0) {
+            if (value!.isEmpty) {
               return 'Hasło jest wymagane.';
             }
           },
@@ -385,7 +389,7 @@ class _ConfirmPasswordTextFormField extends StatelessWidget {
             labelText: 'Potwierdź hasło',
           ),
           validator: (String? value) {
-            if (value!.length == 0) {
+            if (value!.isEmpty) {
               return 'Potwierdzenie hasła jest wymagane.';
             } else if (value != state.password.value) {
               return 'Podane hasła różnią się.';

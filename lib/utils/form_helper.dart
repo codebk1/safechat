@@ -16,7 +16,7 @@ class FormStatus {
   final FStatus status;
   final String error;
 
-  bool get isLoading => this.status == FStatus.loading;
-  bool get isSuccess => this.status == FStatus.success;
-  bool get isFailure => this.status == FStatus.failure;
+  bool get isLoading => status == FStatus.loading;
+  bool get isSuccess => status == FStatus.success;
+  bool get isFailure => status == FStatus.failure;
 }

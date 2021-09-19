@@ -7,6 +7,8 @@ import 'package:safechat/chats/cubits/create_chat/create_chat_cubit.dart';
 import 'package:safechat/contacts/contacts.dart';
 
 class CreateChatPage extends StatelessWidget {
+  const CreateChatPage({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<CreateChatCubit, CreateChatState>(
@@ -18,9 +20,9 @@ class CreateChatPage extends StatelessWidget {
             ..hideCurrentSnackBar()
             ..showSnackBar(
               SnackBar(
-                duration: Duration(seconds: 1),
+                duration: const Duration(seconds: 1),
                 content: Row(
-                  children: <Widget>[
+                  children: const <Widget>[
                     Icon(
                       Icons.check_circle,
                       color: Colors.white,
@@ -47,11 +49,11 @@ class CreateChatPage extends StatelessWidget {
                 ),
                 content: Row(
                   children: <Widget>[
-                    Icon(
+                    const Icon(
                       Icons.error,
                       color: Colors.white,
                     ),
-                    SizedBox(
+                    const SizedBox(
                       width: 10.0,
                     ),
                     Text(state.status.error),
@@ -76,7 +78,7 @@ class CreateChatPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    constraints: BoxConstraints(minHeight: 40),
+                    constraints: const BoxConstraints(minHeight: 40),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 15.0,
                       vertical: 5.0,
@@ -86,18 +88,18 @@ class CreateChatPage extends StatelessWidget {
                       spacing: 5.0,
                       children: [
                         if (createChatState.selectedParticipants.isEmpty)
-                          Text('Wybierz znajomych:'),
+                          const Text('Wybierz znajomych:'),
                         ...createChatState.selectedParticipants.map(
                           (p) => UnconstrainedBox(
                             child: Container(
-                              padding: EdgeInsets.only(
+                              padding: const EdgeInsets.only(
                                 left: 10.0,
                                 right: 5.0,
                                 top: 5.0,
                                 bottom: 5.0,
                               ),
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.all(
+                                borderRadius: const BorderRadius.all(
                                   Radius.circular(15.0),
                                 ),
                                 color: Colors.blue.shade800,
@@ -107,18 +109,18 @@ class CreateChatPage extends StatelessWidget {
                                 children: [
                                   Text(
                                     p.firstName,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       color: Colors.white,
                                     ),
                                   ),
-                                  SizedBox(width: 5.0),
+                                  const SizedBox(width: 5.0),
                                   InkWell(
                                     onTap: () {
                                       context
                                           .read<CreateChatCubit>()
                                           .toggleParticipant(p);
                                     },
-                                    child: Icon(
+                                    child: const Icon(
                                       Icons.clear,
                                       size: 20.0,
                                       color: Colors.white,
@@ -153,7 +155,7 @@ class CreateChatPage extends StatelessWidget {
                                       onRefresh: () => context
                                           .read<ContactsCubit>()
                                           .getContacts(onlyAccepted: true),
-                                      child: state.contacts.length == 0
+                                      child: state.contacts.isEmpty
                                           ? Center(
                                               child: Text(
                                                 'Brak znajomych',
@@ -216,7 +218,7 @@ class CreateChatPage extends StatelessWidget {
                                                             color: contact
                                                                         .status ==
                                                                     Status
-                                                                        .ONLINE
+                                                                        .online
                                                                 ? Colors.green
                                                                 : Colors.grey,
                                                             shape:
@@ -241,7 +243,7 @@ class CreateChatPage extends StatelessWidget {
                                   if (createChatState
                                       .selectedParticipants.isNotEmpty)
                                     Padding(
-                                      padding: EdgeInsets.all(15.0),
+                                      padding: const EdgeInsets.all(15.0),
                                       child: Ink(
                                         decoration: BoxDecoration(
                                           color: Theme.of(context).primaryColor,
@@ -263,7 +265,7 @@ class CreateChatPage extends StatelessWidget {
                                                   ? Transform.scale(
                                                       scale: 0.6,
                                                       child:
-                                                          CircularProgressIndicator(
+                                                          const CircularProgressIndicator(
                                                         color: Colors.white,
                                                         strokeWidth: 2.0,
                                                       ),

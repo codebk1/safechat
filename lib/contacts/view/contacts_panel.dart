@@ -11,8 +11,8 @@ class ContactsPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(left: 15.0),
-      decoration: BoxDecoration(
+      margin: const EdgeInsets.only(left: 15.0),
+      decoration: const BoxDecoration(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(10.0),
         ),
@@ -42,12 +42,12 @@ class ContactsPanel extends StatelessWidget {
                     onPressed: () {
                       Navigator.of(context).pushNamed('/contacts/add');
                     },
-                    icon: Icon(Icons.person_add),
+                    icon: const Icon(Icons.person_add),
                   ),
                 ],
               ),
             ),
-            Divider(),
+            const Divider(),
             BlocBuilder<ContactsCubit, ContactsState>(
               builder: (context, state) {
                 return state.listStatus == ListStatus.loading
@@ -74,7 +74,7 @@ class ContactsPanel extends StatelessWidget {
                               child: RefreshIndicator(
                                 onRefresh: () =>
                                     context.read<ContactsCubit>().getContacts(),
-                                child: state.contacts.length == 0
+                                child: state.contacts.isEmpty
                                     ? Center(
                                         child: Text(
                                           'Brak znajomych',
@@ -97,7 +97,7 @@ class ContactsPanel extends StatelessWidget {
                                               //     .emit(state.copyWith(
                                               //         currentState:
                                               //             CurrentState
-                                              //                 .DELETING));
+                                              //                 .deleting));
                                               context
                                                   .read<ContactsCubit>()
                                                   .toggleActionsMenu(
@@ -121,9 +121,9 @@ class ContactsPanel extends StatelessWidget {
                                                       Colors.grey.shade300,
                                                 ),
                                                 if (contact.currentState !=
-                                                        CurrentState.NEW &&
+                                                        CurrentState.inviting &&
                                                     contact.currentState !=
-                                                        CurrentState.PENDING)
+                                                        CurrentState.pending)
                                                   Positioned(
                                                     right: 0,
                                                     bottom: 0,
@@ -132,7 +132,7 @@ class ContactsPanel extends StatelessWidget {
                                                       width: 14,
                                                       decoration: BoxDecoration(
                                                         color: contact.status ==
-                                                                Status.ONLINE
+                                                                Status.online
                                                             ? Colors.green
                                                             : Colors.grey,
                                                         shape: BoxShape.circle,
@@ -146,9 +146,9 @@ class ContactsPanel extends StatelessWidget {
                                               ],
                                             ),
                                             title: contact.currentState ==
-                                                    CurrentState.PENDING
+                                                    CurrentState.pending
                                                 ? Text(
-                                                    '${contact.email}',
+                                                    contact.email,
                                                   )
                                                 : Text(
                                                     '${contact.firstName} ${contact.lastName}',
@@ -182,7 +182,7 @@ class _ContactActions extends StatelessWidget {
 
   Widget _actionWidget(BuildContext context) {
     switch (contact.currentState) {
-      case CurrentState.NEW:
+      case CurrentState.inviting:
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -201,40 +201,40 @@ class _ContactActions extends StatelessWidget {
                       contact.id,
                     );
               },
-              icon: Icon(
+              icon: const Icon(
                 Icons.cancel,
               ),
             ),
           ],
         );
 
-      case CurrentState.PENDING:
+      case CurrentState.pending:
         return IconButton(
           onPressed: () {
             context.read<ContactsCubit>().cancelInvitation(
                   contact.id,
                 );
           },
-          icon: Icon(Icons.cancel),
+          icon: const Icon(Icons.cancel),
         );
 
-      case CurrentState.ACCEPTED:
+      case CurrentState.accepted:
         return IconButton(
           onPressed: () {
             context.read<ContactsCubit>().createChat(contact.id);
           },
-          icon: Icon(
+          icon: const Icon(
             Icons.chat,
           ),
         );
 
-      case CurrentState.REJECTED:
+      case CurrentState.rejected:
         return IconButton(
           onPressed: () {},
-          icon: Icon(Icons.done),
+          icon: const Icon(Icons.done),
         );
 
-      case CurrentState.DELETING:
+      case CurrentState.deleting:
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -249,7 +249,7 @@ class _ContactActions extends StatelessWidget {
               onPressed: () {
                 context.read<ContactsCubit>().toggleActionsMenu(contact.id);
               },
-              icon: Icon(
+              icon: const Icon(
                 Icons.cancel,
               ),
             ),

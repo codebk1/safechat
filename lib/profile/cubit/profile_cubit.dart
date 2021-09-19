@@ -14,7 +14,7 @@ import 'package:safechat/utils/utils.dart';
 part 'profile_state.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {
-  ProfileCubit(this._userCubit) : super(ProfileState());
+  ProfileCubit(this._userCubit) : super(const ProfileState());
 
   final UserCubit _userCubit;
 
@@ -52,14 +52,14 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   Future<void> editProfileSubmit() async {
     try {
-      emit(state.copyWith(status: FormStatus.loading()));
+      emit(state.copyWith(status: const FormStatus.loading()));
 
       await _userCubit.updateProfile(
         state.firstName.value,
         state.lastName.value,
       );
 
-      emit(state.copyWith(status: FormStatus.success()));
+      emit(state.copyWith(status: const FormStatus.success()));
     } on DioError catch (e) {
       emit(state.copyWith(
         status: FormStatus.failure(e.response!.data['message']),
@@ -70,14 +70,14 @@ class ProfileCubit extends Cubit<ProfileState> {
   void firstNameChanged(String value) {
     emit(state.copyWith(
       firstName: FirstName(value),
-      status: FormStatus.init(),
+      status: const FormStatus.init(),
     ));
   }
 
   void lastNameChanged(String value) {
     emit(state.copyWith(
       lastName: LastName(value),
-      status: FormStatus.init(),
+      status: const FormStatus.init(),
     ));
   }
 

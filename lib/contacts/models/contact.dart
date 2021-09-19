@@ -2,8 +2,9 @@ import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
 
-enum Status { ONLINE, OFFLINE }
-enum CurrentState { NEW, PENDING, ACCEPTED, REJECTED, DELETING }
+enum Status { online, offline }
+enum CurrentState { inviting, pending, accepted, rejected, deleting }
+// INVITING
 
 class Contact extends Equatable {
   const Contact({
@@ -12,8 +13,8 @@ class Contact extends Equatable {
     required this.firstName,
     required this.lastName,
     this.avatar,
-    this.status = Status.OFFLINE,
-    this.currentState = CurrentState.NEW,
+    this.status = Status.offline,
+    this.currentState = CurrentState.inviting,
     this.sharedKey,
   });
 
@@ -63,8 +64,8 @@ class Contact extends Equatable {
         firstName = json['profile']['firstName']!,
         lastName = json['profile']['lastName']!,
         avatar = json['profile']['avatar'],
-        status = json['online']! == 1 ? Status.ONLINE : Status.OFFLINE,
+        status = json['online']! == 1 ? Status.online : Status.offline,
         currentState = CurrentState.values.firstWhere((e) =>
-            e.toString().split('.').last == (json['state'] ?? 'ACCEPTED')),
+            e.toString().split('.').last == (json['state'] ?? 'accepted')),
         sharedKey = json['sharedKey'];
 }

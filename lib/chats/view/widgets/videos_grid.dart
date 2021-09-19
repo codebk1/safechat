@@ -17,7 +17,7 @@ class VideosGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
-        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
           maxCrossAxisExtent: 150,
         ),
         itemCount: attachments.length,
@@ -29,7 +29,7 @@ class VideosGrid extends StatelessWidget {
             child: BlocBuilder<AttachmentsCubit, AttachmentsState>(
               builder: (context, state) {
                 return Container(
-                  margin: EdgeInsets.all(5.0),
+                  margin: const EdgeInsets.all(5.0),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -52,7 +52,7 @@ class VideosGrid extends StatelessWidget {
                           child: CircleAvatar(
                             radius: 12,
                             backgroundColor: Colors.blue.shade800,
-                            child: Icon(
+                            child: const Icon(
                               Icons.check,
                               color: Colors.white,
                             ),

@@ -31,14 +31,14 @@ class FilesList extends StatelessWidget {
             builder: (context, state) {
               return state.selectedAttachments.contains(attachments[index])
                   ? CircleAvatar(
-                      child: Icon(
+                      child: const Icon(
                         Icons.check,
                         color: Colors.white,
                       ),
                       backgroundColor: Colors.blue.shade800,
                     )
                   : CircleAvatar(
-                      child: Icon(
+                      child: const Icon(
                         Icons.text_snippet,
                         color: Colors.white,
                       ),
@@ -47,7 +47,7 @@ class FilesList extends StatelessWidget {
             },
           ),
           title: Text(
-            '${_file.path.split('/').last}',
+            _file.path.split('/').last,
             style: Theme.of(context).textTheme.subtitle2!.copyWith(
                   color: Colors.grey.shade900,
                 ),

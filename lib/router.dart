@@ -29,7 +29,7 @@ class AppRouter {
     switch (routeSettings.name) {
       case '/':
         return PageRouteBuilder(
-          pageBuilder: (_, __, ___) => SplashScreen(),
+          pageBuilder: (_, __, ___) => const SplashScreen(),
         );
       case '/login':
         return PageRouteBuilder(
@@ -38,12 +38,12 @@ class AppRouter {
               context.read<UserCubit>(),
               context.read<AuthRepository>(),
             ),
-            child: LoginPage(),
+            child: const LoginPage(),
           ),
         );
       case '/signup':
         return PageRouteBuilder(
-          pageBuilder: (_, __, ___) => SignupPage(),
+          pageBuilder: (_, __, ___) => const SignupPage(),
         );
       case '/home':
         return PageRouteBuilder(
@@ -59,7 +59,7 @@ class AppRouter {
         return PageRouteBuilder(
           pageBuilder: (_, __, ___) => BlocProvider.value(
             value: _contactsCubit,
-            child: AddContactPage(),
+            child: const AddContactPage(),
           ),
         );
       case '/profile':
@@ -68,7 +68,7 @@ class AppRouter {
             create: (context) => ProfileCubit(
               context.read<UserCubit>(),
             ),
-            child: ProfilePage(),
+            child: const ProfilePage(),
           ),
         );
       case '/profile/edit':
@@ -77,7 +77,7 @@ class AppRouter {
             create: (context) => ProfileCubit(
               context.read<UserCubit>(),
             )..initForm(),
-            child: EditProfilePage(),
+            child: const EditProfilePage(),
           ),
         );
       case '/chat':
@@ -97,7 +97,7 @@ class AppRouter {
                   value: _contactsCubit..getContacts(onlyAccepted: true)),
               BlocProvider(create: (_) => CreateChatCubit())
             ],
-            child: CreateChatPage(),
+            child: const CreateChatPage(),
           ),
         );
       case '/chat/media':
@@ -114,7 +114,7 @@ class AppRouter {
                 ),
               ),
             ],
-            child: MediaPage(),
+            child: const MediaPage(),
           ),
         );
       default:

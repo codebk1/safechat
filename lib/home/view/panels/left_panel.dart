@@ -8,8 +8,8 @@ class LeftPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(right: 15.0),
-      decoration: BoxDecoration(
+      margin: const EdgeInsets.only(right: 15.0),
+      decoration: const BoxDecoration(
         borderRadius: BorderRadius.only(
           topRight: Radius.circular(10.0),
         ),
@@ -44,7 +44,7 @@ class LeftPanel extends StatelessWidget {
                                     ? ClipOval(
                                         child: Image.file(state.avatar!),
                                       )
-                                    : Icon(
+                                    : const Icon(
                                         Icons.person,
                                       ),
                               ),
@@ -66,7 +66,7 @@ class LeftPanel extends StatelessWidget {
                               ),
                             ],
                           ),
-                          SizedBox(width: 15.0),
+                          const SizedBox(width: 15.0),
                           Text('${state.firstName} ${state.lastName}')
                         ],
                       );
@@ -77,52 +77,52 @@ class LeftPanel extends StatelessWidget {
                       await context.read<UserCubit>().unauthenticate();
                       Navigator.of(context).pushReplacementNamed('/login');
                     },
-                    icon: Icon(Icons.logout),
+                    icon: const Icon(Icons.logout),
                   ),
                 ],
               ),
             ),
-            Divider(),
+            const Divider(),
             Expanded(
               child: Column(
                 children: [
                   ListTile(
-                    title: Text(
+                    title: const Text(
                       "Status",
                       style: TextStyle(fontSize: 16),
                     ),
-                    leading: Icon(Icons.online_prediction_sharp),
+                    leading: const Icon(Icons.online_prediction_sharp),
                     onTap: () {},
                   ),
                   ListTile(
-                    title: Text(
+                    title: const Text(
                       "Moje konto",
                       style: TextStyle(fontSize: 16),
                     ),
-                    leading: Icon(Icons.account_box),
+                    leading: const Icon(Icons.account_box),
                     onTap: () {
                       Navigator.of(context).pushNamed('/profile');
                     },
                   ),
                   ListTile(
-                    title: Text(
+                    title: const Text(
                       "Ustawienia",
                       style: TextStyle(fontSize: 16),
                     ),
-                    leading: Icon(Icons.settings),
+                    leading: const Icon(Icons.settings),
                     onTap: () {},
                   ),
                   Expanded(
-                    child: new Align(
+                    child: Align(
                       alignment: Alignment.bottomCenter,
-                      child: new Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
-                          Icon(
+                          const Icon(
                             Icons.copyright_sharp,
                             color: Colors.grey,
                           ),
-                          SizedBox(width: 10.0),
+                          const SizedBox(width: 10.0),
                           Text(
                             "Bartek Kaczmarek",
                             style: Theme.of(context).textTheme.subtitle2,

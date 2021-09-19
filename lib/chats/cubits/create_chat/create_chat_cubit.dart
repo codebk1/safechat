@@ -8,7 +8,7 @@ import 'package:safechat/utils/utils.dart';
 part 'create_chat_state.dart';
 
 class CreateChatCubit extends Cubit<CreateChatState> {
-  CreateChatCubit() : super(CreateChatState());
+  CreateChatCubit() : super(const CreateChatState());
 
   final ChatsRepository _chatsRepository = ChatsRepository();
 

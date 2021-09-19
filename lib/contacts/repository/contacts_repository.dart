@@ -49,7 +49,7 @@ class ContactsRepository {
       email: res.data['email'],
       firstName: '',
       lastName: '',
-      currentState: CurrentState.PENDING,
+      currentState: CurrentState.pending,
     );
   }
 
