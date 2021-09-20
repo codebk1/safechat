@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/chats/cubits/create_chat/create_chat_cubit.dart';
+import 'package:safechat/chats/models/chat.dart';
 import 'package:safechat/contacts/contacts.dart';
 
 class CreateChatPage extends StatelessWidget {
@@ -246,7 +247,7 @@ class CreateChatPage extends StatelessWidget {
                                       onTap: () {
                                         context
                                             .read<CreateChatCubit>()
-                                            .createChat();
+                                            .createChat(ChatType.group);
                                       },
                                       child: SizedBox(
                                         height: 60.0,

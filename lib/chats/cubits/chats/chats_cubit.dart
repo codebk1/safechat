@@ -133,20 +133,20 @@ class ChatsCubit extends Cubit<ChatsState> {
     }
   }
 
-  getMessages(Chat chat) async {
-    final messages = await _chatsRepository.getMessages(
-      chat.id,
-      chat.sharedKey,
-    );
+  // getMessages(Chat chat) async {
+  //   final messages = await _chatsRepository.getMessages(
+  //     chat.id,
+  //     chat.sharedKey,
+  //   );
 
-    emit(state.copyWith(
-      chats: List.of(state.chats)
-          .map((c) => c.id == chat.id
-              ? c.copyWith(messages: messages.reversed.toList())
-              : c)
-          .toList(),
-    ));
-  }
+  //   emit(state.copyWith(
+  //     chats: List.of(state.chats)
+  //         .map((c) => c.id == chat.id
+  //             ? c.copyWith(messages: messages.reversed.toList())
+  //             : c)
+  //         .toList(),
+  //   ));
+  // }
 
   Future<File> getAttachment(Chat chat, Attachment attachment,
       {bool thumbnail = true}) async {
@@ -176,6 +176,8 @@ class ChatsCubit extends Cubit<ChatsState> {
     DefaultCacheManager cacheManager = DefaultCacheManager();
     List<MultipartFile> encryptedAttachments = [];
     List<MessageItem> items = [];
+
+    print({'fhgfhg', chat.message.senderId});
 
     for (var i = 0; i < attachments.length; i++) {
       final attachmentName =
@@ -235,6 +237,7 @@ class ChatsCubit extends Cubit<ChatsState> {
     }
 
     final newMessage = chat.message.copyWith(
+      senderId: senderId,
       status: MessageStatus.sending,
       content: [...chat.message.content, ...items],
       unreadBy: chat.participants
@@ -303,7 +306,7 @@ class ChatsCubit extends Cubit<ChatsState> {
                 ? c.copyWith(
                     messages: c.messages
                         .map((m) => m.copyWith(
-                              unreadBy: m.unreadBy
+                              unreadBy: List.of(m.unreadBy)
                                 ..removeWhere((id) => id == currentUserId),
                             ))
                         .toList())
@@ -317,6 +320,14 @@ class ChatsCubit extends Cubit<ChatsState> {
         'room': chat.id,
       });
     }
+  }
+
+  deleteChat(String chatId) async {
+    await _chatsRepository.deleteChat(chatId);
+
+    emit(state.copyWith(
+      chats: List.of(state.chats)..removeWhere((chat) => chat.id == chatId),
+    ));
   }
 
   startTyping(String chatId, String participantId) {
@@ -339,16 +350,6 @@ class ChatsCubit extends Cubit<ChatsState> {
             .map((chat) =>
                 chat.id == chatId ? chat.copyWith(opened: false) : chat)
             .toList()));
-  }
-
-  toggleActionsMenu(String chatId) {
-    emit(state.copyWith(
-      chats: List.of(state.chats)
-          .map((chat) => chat.id == chatId
-              ? chat.copyWith(showActions: !chat.showActions)
-              : chat)
-          .toList(),
-    ));
   }
 
   textMessageChanged(String chatId, String value) {

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/contacts/cubit/cubits.dart';
+import 'package:safechat/router.dart';
 
 class ContactsPanel extends StatelessWidget {
   const ContactsPanel({Key? key}) : super(key: key);
@@ -148,9 +149,19 @@ class ContactsPanel extends StatelessWidget {
                                                 : Text(
                                                     '${contact.firstName} ${contact.lastName}',
                                                   ),
-                                            trailing: _ContactActions(
-                                              contact: contact,
-                                            ),
+                                            trailing: !contact.working
+                                                ? _ContactActions(
+                                                    contact: contact,
+                                                  )
+                                                : Transform.scale(
+                                                    scale: 0.5,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                      color:
+                                                          Colors.grey.shade800,
+                                                    ),
+                                                  ),
                                           );
                                         }),
                               ),
@@ -215,8 +226,18 @@ class _ContactActions extends StatelessWidget {
 
       case CurrentState.accepted:
         return IconButton(
-          onPressed: () {
-            context.read<ContactsCubit>().createChat(contact.id);
+          onPressed: () async {
+            final chat = await context.read<ContactsCubit>().createChat(
+                  contact,
+                );
+
+            Navigator.of(context).pushNamed(
+              '/chat',
+              arguments: ChatPageArguments(
+                chat!,
+                [contact],
+              ),
+            );
           },
           icon: const Icon(
             Icons.chat,

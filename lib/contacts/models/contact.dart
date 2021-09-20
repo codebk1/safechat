@@ -16,6 +16,7 @@ class Contact extends Equatable {
     this.status = Status.offline,
     this.currentState = CurrentState.inviting,
     this.sharedKey,
+    this.working = false,
   });
 
   final String id;
@@ -26,6 +27,7 @@ class Contact extends Equatable {
   final Status status;
   final CurrentState currentState;
   final Uint8List? sharedKey;
+  final bool working;
 
   @override
   List<Object?> get props => [
@@ -35,6 +37,7 @@ class Contact extends Equatable {
         avatar,
         status,
         currentState,
+        working,
       ];
 
   Contact copyWith({
@@ -46,16 +49,19 @@ class Contact extends Equatable {
     Status? status,
     CurrentState? currentState,
     Uint8List? sharedKey,
+    bool? working,
   }) {
     return Contact(
-        id: id ?? this.id,
-        email: email ?? this.email,
-        firstName: firstName ?? this.firstName,
-        lastName: lastName ?? this.lastName,
-        avatar: avatar ?? this.avatar,
-        status: status ?? this.status,
-        currentState: currentState ?? this.currentState,
-        sharedKey: sharedKey ?? this.sharedKey);
+      id: id ?? this.id,
+      email: email ?? this.email,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      avatar: avatar ?? this.avatar,
+      status: status ?? this.status,
+      currentState: currentState ?? this.currentState,
+      sharedKey: sharedKey ?? this.sharedKey,
+      working: working ?? this.working,
+    );
   }
 
   Contact.fromJson(Map<String, dynamic> json)
@@ -67,5 +73,6 @@ class Contact extends Equatable {
         status = json['online']! == 1 ? Status.online : Status.offline,
         currentState = CurrentState.values.firstWhere((e) =>
             e.toString().split('.').last == (json['state'] ?? 'accepted')),
-        sharedKey = json['sharedKey'];
+        sharedKey = json['sharedKey'],
+        working = false;
 }

@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
+import 'package:safechat/chats/models/chat.dart';
 import 'package:safechat/chats/repository/chats_repository.dart';
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/utils/utils.dart';
@@ -23,10 +24,11 @@ class CreateChatCubit extends Cubit<CreateChatState> {
     ));
   }
 
-  Future<void> createChat() async {
+  Future<void> createChat(ChatType type) async {
     try {
       await _chatsRepository.createChat(
-        state.selectedParticipants.map((e) => e.id).toList(),
+        type,
+        state.selectedParticipants,
       );
     } on DioError catch (e) {
       //print(e);

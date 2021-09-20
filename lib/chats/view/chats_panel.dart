@@ -111,11 +111,71 @@ class MainPanel extends StatelessWidget {
                                     child: Builder(builder: (context) {
                                       return ListTile(
                                         onLongPress: () {
-                                          context
-                                              .read<ChatsCubit>()
-                                              .toggleActionsMenu(
-                                                chat.id,
-                                              );
+                                          showModalBottomSheet(
+                                              context: context,
+                                              shape:
+                                                  const RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.vertical(
+                                                  top: Radius.circular(
+                                                    10.0,
+                                                  ),
+                                                ),
+                                              ),
+                                              builder: (BuildContext _) {
+                                                return SizedBox(
+                                                  height: MediaQuery.of(context)
+                                                          .size
+                                                          .height *
+                                                      0.4,
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .all(15.0),
+                                                        child: Text(
+                                                          'Opcje czatu',
+                                                          style:
+                                                              Theme.of(context)
+                                                                  .textTheme
+                                                                  .headline5,
+                                                        ),
+                                                      ),
+                                                      ListTile(
+                                                        onTap: () {},
+                                                        leading: const Icon(
+                                                          Icons.logout,
+                                                        ),
+                                                        title: const Text(
+                                                          'Opuść czat',
+                                                        ),
+                                                      ),
+                                                      ListTile(
+                                                        onTap: () {
+                                                          context
+                                                              .read<
+                                                                  ChatsCubit>()
+                                                              .deleteChat(
+                                                                  chat.id);
+
+                                                          Navigator.of(context)
+                                                              .pop();
+                                                        },
+                                                        leading: const Icon(
+                                                          Icons.delete,
+                                                        ),
+                                                        title: const Text(
+                                                          'Usuń czat',
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              });
                                         },
                                         onTap: () {
                                           context
@@ -167,33 +227,6 @@ class MainPanel extends StatelessWidget {
                                                 : FontWeight.normal,
                                           ),
                                         ),
-                                        trailing: chat.showActions
-                                            ? Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  IconButton(
-                                                    onPressed: () {},
-                                                    icon: Icon(
-                                                      Icons.delete,
-                                                      color:
-                                                          Colors.red.shade800,
-                                                    ),
-                                                  ),
-                                                  IconButton(
-                                                    onPressed: () {
-                                                      context
-                                                          .read<ChatsCubit>()
-                                                          .toggleActionsMenu(
-                                                            chat.id,
-                                                          );
-                                                    },
-                                                    icon: const Icon(
-                                                      Icons.cancel,
-                                                    ),
-                                                  ),
-                                                ],
-                                              )
-                                            : null,
                                       );
                                     }),
                                   );

@@ -117,8 +117,6 @@ class MessagesSection extends StatelessWidget {
     return BlocBuilder<ChatsCubit, ChatsState>(
       builder: (context, state) {
         final currentUser = context.read<UserCubit>().state.user;
-        print(state.chats);
-        print(chatId);
         final chat = state.chats.firstWhere((c) => c.id == chatId);
 
         final lastSenderMsg = chat.messages.where(

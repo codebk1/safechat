@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
+import 'package:safechat/chats/models/chat.dart';
 import 'package:safechat/chats/repository/chats_repository.dart';
 
 import 'package:safechat/user/user.dart';
@@ -108,11 +109,29 @@ class ContactsCubit extends Cubit<ContactsState> {
     }
   }
 
-  Future<void> createChat(String contactId) async {
+  Future<Chat?> createChat(Contact contact) async {
     try {
-      await _chatsRepository.createChat([contactId]);
+      emit(state.copyWith(
+        contacts: List.of(state.contacts)
+            .map((c) => c.id == contact.id ? c.copyWith(working: true) : c)
+            .toList(),
+      ));
+
+      final chat = await _chatsRepository.createChat(
+        ChatType.direct,
+        [contact],
+      );
+
+      emit(state.copyWith(
+        contacts: List.of(state.contacts)
+            .map((c) => c.id == contact.id ? c.copyWith(working: false) : c)
+            .toList(),
+      ));
+
+      return chat;
     } on DioError catch (e) {
       print(e);
+
       // emit(state.copyWith(
       //   status: FormStatus.failure(e.response?.data['message']),
       // ));
