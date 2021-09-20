@@ -3,8 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/chats/cubits/attachments/attachments_cubit.dart';
-import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
+import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
 import 'package:safechat/chats/models/attachment.dart';
+import 'package:safechat/chats/models/chat.dart';
 import 'package:safechat/chats/view/widgets/files_list.dart';
 import 'package:safechat/chats/view/widgets/photos_grid.dart';
 import 'package:safechat/chats/view/widgets/video_thumbnail.dart';
@@ -14,7 +15,10 @@ import 'package:safechat/user/cubit/user_cubit.dart';
 class MessageTextField extends StatefulWidget {
   const MessageTextField({
     Key? key,
+    required this.chat,
   }) : super(key: key);
+
+  final Chat chat;
 
   @override
   _MessageTextFieldState createState() => _MessageTextFieldState();
@@ -157,11 +161,13 @@ class _MessageTextFieldState extends State<MessageTextField> {
                 child: Focus(
                   onFocusChange: (hasFocus) {
                     if (hasFocus) {
-                      context.read<ChatCubit>().startTyping(
+                      context.read<ChatsCubit>().startTyping(
+                            widget.chat.id,
                             context.read<UserCubit>().state.user.id,
                           );
                     } else {
-                      context.read<ChatCubit>().stopTyping(
+                      context.read<ChatsCubit>().stopTyping(
+                            widget.chat.id,
                             context.read<UserCubit>().state.user.id,
                           );
                     }
@@ -169,7 +175,10 @@ class _MessageTextFieldState extends State<MessageTextField> {
                   child: TextFormField(
                     controller: _messageController,
                     onChanged: (value) {
-                      context.read<ChatCubit>().textMessageChanged(value);
+                      context.read<ChatsCubit>().textMessageChanged(
+                            widget.chat.id,
+                            value,
+                          );
                     },
                     keyboardType: TextInputType.multiline,
                     minLines: 1,
@@ -184,7 +193,8 @@ class _MessageTextFieldState extends State<MessageTextField> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  context.read<ChatCubit>().sendMessage(
+                  context.read<ChatsCubit>().sendMessage(
+                        widget.chat,
                         context.read<UserCubit>().state.user.id,
                         _attachmentsCubit.state.selectedAttachments,
                       );

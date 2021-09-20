@@ -3,16 +3,16 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiService {
   Dio init() {
-    Dio _dio = new Dio();
-    _dio.interceptors.add(new ApiInterceptors());
+    Dio _dio = Dio();
+    _dio.interceptors.add(ApiInterceptors());
 
-    _dio.options.baseUrl = "https://6b95-95-41-250-218.ngrok.io";
+    _dio.options.baseUrl = "https://f192-46-76-141-84.ngrok.io";
     return _dio;
   }
 }
 
 class ApiInterceptors extends Interceptor {
-  final _storage = FlutterSecureStorage();
+  final _storage = const FlutterSecureStorage();
 
   @override
   Future<dynamic> onRequest(

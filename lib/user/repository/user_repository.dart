@@ -14,10 +14,12 @@ class UserRepository {
   final EncryptionService _encryptionService = EncryptionService();
   final DefaultCacheManager _cacheManager = DefaultCacheManager();
 
+  User user = User.empty;
+
   Future<User> getUser() async {
     final res = await _apiService.get('/user/profile');
 
-    var user = User.fromJson(res.data);
+    user = User.fromJson(res.data);
 
     if (user.avatar != null) {
       var cachedFile = await _cacheManager.getFileFromCache(user.avatar);
@@ -33,7 +35,7 @@ class UserRepository {
       }
     }
 
-    return user.copyWith(
+    user = user.copyWith(
         firstName: utf8.decode(
           _encryptionService.chachaDecrypt(
             user.firstName,
@@ -46,6 +48,8 @@ class UserRepository {
             _encryptionService.sharedKey!,
           ),
         ));
+
+    return user;
   }
 
   Future<Uint8List> getAvatar(String name) async {

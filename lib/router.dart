@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
 import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
 import 'package:safechat/chats/cubits/create_chat/create_chat_cubit.dart';
 import 'package:safechat/chats/view/chat_page.dart';
@@ -20,12 +19,13 @@ import 'package:safechat/home/home.dart';
 
 import 'chats/cubits/attachments/attachments_cubit.dart';
 import 'chats/models/attachment.dart';
+import 'chats/models/chat.dart';
 
 class AppRouter {
-  Route? onGenerateRoute(RouteSettings routeSettings) {
-    final _contactsCubit = ContactsCubit();
-    final _chatsCubit = ChatsCubit();
+  final _contactsCubit = ContactsCubit();
+  final _chatsCubit = ChatsCubit();
 
+  Route? onGenerateRoute(RouteSettings routeSettings) {
     switch (routeSettings.name) {
       case '/':
         return PageRouteBuilder(
@@ -49,8 +49,8 @@ class AppRouter {
         return PageRouteBuilder(
           pageBuilder: (_, __, ___) => MultiBlocProvider(
             providers: [
-              BlocProvider.value(value: _chatsCubit),
               BlocProvider.value(value: _contactsCubit..getContacts()),
+              BlocProvider.value(value: _chatsCubit..getChats()),
             ],
             child: HomePage(),
           ),
@@ -83,18 +83,25 @@ class AppRouter {
       case '/chat':
         final args = routeSettings.arguments as ChatPageArguments;
         return PageRouteBuilder(
-          pageBuilder: (_, __, ___) => ChatPage(
-            chatCubit: args.chatCubit,
-            contactsCubit: args.contactsCubit,
+          pageBuilder: (_, __, ___) => MultiBlocProvider(
+            providers: [
+              BlocProvider(
+                create: (_) => ContactsCubit(contacts: args.contacts),
+              ),
+              BlocProvider.value(value: _chatsCubit),
+            ],
+            child: ChatPage(
+              chat: args.chat,
+            ),
           ),
         );
       case '/chats/create':
         return PageRouteBuilder(
           pageBuilder: (_, __, ___) => MultiBlocProvider(
             providers: [
-              BlocProvider.value(value: _chatsCubit),
               BlocProvider.value(
-                  value: _contactsCubit..getContacts(onlyAccepted: true)),
+                value: _contactsCubit,
+              ),
               BlocProvider(create: (_) => CreateChatCubit())
             ],
             child: const CreateChatPage(),
@@ -105,34 +112,36 @@ class AppRouter {
         return PageRouteBuilder(
           pageBuilder: (_, __, ___) => MultiBlocProvider(
             providers: [
-              BlocProvider.value(
-                value: args.chatCubit,
-              ),
               BlocProvider(
                 create: (_) => AttachmentsCubit(
                   attachments: [args.attachment],
                 ),
               ),
             ],
-            child: const MediaPage(),
+            child: MediaPage(chat: args.chat),
           ),
         );
       default:
         return null;
     }
   }
+
+  void dispose() {
+    _contactsCubit.close();
+    _chatsCubit.close();
+  }
 }
 
 class MediaPageArguments {
-  final ChatCubit chatCubit;
-  final Attachment attachment;
+  MediaPageArguments(this.chat, this.attachment);
 
-  MediaPageArguments(this.chatCubit, this.attachment);
+  final Chat chat;
+  final Attachment attachment;
 }
 
 class ChatPageArguments {
-  final ChatCubit chatCubit;
-  final ContactsCubit contactsCubit;
+  ChatPageArguments(this.chat, this.contacts);
 
-  ChatPageArguments(this.chatCubit, this.contactsCubit);
+  final Chat chat;
+  final List<Contact> contacts;
 }

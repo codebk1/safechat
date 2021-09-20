@@ -8,7 +8,7 @@ class ChatsState extends Equatable {
     this.listStatus = ListStatus.unknow,
   });
 
-  final List<ChatState> chats;
+  final List<Chat> chats;
   final ListStatus listStatus;
 
   @override
@@ -16,7 +16,7 @@ class ChatsState extends Equatable {
 
   ChatsState copyWith({
     ListStatus? listStatus,
-    List<ChatState>? chats,
+    List<Chat>? chats,
   }) {
     return ChatsState(
       listStatus: listStatus ?? this.listStatus,

@@ -92,16 +92,11 @@ class ContactsPanel extends StatelessWidget {
                                           var contact = state.contacts[index];
                                           return ListTile(
                                             onLongPress: () {
-                                              // context
-                                              //     .read<ContactCubit>()
-                                              //     .emit(state.copyWith(
-                                              //         currentState:
-                                              //             CurrentState
-                                              //                 .deleting));
                                               context
                                                   .read<ContactsCubit>()
                                                   .toggleActionsMenu(
-                                                      contact.id);
+                                                    contact.id,
+                                                  );
                                             },
                                             leading: Stack(
                                               children: [

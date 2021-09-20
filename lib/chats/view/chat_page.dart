@@ -7,8 +7,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rive/rive.dart';
 import 'package:safechat/chats/cubits/attachments/attachments_cubit.dart';
 
-import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
+import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
 import 'package:safechat/chats/models/attachment.dart';
+import 'package:safechat/chats/models/chat.dart';
 import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/chats/view/chats_panel.dart';
 import 'package:safechat/chats/view/widgets/message_text_field.dart';
@@ -19,94 +20,84 @@ import 'package:safechat/user/user.dart';
 class ChatPage extends StatelessWidget {
   const ChatPage({
     Key? key,
-    required this.chatCubit,
-    required this.contactsCubit,
+    required this.chat,
   }) : super(key: key);
 
-  final ChatCubit chatCubit;
-  final ContactsCubit contactsCubit;
+  final Chat chat;
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider.value(
-          value: chatCubit
-            ..emit(chatCubit.state.copyWith(
-              opened: true,
-            )),
-        ),
-        BlocProvider.value(
-          value: contactsCubit,
-        ),
-      ],
-      child: WillPopScope(
-        onWillPop: () {
-          chatCubit.emit(chatCubit.state.copyWith(
-            opened: false,
-          ));
+    return WillPopScope(
+      onWillPop: () {
+        // chatCubit.emit(chatCubit.state.copyWith(
+        //   opened: false,
+        // ));
 
-          return Future.value(true);
-        },
-        child: Scaffold(
-          appBar: AppBar(
-            actions: [
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.info),
-              ),
-            ],
-            backgroundColor: Colors.white,
-            titleSpacing: 0,
-            elevation: 0,
-            iconTheme: IconThemeData(
-              color: Colors.grey.shade800,
+        context.read<ChatsCubit>().closeChat(chat.id);
+
+        return Future.value(true);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          actions: [
+            IconButton(
+              onPressed: () {},
+              icon: const Icon(Icons.info),
             ),
-            title: BlocBuilder<ContactsCubit, ContactsState>(
-              builder: (context, state) {
-                return Row(
-                  children: [
-                    const ChatAvatar(),
-                    const SizedBox(
-                      width: 15.0,
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          state.contacts.length > 1
-                              ? state.contacts
-                                  .map((e) => e.firstName)
-                                  .join(', ')
-                              : '${state.contacts.first.firstName} ${state.contacts.first.lastName}',
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.headline6,
-                        ),
-                        Text(
-                          'Ostatnia aktywność 5min temu',
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context)
-                              .textTheme
-                              .subtitle2!
-                              .copyWith(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ],
-                );
-              },
-            ),
+          ],
+          backgroundColor: Colors.white,
+          titleSpacing: 0,
+          elevation: 0,
+          iconTheme: IconThemeData(
+            color: Colors.grey.shade800,
           ),
-          body: GestureDetector(
-            onTap: () {
-              FocusScopeNode currentFocus = FocusScope.of(context);
-              if (!currentFocus.hasPrimaryFocus &&
-                  currentFocus.focusedChild != null) {
-                FocusManager.instance.primaryFocus!.unfocus();
-              }
+          title: BlocBuilder<ContactsCubit, ContactsState>(
+            builder: (context, state) {
+              // final contacts = state.contacts
+              //     .where((contact) =>
+              //         chat.participants.map((p) => p.id).contains(contact.id))
+              //     .toList();
+
+              return Row(
+                children: [
+                  const ChatAvatar(),
+                  const SizedBox(
+                    width: 15.0,
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        state.contacts.length > 1
+                            ? state.contacts.map((e) => e.firstName).join(', ')
+                            : '${state.contacts.first.firstName} ${state.contacts.first.lastName}',
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.headline6,
+                      ),
+                      Text(
+                        'Ostatnia aktywność 5min temu',
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context)
+                            .textTheme
+                            .subtitle2!
+                            .copyWith(fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ],
+              );
             },
-            child: const MessagesSection(),
           ),
+        ),
+        body: GestureDetector(
+          onTap: () {
+            FocusScopeNode currentFocus = FocusScope.of(context);
+            if (!currentFocus.hasPrimaryFocus &&
+                currentFocus.focusedChild != null) {
+              FocusManager.instance.primaryFocus!.unfocus();
+            }
+          },
+          child: MessagesSection(chatId: chat.id),
         ),
       ),
     );
@@ -114,22 +105,30 @@ class ChatPage extends StatelessWidget {
 }
 
 class MessagesSection extends StatelessWidget {
-  const MessagesSection({Key? key}) : super(key: key);
+  const MessagesSection({
+    Key? key,
+    required this.chatId,
+  }) : super(key: key);
+
+  final String chatId;
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ChatCubit, ChatState>(
+    return BlocBuilder<ChatsCubit, ChatsState>(
       builder: (context, state) {
         final currentUser = context.read<UserCubit>().state.user;
+        print(state.chats);
+        print(chatId);
+        final chat = state.chats.firstWhere((c) => c.id == chatId);
 
-        final lastSenderMsg = state.messages.where(
+        final lastSenderMsg = chat.messages.where(
           (msg) => msg.senderId == currentUser.id,
         );
 
         return Column(
           children: [
             Expanded(
-              child: state.messages.isEmpty
+              child: chat.messages.isEmpty
                   ? Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -152,15 +151,15 @@ class MessagesSection extends StatelessWidget {
                         )
                       : ListView.builder(
                           reverse: true,
-                          itemCount: state.messages.length,
+                          itemCount: chat.messages.length,
                           itemBuilder: (
                             BuildContext context,
                             int index,
                           ) {
                             final isLastInSet =
-                                state.messages[index == 0 ? index : index - 1]
+                                chat.messages[index == 0 ? index : index - 1]
                                             .senderId !=
-                                        state.messages[index].senderId ||
+                                        chat.messages[index].senderId ||
                                     index == 0;
 
                             return Padding(
@@ -168,17 +167,18 @@ class MessagesSection extends StatelessWidget {
                                 horizontal: 15.0,
                               ),
                               child: MessageBubble(
-                                message: state.messages[index],
+                                chat: chat,
+                                message: chat.messages[index],
                                 isLastInSet: isLastInSet,
                                 isLastSentMsg: lastSenderMsg.isNotEmpty
                                     ? lastSenderMsg.first ==
-                                        state.messages[index]
+                                        chat.messages[index]
                                     : false,
                               ),
                             );
                           }),
             ),
-            if (state.typing.isNotEmpty)
+            if (chat.typing.isNotEmpty)
               Container(
                 margin: const EdgeInsets.only(top: 15.0),
                 padding: const EdgeInsets.symmetric(
@@ -190,8 +190,8 @@ class MessagesSection extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Text(
-                      state.participants
-                          .where((p) => state.typing.contains(p.id))
+                      chat.participants
+                          .where((p) => chat.typing.contains(p.id))
                           .map((p) => p.firstName)
                           .join(', '),
                       overflow: TextOverflow.ellipsis,
@@ -214,7 +214,9 @@ class MessagesSection extends StatelessWidget {
                   ],
                 ),
               ),
-            const MessageTextField(),
+            MessageTextField(
+              chat: chat,
+            ),
           ],
         );
       },
@@ -225,11 +227,13 @@ class MessagesSection extends StatelessWidget {
 class MessageBubble extends StatelessWidget {
   const MessageBubble({
     Key? key,
+    required this.chat,
     required this.message,
     required this.isLastInSet,
     required this.isLastSentMsg,
   }) : super(key: key);
 
+  final Chat chat;
   final Message message;
   final bool isLastInSet;
   final bool isLastSentMsg;
@@ -238,16 +242,16 @@ class MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final currentUser = context.read<UserCubit>().state.user;
 
-    return BlocBuilder<ChatCubit, ChatState>(
-      builder: (context, chatState) {
+    return Builder(
+      builder: (context) {
         final isSender = message.senderId == currentUser.id;
 
         // TODO: refactor to use Contact object in Message model instead of just senderId
-        final sender = chatState.participants.firstWhere(
+        final sender = chat.participants.firstWhere(
           (e) => e.id == message.senderId,
         );
 
-        final readBy = chatState.participants.where(
+        final readBy = chat.participants.where(
           (e) => !message.unreadBy.contains(e.id) && e.id != currentUser.id,
         );
 
@@ -342,7 +346,7 @@ class MessageBubble extends StatelessWidget {
                 ],
               ),
               Flex(
-                direction: chatState.participants.length > 2
+                direction: chat.participants.length > 2
                     ? Axis.vertical
                     : Axis.horizontal,
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -354,20 +358,23 @@ class MessageBubble extends StatelessWidget {
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          if (photos.isNotEmpty) PhotoMessage(photos: photos),
-                          if (videos.isNotEmpty) VideosMessage(videos: videos),
-                          if (files.isNotEmpty) FilesMessage(files: files),
+                          if (photos.isNotEmpty)
+                            PhotoMessage(chat: chat, photos: photos),
+                          if (videos.isNotEmpty)
+                            VideosMessage(chat: chat, videos: videos),
+                          if (files.isNotEmpty)
+                            FilesMessage(chat: chat, files: files),
                           const SizedBox(height: 5),
                           if (textMessage.isNotEmpty)
                             TextMessage(text: textMessage, sender: sender)
                         ]),
                   ),
                   if (isSender) ...[
-                    if (chatState.participants.length == 2)
+                    if (chat.participants.length == 2)
                       const SizedBox(width: 2.0),
                     isLastSentMsg
                         ? readBy.isNotEmpty
-                            ? chatState.participants.length > 2
+                            ? chat.participants.length > 2
                                 ? Row(
                                     children: readBy
                                         .map((e) => Padding(
@@ -484,9 +491,11 @@ class TextMessage extends StatelessWidget {
 class PhotoMessage extends StatelessWidget {
   const PhotoMessage({
     Key? key,
+    required this.chat,
     required this.photos,
   }) : super(key: key);
 
+  final Chat chat;
   final List<Attachment> photos;
 
   @override
@@ -502,7 +511,8 @@ class PhotoMessage extends StatelessWidget {
         itemCount: photos.length,
         itemBuilder: (BuildContext context, index) {
           return FutureBuilder(
-              future: context.read<ChatCubit>().getAttachment(photos[index]),
+              future:
+                  context.read<ChatsCubit>().getAttachment(chat, photos[index]),
               builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
                 if (snapshot.hasData) {
                   return GestureDetector(
@@ -510,7 +520,7 @@ class PhotoMessage extends StatelessWidget {
                       Navigator.of(context).pushNamed(
                         '/chat/media',
                         arguments: MediaPageArguments(
-                          context.read<ChatCubit>(),
+                          chat,
                           photos[index],
                         ),
                       );
@@ -555,9 +565,11 @@ class PhotoMessage extends StatelessWidget {
 class VideosMessage extends StatelessWidget {
   const VideosMessage({
     Key? key,
+    required this.chat,
     required this.videos,
   }) : super(key: key);
 
+  final Chat chat;
   final List<Attachment> videos;
 
   @override
@@ -573,7 +585,8 @@ class VideosMessage extends StatelessWidget {
         itemCount: videos.length,
         itemBuilder: (BuildContext context, index) {
           return FutureBuilder(
-              future: context.read<ChatCubit>().getAttachment(videos[index]),
+              future:
+                  context.read<ChatsCubit>().getAttachment(chat, videos[index]),
               builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
                 if (snapshot.hasData) {
                   return ClipRRect(
@@ -585,7 +598,7 @@ class VideosMessage extends StatelessWidget {
                         Navigator.of(context).pushNamed(
                           '/chat/video',
                           arguments: MediaPageArguments(
-                            context.read<ChatCubit>(),
+                            chat,
                             videos[index],
                           ),
                         );
@@ -646,9 +659,11 @@ class VideosMessage extends StatelessWidget {
 class FilesMessage extends StatelessWidget {
   const FilesMessage({
     Key? key,
+    required this.chat,
     required this.files,
   }) : super(key: key);
 
+  final Chat chat;
   final List<Attachment> files;
 
   @override
@@ -688,7 +703,7 @@ class FilesMessage extends StatelessWidget {
                                         .read<AttachmentsCubit>()
                                         .downloadAttachment(
                                           state.attachments[index].name,
-                                          context.read<ChatCubit>().state,
+                                          chat,
                                         );
 
                                     if (attachment.existsSync()) {

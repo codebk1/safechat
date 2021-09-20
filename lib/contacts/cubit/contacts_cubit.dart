@@ -11,8 +11,8 @@ import 'package:safechat/utils/utils.dart';
 part 'contacts_state.dart';
 
 class ContactsCubit extends Cubit<ContactsState> {
-  ContactsCubit({ContactsState contactsState = const ContactsState()})
-      : super(contactsState) {
+  ContactsCubit({List<Contact> contacts = const []})
+      : super(ContactsState(contacts: contacts)) {
     _wsService.socket.on('status', (data) {
       print('STATUS');
 
@@ -36,7 +36,7 @@ class ContactsCubit extends Cubit<ContactsState> {
   final _contactsRepository = ContactsRepository();
   final _chatsRepository = ChatsRepository();
 
-  Future<void> getContacts({bool onlyAccepted = false}) async {
+  Future<void> getContacts() async {
     try {
       emit(state.copyWith(listStatus: ListStatus.loading));
 
@@ -47,10 +47,6 @@ class ContactsCubit extends Cubit<ContactsState> {
               a.currentState.toString(),
             ),
       );
-
-      if (onlyAccepted) {
-        contacts.removeWhere((c) => c.currentState != CurrentState.accepted);
-      }
 
       emit(state.copyWith(contacts: contacts, listStatus: ListStatus.success));
     } on DioError catch (e) {

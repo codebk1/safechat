@@ -4,14 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_file/open_file.dart';
 import 'package:safechat/chats/cubits/attachments/attachments_cubit.dart';
-import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
+import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
 import 'package:safechat/chats/models/attachment.dart';
+import 'package:safechat/chats/models/chat.dart';
 import 'package:video_player/video_player.dart';
 
 class MediaPage extends StatelessWidget {
-  const MediaPage({
-    Key? key,
-  }) : super(key: key);
+  const MediaPage({Key? key, required this.chat}) : super(key: key);
+
+  final Chat chat;
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +41,7 @@ class MediaPage extends StatelessWidget {
                             .read<AttachmentsCubit>()
                             .downloadAttachment(
                               state.attachments.first.name,
-                              context.read<ChatCubit>().state,
+                              chat,
                             );
 
                         if (file.existsSync()) {
@@ -81,7 +82,8 @@ class MediaPage extends StatelessWidget {
             ),
           ),
           body: FutureBuilder(
-              future: context.read<ChatCubit>().getAttachment(
+              future: context.read<ChatsCubit>().getAttachment(
+                    chat,
                     state.attachments.first,
                     thumbnail: false,
                   ),

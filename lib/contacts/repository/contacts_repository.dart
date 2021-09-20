@@ -16,8 +16,7 @@ class ContactsRepository {
   Future<List<Contact>> getContacts() async {
     final res = await _apiService.get('/user/contacts');
 
-    return await getDecryptedContactsList(res.data as List)
-      ..toList();
+    return await getDecryptedContactsList(res.data as List);
   }
 
   Future<Contact> addContact(User user, String contactEmail) async {
@@ -129,7 +128,6 @@ class ContactsRepository {
           if (cachedFile != null) {
             contact = contact.copyWith(avatar: cachedFile.file);
           } else {
-            print(contact.avatar);
             final avatar = await getAvatar(contact.avatar, contact.sharedKey!);
 
             contact = contact.copyWith(

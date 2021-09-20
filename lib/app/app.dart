@@ -6,10 +6,21 @@ import 'package:safechat/theme.dart';
 import 'package:safechat/router.dart';
 import 'package:safechat/user/user.dart';
 
-class App extends StatelessWidget {
-  App({Key? key}) : super(key: key);
+class App extends StatefulWidget {
+  const App({Key? key}) : super(key: key);
 
-  final AppRouter _appRouter = AppRouter();
+  @override
+  State<App> createState() => _AppState();
+}
+
+class _AppState extends State<App> {
+  final _appRouter = AppRouter();
+
+  @override
+  void dispose() {
+    _appRouter.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

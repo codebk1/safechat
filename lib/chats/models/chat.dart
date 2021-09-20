@@ -1,7 +1,13 @@
-part of 'chat_cubit.dart';
+import 'dart:typed_data';
 
-class ChatState extends Equatable {
-  const ChatState({
+import 'package:equatable/equatable.dart';
+import 'package:safechat/contacts/cubit/contacts_cubit.dart';
+import 'package:safechat/contacts/models/contact.dart';
+
+import 'message.dart';
+
+class Chat extends Equatable {
+  const Chat({
     required this.id,
     required this.sharedKey,
     this.participants = const [],
@@ -9,6 +15,7 @@ class ChatState extends Equatable {
     this.message = Message.empty,
     this.typing = const [],
     this.opened = false,
+    this.showActions = false,
     this.listStatus = ListStatus.unknow,
   });
 
@@ -19,6 +26,7 @@ class ChatState extends Equatable {
   final Message message;
   final List<String> typing;
   final bool opened;
+  final bool showActions;
   final ListStatus listStatus;
 
   @override
@@ -28,10 +36,11 @@ class ChatState extends Equatable {
         message,
         typing,
         opened,
+        showActions,
         listStatus,
       ];
 
-  ChatState copyWith({
+  Chat copyWith({
     String? id,
     Uint8List? sharedKey,
     List<Contact>? participants,
@@ -39,9 +48,10 @@ class ChatState extends Equatable {
     Message? message,
     List<String>? typing,
     bool? opened,
+    bool? showActions,
     ListStatus? listStatus,
   }) {
-    return ChatState(
+    return Chat(
       id: id ?? this.id,
       sharedKey: sharedKey ?? this.sharedKey,
       participants: participants ?? this.participants,
@@ -49,6 +59,7 @@ class ChatState extends Equatable {
       message: message ?? this.message,
       typing: typing ?? this.typing,
       opened: opened ?? this.opened,
+      showActions: showActions ?? this.showActions,
       listStatus: listStatus ?? this.listStatus,
     );
   }

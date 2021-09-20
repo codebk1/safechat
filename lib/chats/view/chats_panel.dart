@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
-import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
 import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/chats/models/message.dart';
@@ -22,7 +21,7 @@ class MainPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    context.read<ChatsCubit>().getChats();
+    //context.read<ChatsCubit>().getChats();
 
     return Scaffold(
       floatingActionButton: FloatingActionButton(
@@ -90,98 +89,113 @@ class MainPanel extends StatelessWidget {
                             : ListView.builder(
                                 itemCount: state.chats.length,
                                 itemBuilder: (context, index) {
+                                  final chat = state.chats[index];
                                   final currentUser =
                                       context.read<UserCubit>().state.user;
 
-                                  final contacts =
-                                      List.of(state.chats[index].participants)
-                                        ..removeWhere(
-                                          (p) => p.id == currentUser.id,
-                                        );
+                                  final contacts = List.of(chat.participants)
+                                    ..removeWhere(
+                                      (p) => p.id == currentUser.id,
+                                    );
 
-                                  return MultiBlocProvider(
-                                    providers: [
-                                      BlocProvider(
-                                        create: (_) => ChatCubit(
-                                          chatState:
-                                              state.chats[index].copyWith(
-                                            message: Message(
-                                              senderId: currentUser.id,
-                                            ),
-                                          ),
-                                          currentUser: currentUser,
-                                        ),
-                                      ),
-                                      BlocProvider(
-                                        create: (_) => ContactsCubit(
-                                          contactsState:
-                                              ContactsState(contacts: contacts),
-                                        ),
-                                      ),
-                                    ],
-                                    child: BlocBuilder<ChatCubit, ChatState>(
-                                      builder: (context, chatState) {
-                                        var isUnreadMsg =
-                                            chatState.messages.any(
-                                          (e) => e.unreadBy.contains(
-                                            currentUser.id,
-                                          ),
-                                        );
-
-                                        return ListTile(
-                                          onTap: () {
-                                            context
-                                                .read<ChatCubit>()
-                                                .readAllMessages(
-                                                  currentUser.id,
-                                                );
-
-                                            Navigator.of(context).pushNamed(
-                                              '/chat',
-                                              arguments: ChatPageArguments(
-                                                context.read<ChatCubit>(),
-                                                context.read<ContactsCubit>(),
-                                              ),
-                                            );
-                                          },
-                                          leading: const ChatAvatar(),
-                                          title: Text(
-                                            contacts.length > 1
-                                                ? contacts
-                                                    .map((e) => e.firstName)
-                                                    .join(', ')
-                                                : '${contacts.first.firstName} ${contacts.first.lastName}',
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontWeight: isUnreadMsg
-                                                  ? FontWeight.bold
-                                                  : FontWeight.normal,
-                                            ),
-                                          ),
-                                          subtitle: Text(
-                                            chatState.messages.isNotEmpty
-                                                ? chatState
-                                                            .messages
-                                                            .first
-                                                            .content
-                                                            .first
-                                                            .type ==
-                                                        MessageType.text
-                                                    ? chatState.messages.first
-                                                        .content.first.data
-                                                    : '${contacts.first.firstName} wysłał załącznik(-i).'
-                                                : 'Wyślij pierwszą wiadomość',
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 1,
-                                            style: TextStyle(
-                                              fontWeight: isUnreadMsg
-                                                  ? FontWeight.bold
-                                                  : FontWeight.normal,
-                                            ),
-                                          ),
-                                        );
-                                      },
+                                  final isUnreadMsg = chat.messages.any(
+                                    (e) => e.unreadBy.contains(
+                                      currentUser.id,
                                     ),
+                                  );
+
+                                  return BlocProvider(
+                                    create: (_) => ContactsCubit(
+                                      contacts: contacts,
+                                    ),
+                                    child: Builder(builder: (context) {
+                                      return ListTile(
+                                        onLongPress: () {
+                                          context
+                                              .read<ChatsCubit>()
+                                              .toggleActionsMenu(
+                                                chat.id,
+                                              );
+                                        },
+                                        onTap: () {
+                                          context
+                                              .read<ChatsCubit>()
+                                              .readAllMessages(
+                                                chat,
+                                                currentUser.id,
+                                              );
+
+                                          Navigator.of(context).pushNamed(
+                                            '/chat',
+                                            arguments: ChatPageArguments(
+                                              chat,
+                                              context
+                                                  .read<ContactsCubit>()
+                                                  .state
+                                                  .contacts,
+                                            ),
+                                          );
+                                        },
+                                        leading: const ChatAvatar(),
+                                        title: Text(
+                                          contacts.length > 1
+                                              ? contacts
+                                                  .map((e) => e.firstName)
+                                                  .join(', ')
+                                              : '${contacts.first.firstName} ${contacts.first.lastName}',
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontWeight: isUnreadMsg
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                          ),
+                                        ),
+                                        subtitle: Text(
+                                          chat.messages.isNotEmpty
+                                              ? chat.messages.first.content
+                                                          .first.type ==
+                                                      MessageType.text
+                                                  ? chat.messages.first.content
+                                                      .first.data
+                                                  : '${contacts.first.firstName} wysłał załącznik(-i).'
+                                              : 'Wyślij pierwszą wiadomość',
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                          style: TextStyle(
+                                            fontWeight: isUnreadMsg
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                          ),
+                                        ),
+                                        trailing: chat.showActions
+                                            ? Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  IconButton(
+                                                    onPressed: () {},
+                                                    icon: Icon(
+                                                      Icons.delete,
+                                                      color:
+                                                          Colors.red.shade800,
+                                                    ),
+                                                  ),
+                                                  IconButton(
+                                                    onPressed: () {
+                                                      context
+                                                          .read<ChatsCubit>()
+                                                          .toggleActionsMenu(
+                                                            chat.id,
+                                                          );
+                                                    },
+                                                    icon: const Icon(
+                                                      Icons.cancel,
+                                                    ),
+                                                  ),
+                                                ],
+                                              )
+                                            : null,
+                                      );
+                                    }),
                                   );
                                 },
                               ),
@@ -196,9 +210,7 @@ class MainPanel extends StatelessWidget {
 }
 
 class ChatAvatar extends StatelessWidget {
-  const ChatAvatar({
-    Key? key,
-  }) : super(key: key);
+  const ChatAvatar({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

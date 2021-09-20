@@ -3,22 +3,24 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
+import 'package:safechat/chats/models/chat.dart';
 import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/contacts/contacts.dart';
+import 'package:safechat/user/repository/user_repository.dart';
 
 import 'package:safechat/utils/utils.dart';
 
 class ChatsRepository {
-  final Dio _apiService = ApiService().init();
-  final EncryptionService _encryptionService = EncryptionService();
-  final ContactsRepository _contactsRepository = ContactsRepository();
+  final _apiService = ApiService().init();
+  final _encryptionService = EncryptionService();
+  final _userRepository = UserRepository();
+  final _contactsRepository = ContactsRepository();
 
-  Future<List<ChatState>> getChats() async {
+  Future<List<Chat>> getChats() async {
     final res = await _apiService.get('/chat');
     final chatsData = res.data as List;
 
-    List<ChatState> chats = [];
+    List<Chat> chats = [];
 
     for (var i = 0; i < chatsData.length; i++) {
       final decryptedChatSharedKey = _encryptionService.rsaDecrypt(
@@ -53,12 +55,14 @@ class ChatsRepository {
         }).toList()));
       }
 
-      final chat = ChatState(
-        id: chatsData[i]['id'],
-        sharedKey: decryptedChatSharedKey,
-        participants: chatParticipants,
-        messages: chatMessages.reversed.toList(),
-      );
+      final chat = Chat(
+          id: chatsData[i]['id'],
+          sharedKey: decryptedChatSharedKey,
+          participants: chatParticipants,
+          messages: chatMessages.reversed.toList(),
+          message: Message(
+            senderId: _userRepository.user.id,
+          ));
 
       //print(chat);
 

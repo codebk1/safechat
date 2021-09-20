@@ -5,8 +5,8 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:mime/mime.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:safechat/chats/cubits/chat/chat_cubit.dart';
 import 'package:safechat/chats/models/attachment.dart';
+import 'package:safechat/chats/models/chat.dart';
 import 'package:safechat/chats/repository/chats_repository.dart';
 
 part 'attachments_state.dart';
@@ -63,7 +63,7 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
     }
   }
 
-  Future<File> downloadAttachment(String attachmentName, ChatState chat) async {
+  Future<File> downloadAttachment(String attachmentName, Chat chat) async {
     emit(state.copyWith(
       attachments: List.of(state.attachments)
           .map((attachment) => attachment.name == attachmentName
