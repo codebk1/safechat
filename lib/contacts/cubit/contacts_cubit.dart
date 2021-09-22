@@ -1,8 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
-import 'package:safechat/chats/models/chat.dart';
-import 'package:safechat/chats/repository/chats_repository.dart';
 
 import 'package:safechat/user/user.dart';
 import 'package:safechat/common/common.dart';
@@ -35,7 +33,6 @@ class ContactsCubit extends Cubit<ContactsState> {
 
   final _wsService = SocketService();
   final _contactsRepository = ContactsRepository();
-  final _chatsRepository = ChatsRepository();
 
   Future<void> getContacts() async {
     try {
@@ -109,38 +106,20 @@ class ContactsCubit extends Cubit<ContactsState> {
     }
   }
 
-  Future<Chat?> createChat(Contact contact) async {
-    try {
-      emit(state.copyWith(
-        contacts: List.of(state.contacts)
-            .map((c) => c.id == contact.id ? c.copyWith(working: true) : c)
-            .toList(),
-      ));
+  startLoading(String contactId) {
+    emit(state.copyWith(
+      contacts: List.of(state.contacts)
+          .map((c) => c.id == contactId ? c.copyWith(working: true) : c)
+          .toList(),
+    ));
+  }
 
-      final chat = await _chatsRepository.createChat(
-        ChatType.direct,
-        [contact],
-      );
-
-      emit(state.copyWith(
-        contacts: List.of(state.contacts)
-            .map((c) => c.id == contact.id ? c.copyWith(working: false) : c)
-            .toList(),
-      ));
-
-      return chat;
-    } on DioError catch (e) {
-      print(e);
-
-      // emit(state.copyWith(
-      //   status: FormStatus.failure(e.response?.data['message']),
-      // ));
-    } catch (e) {
-      print(e);
-      // emit(state.copyWith(
-      //   status: FormStatus.failure(e.toString()),
-      // ));
-    }
+  stopLoading(String contactId) {
+    emit(state.copyWith(
+      contacts: List.of(state.contacts)
+          .map((c) => c.id == contactId ? c.copyWith(working: false) : c)
+          .toList(),
+    ));
   }
 
   Future<void> acceptInvitation(String contactId) async {

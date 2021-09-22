@@ -7,13 +7,13 @@ import 'package:flutter/foundation.dart';
 import 'package:safechat/chats/models/chat.dart';
 import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/contacts/contacts.dart';
+import 'package:safechat/user/user.dart';
 
 import 'package:safechat/utils/utils.dart';
 
 class ChatsRepository {
   final _apiService = ApiService().init();
   final _encryptionService = EncryptionService();
-  //final _userRepository = UserRepository();
   final _contactsRepository = ContactsRepository();
 
   Future<List<Chat>> getChats() async {
@@ -32,8 +32,6 @@ class ChatsRepository {
         chatsData[i]['participants'] as List,
         decryptedChatSharedKey,
       );
-
-      //print(chatParticipants);
 
       List<Message> chatMessages = [];
 
@@ -55,8 +53,6 @@ class ChatsRepository {
         }).toList()));
       }
 
-      //print({'KAKAKAdgsakfhgskhfgaskdf', _userRepository.user.id});
-
       final chat = Chat(
         id: chatsData[i]['id'],
         sharedKey: decryptedChatSharedKey,
@@ -65,9 +61,6 @@ class ChatsRepository {
         ),
         participants: chatParticipants,
         messages: chatMessages.reversed.toList(),
-        // message: Message(
-        //   senderId: _userRepository.user.id,
-        // )
       );
 
       chats.add(chat);
@@ -76,7 +69,11 @@ class ChatsRepository {
     return chats.toList();
   }
 
-  Future<Chat> createChat(ChatType type, List<Contact> participants) async {
+  Future<Chat> createChat(
+    ChatType type,
+    User creator,
+    List<Contact> participants,
+  ) async {
     final chatSharedKey =
         _encryptionService.genereateSecureRandom().nextBytes(32);
 
@@ -124,11 +121,20 @@ class ChatsRepository {
       });
     }
 
+    final creatorContact = Contact(
+      id: creator.id,
+      email: creator.email,
+      firstName: creator.firstName,
+      lastName: creator.lastName,
+      avatar: creator.avatar,
+    );
+
     return Chat(
       id: chat.data['id'],
       sharedKey: chatSharedKey,
       type: type,
-      participants: participants,
+      participants: [...participants, creatorContact],
+      messages: List<Message>.empty(growable: true),
     );
   }
 

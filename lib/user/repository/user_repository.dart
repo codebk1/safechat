@@ -8,7 +8,13 @@ import 'package:safechat/user/models/user.dart';
 import 'package:safechat/utils/utils.dart';
 
 class UserRepository {
-  UserRepository();
+  static final UserRepository _singleton = UserRepository._internal();
+
+  factory UserRepository() {
+    return _singleton;
+  }
+
+  UserRepository._internal();
 
   final Dio _apiService = ApiService().init();
   final EncryptionService _encryptionService = EncryptionService();

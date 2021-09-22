@@ -97,7 +97,7 @@ class ChatPage extends StatelessWidget {
               FocusManager.instance.primaryFocus!.unfocus();
             }
           },
-          child: MessagesSection(chatId: chat.id),
+          child: MessagesSection(ch: chat),
         ),
       ),
     );
@@ -107,17 +107,17 @@ class ChatPage extends StatelessWidget {
 class MessagesSection extends StatelessWidget {
   const MessagesSection({
     Key? key,
-    required this.chatId,
+    required this.ch,
   }) : super(key: key);
 
-  final String chatId;
+  final Chat ch;
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChatsCubit, ChatsState>(
       builder: (context, state) {
         final currentUser = context.read<UserCubit>().state.user;
-        final chat = state.chats.firstWhere((c) => c.id == chatId);
+        final chat = state.chats.firstWhere((c) => c.id == ch.id);
 
         final lastSenderMsg = chat.messages.where(
           (msg) => msg.senderId == currentUser.id,
@@ -245,6 +245,7 @@ class MessageBubble extends StatelessWidget {
         final isSender = message.senderId == currentUser.id;
 
         // TODO: refactor to use Contact object in Message model instead of just senderId
+        print(chat);
         final sender = chat.participants.firstWhere(
           (e) => e.id == message.senderId,
         );

@@ -25,8 +25,6 @@ AsymmetricKeyPair<PublicKey, PrivateKey> getRsaKeyPair(
 }
 
 class AuthRepository {
-  AuthRepository();
-
   final SRP _srpClient = SRP(
     N: PrimeGroups.prime_1024,
     g: PrimeGroups.g_1024,

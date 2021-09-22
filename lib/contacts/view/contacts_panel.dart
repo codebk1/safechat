@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
+import 'package:safechat/chats/models/chat.dart';
 
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/contacts/cubit/cubits.dart';
 import 'package:safechat/router.dart';
+import 'package:safechat/user/cubit/user_cubit.dart';
 
 class ContactsPanel extends StatelessWidget {
   const ContactsPanel({Key? key}) : super(key: key);
@@ -149,19 +152,9 @@ class ContactsPanel extends StatelessWidget {
                                                 : Text(
                                                     '${contact.firstName} ${contact.lastName}',
                                                   ),
-                                            trailing: !contact.working
-                                                ? _ContactActions(
-                                                    contact: contact,
-                                                  )
-                                                : Transform.scale(
-                                                    scale: 0.5,
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                      strokeWidth: 2,
-                                                      color:
-                                                          Colors.grey.shade800,
-                                                    ),
-                                                  ),
+                                            trailing: _ContactActions(
+                                              contact: contact,
+                                            ),
                                           );
                                         }),
                               ),
@@ -187,6 +180,16 @@ class _ContactActions extends StatelessWidget {
   final Contact contact;
 
   Widget _actionWidget(BuildContext context) {
+    if (contact.working) {
+      return Transform.scale(
+        scale: 0.5,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: Colors.grey.shade800,
+        ),
+      );
+    }
+
     switch (contact.currentState) {
       case CurrentState.inviting:
         return Row(
@@ -227,17 +230,25 @@ class _ContactActions extends StatelessWidget {
       case CurrentState.accepted:
         return IconButton(
           onPressed: () async {
-            final chat = await context.read<ContactsCubit>().createChat(
-                  contact,
-                );
+            context.read<ContactsCubit>().startLoading(contact.id);
 
-            Navigator.of(context).pushNamed(
-              '/chat',
-              arguments: ChatPageArguments(
-                chat!,
-                [contact],
-              ),
+            final chat = await context.read<ChatsCubit>().createChat(
+              ChatType.direct,
+              context.read<UserCubit>().state.user,
+              [contact],
             );
+
+            context.read<ContactsCubit>().stopLoading(contact.id);
+
+            if (chat != null) {
+              Navigator.of(context).pushNamed(
+                '/chat',
+                arguments: ChatPageArguments(
+                  chat,
+                  [contact],
+                ),
+              );
+            }
           },
           icon: const Icon(
             Icons.chat,

@@ -185,6 +185,10 @@ class MainPanel extends StatelessWidget {
                                                 currentUser.id,
                                               );
 
+                                          context.read<ChatsCubit>().openChat(
+                                                chat.id,
+                                              );
+
                                           Navigator.of(context).pushNamed(
                                             '/chat',
                                             arguments: ChatPageArguments(

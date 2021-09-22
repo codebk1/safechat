@@ -1,7 +1,9 @@
-part of 'create_chat_cubit.dart';
+import 'package:equatable/equatable.dart';
+import 'package:safechat/contacts/contacts.dart';
+import 'package:safechat/utils/utils.dart';
 
-class CreateChatState extends Equatable {
-  const CreateChatState({
+class NewChat extends Equatable {
+  const NewChat({
     this.selectedParticipants = const [],
     this.status = const FormStatus.init(),
   });
@@ -12,11 +14,11 @@ class CreateChatState extends Equatable {
   @override
   List<Object> get props => [selectedParticipants];
 
-  CreateChatState copyWith({
+  NewChat copyWith({
     List<Contact>? selectedParticipants,
     FormStatus? status,
   }) {
-    return CreateChatState(
+    return NewChat(
       selectedParticipants: selectedParticipants ?? this.selectedParticipants,
       status: status ?? this.status,
     );

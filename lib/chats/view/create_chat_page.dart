@@ -3,18 +3,19 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/chats/cubits/create_chat/create_chat_cubit.dart';
+import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
 import 'package:safechat/chats/models/chat.dart';
 import 'package:safechat/contacts/contacts.dart';
+import 'package:safechat/user/user.dart';
 
 class CreateChatPage extends StatelessWidget {
   const CreateChatPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<CreateChatCubit, CreateChatState>(
+    return BlocConsumer<ChatsCubit, ChatsState>(
       listener: (context, state) {
-        if (state.status.isSuccess) {
+        if (state.newChat.status.isSuccess) {
           Navigator.of(context).pop();
 
           ScaffoldMessenger.of(context)
@@ -38,7 +39,7 @@ class CreateChatPage extends StatelessWidget {
             );
         }
 
-        if (state.status.isFailure) {
+        if (state.newChat.status.isFailure) {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
@@ -57,14 +58,14 @@ class CreateChatPage extends StatelessWidget {
                     const SizedBox(
                       width: 10.0,
                     ),
-                    Text(state.status.error),
+                    Text(state.newChat.status.error),
                   ],
                 ),
               ),
             );
         }
       },
-      builder: (context, createChatState) {
+      builder: (context, state) {
         return Scaffold(
           appBar: AppBar(
             backgroundColor: Colors.white,
@@ -86,9 +87,9 @@ class CreateChatPage extends StatelessWidget {
                   runSpacing: 5.0,
                   spacing: 5.0,
                   children: [
-                    if (createChatState.selectedParticipants.isEmpty)
+                    if (state.newChat.selectedParticipants.isEmpty)
                       const Text('Wybierz znajomych:'),
-                    ...createChatState.selectedParticipants.map(
+                    ...state.newChat.selectedParticipants.map(
                       (p) => UnconstrainedBox(
                         child: Container(
                           padding: const EdgeInsets.only(
@@ -116,7 +117,7 @@ class CreateChatPage extends StatelessWidget {
                               InkWell(
                                 onTap: () {
                                   context
-                                      .read<CreateChatCubit>()
+                                      .read<ChatsCubit>()
                                       .toggleParticipant(p);
                                 },
                                 child: const Icon(
@@ -134,10 +135,10 @@ class CreateChatPage extends StatelessWidget {
                 ),
               ),
               BlocBuilder<ContactsCubit, ContactsState>(
-                builder: (context, state) {
-                  final acceptedContacts = state.acceptedContacts;
+                builder: (context, contactsState) {
+                  final acceptedContacts = contactsState.acceptedContacts;
 
-                  return state.listStatus == ListStatus.loading
+                  return contactsState.listStatus == ListStatus.loading
                       ? Center(
                           child: Padding(
                             padding: const EdgeInsets.all(20.0),
@@ -175,14 +176,12 @@ class CreateChatPage extends StatelessWidget {
                                                 acceptedContacts[index];
 
                                             return CheckboxListTile(
-                                              value: createChatState
-                                                  .selectedParticipants
-                                                  .contains(
-                                                state,
-                                              ),
-                                              onChanged: (selected) {
+                                              value: state
+                                                  .newChat.selectedParticipants
+                                                  .contains(contact),
+                                              onChanged: (_) {
                                                 context
-                                                    .read<CreateChatCubit>()
+                                                    .read<ChatsCubit>()
                                                     .toggleParticipant(
                                                       contact,
                                                     );
@@ -233,8 +232,7 @@ class CreateChatPage extends StatelessWidget {
                                           }),
                                 ),
                               ),
-                              if (createChatState
-                                  .selectedParticipants.isNotEmpty)
+                              if (state.newChat.selectedParticipants.isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.all(15.0),
                                   child: Ink(
@@ -245,14 +243,20 @@ class CreateChatPage extends StatelessWidget {
                                     child: InkWell(
                                       borderRadius: BorderRadius.circular(5.0),
                                       onTap: () {
-                                        context
-                                            .read<CreateChatCubit>()
-                                            .createChat(ChatType.group);
+                                        context.read<ChatsCubit>().createChat(
+                                              ChatType.group,
+                                              context
+                                                  .read<UserCubit>()
+                                                  .state
+                                                  .user,
+                                              state
+                                                  .newChat.selectedParticipants,
+                                            );
                                       },
                                       child: SizedBox(
                                         height: 60.0,
                                         child: Center(
-                                          child: state.status.isLoading
+                                          child: contactsState.status.isLoading
                                               ? Transform.scale(
                                                   scale: 0.6,
                                                   child:

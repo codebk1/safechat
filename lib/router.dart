@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
-import 'package:safechat/chats/cubits/create_chat/create_chat_cubit.dart';
 import 'package:safechat/chats/view/chat_page.dart';
 import 'package:safechat/chats/view/create_chat_page.dart';
 import 'package:safechat/chats/view/media_page.dart';
@@ -99,10 +98,8 @@ class AppRouter {
         return PageRouteBuilder(
           pageBuilder: (_, __, ___) => MultiBlocProvider(
             providers: [
-              BlocProvider.value(
-                value: _contactsCubit,
-              ),
-              BlocProvider(create: (_) => CreateChatCubit())
+              BlocProvider.value(value: _contactsCubit),
+              BlocProvider.value(value: _chatsCubit),
             ],
             child: const CreateChatPage(),
           ),
