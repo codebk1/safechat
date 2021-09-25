@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:pointycastle/asn1/primitives/asn1_integer.dart';
@@ -121,6 +122,12 @@ class AuthRepository {
     );
 
     _encryptionService.init();
+
+    final fcmToken = await FirebaseMessaging.instance.getToken();
+
+    await _apiService.patch('/user', data: {
+      'fcmToken': fcmToken,
+    });
   }
 
   Future<AsymmetricKeyPair<PublicKey, PrivateKey>> computeRSAKeyPair(
@@ -183,6 +190,8 @@ class AuthRepository {
       sharedKey,
     );
 
+    final fcmToken = await FirebaseMessaging.instance.getToken();
+
     await _apiService.post('/auth/signup', data: {
       'profile': {
         'firstName': base64.encode(encryptedFirstName),
@@ -195,6 +204,7 @@ class AuthRepository {
         'publicKey': base64.encode(asn1PublicKey.encode()),
         'privateKey': base64.encode(encryptedPrivateKey),
         'sharedKey': encryptedSharedKey,
+        'fcmToken': fcmToken,
       }
     });
   }

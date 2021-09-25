@@ -23,11 +23,14 @@ environment:
 dependencies:
   dio: ^4.0.0
   equatable: ^2.0.3
+  firebase_core: ^1.6.0
+  firebase_messaging: ^10.0.7
   flutter:
     sdk: flutter
-  flutter_bloc: ^7.1.0
+  flutter_bloc: ^7.3.0
   flutter_cache_manager: ^3.1.2
   flutter_keyboard_visibility: ^5.0.3
+  flutter_local_notifications: ^8.2.0
   flutter_secure_storage: ^4.2.0
   flutter_svg: ^0.22.0
   image: ^3.0.2

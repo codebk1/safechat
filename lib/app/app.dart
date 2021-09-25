@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
+import 'package:safechat/notifications/bloc/notification_bloc.dart';
+import 'package:safechat/notifications/repositories/notifications_repository.dart';
 
 import 'package:safechat/theme.dart';
 import 'package:safechat/router.dart';
@@ -16,13 +17,12 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   final _appRouter = AppRouter();
-
-  final _authRepository = AuthRepository();
-  final _userRepository = UserRepository();
+  final _notificationRepository = NotificationsRepository();
 
   @override
   void dispose() {
     _appRouter.dispose();
+    _notificationRepository.dispose();
     super.dispose();
   }
 
@@ -30,21 +30,29 @@ class _AppState extends State<App> {
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
       providers: [
-        RepositoryProvider<AuthRepository>(
-          create: (context) => _authRepository,
+        RepositoryProvider(
+          create: (context) => AuthRepository(),
         ),
-        RepositoryProvider<UserRepository>(
-          create: (context) => _userRepository,
+        RepositoryProvider(
+          create: (context) => UserRepository(),
+        ),
+        RepositoryProvider(
+          create: (context) => _notificationRepository..init(),
         ),
       ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider(
             create: (context) => UserCubit(
-              _authRepository,
-              _userRepository,
+              context.read<AuthRepository>(),
+              context.read<UserRepository>(),
             )..authenticate(),
           ),
+          BlocProvider(
+            create: (context) => NotificationsBloc(
+              notificationsRepository: context.read<NotificationsRepository>(),
+            ),
+          )
         ],
         child: MaterialApp(
           debugShowCheckedModeBanner: false,

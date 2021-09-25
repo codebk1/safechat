@@ -86,7 +86,9 @@ class UserRepository {
   }
 
   Future<void> removeAvatar() async {
-    await _apiService.patch('/user/profile', data: {'avatar': null});
+    await _apiService.patch('/user', data: {
+      'profile': {'avatar': null}
+    });
   }
 
   Future<void> updateProfile(String fN, String lN) async {
@@ -100,9 +102,11 @@ class UserRepository {
       _encryptionService.sharedKey!,
     );
 
-    await _apiService.patch('/user/profile', data: {
-      'firstName': base64.encode(encryptedFirstName),
-      'lastName': base64.encode(encryptedLastName),
+    await _apiService.patch('/user', data: {
+      'profile': {
+        'firstName': base64.encode(encryptedFirstName),
+        'lastName': base64.encode(encryptedLastName),
+      }
     });
   }
 }

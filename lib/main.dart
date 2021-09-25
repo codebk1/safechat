@@ -1,16 +1,20 @@
 import 'dart:developer';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:safechat/app/app_bloc_observer.dart';
 import 'package:safechat/app/app.dart';
+import 'package:safechat/utils/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   Bloc.observer = AppBlocObserver();
+
   FlutterError.onError = (details) {
     log(details.exceptionAsString(), stackTrace: details.stack);
   };
@@ -23,14 +27,8 @@ void main() async {
         systemNavigationBarIconBrightness: Brightness.dark),
   );
 
-  // final storage = FlutterSecureStorage();
-  // final apiService = ApiService();
-  // final encryptionService = EncryptionService();
+  await Firebase.initializeApp();
+  await NotificationService().init();
 
-  // if (await storage.containsKey(key: 'publicKey'))
-  //   await encryptionService.init();
-
-  // final authRepository = AuthRepository(apiService.init(), encryptionService);
-
-  runApp(App());
+  runApp(const App());
 }

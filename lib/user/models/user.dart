@@ -7,6 +7,7 @@ class User extends Equatable {
     required this.firstName,
     required this.lastName,
     this.avatar,
+    required this.fcmToken,
   });
 
   final String id;
@@ -14,6 +15,7 @@ class User extends Equatable {
   final String firstName;
   final String lastName;
   final dynamic avatar;
+  final String fcmToken;
 
   @override
   List<Object?> get props => [email, firstName, lastName, avatar];
@@ -23,13 +25,15 @@ class User extends Equatable {
         email = json['email']!,
         firstName = json['profile']['firstName']!,
         lastName = json['profile']['lastName']!,
-        avatar = json['profile']['avatar'];
+        avatar = json['profile']['avatar'],
+        fcmToken = json['fcmToken']!;
 
   static const empty = User(
     id: '',
     email: '',
     firstName: '',
     lastName: '',
+    fcmToken: '',
   );
 
   User copyWith({
@@ -38,6 +42,7 @@ class User extends Equatable {
     String? firstName,
     String? lastName,
     dynamic avatar,
+    String? fcmToken,
   }) {
     return User(
       id: id ?? this.id,
@@ -45,6 +50,7 @@ class User extends Equatable {
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       avatar: avatar ?? this.avatar,
+      fcmToken: fcmToken ?? this.fcmToken,
     );
   }
 }
