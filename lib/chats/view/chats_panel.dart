@@ -178,26 +178,20 @@ class MainPanel extends StatelessWidget {
                                               });
                                         },
                                         onTap: () {
-                                          context
-                                              .read<ChatsCubit>()
-                                              .readAllMessages(
-                                                chat,
-                                                currentUser.id,
-                                              );
+                                          // context
+                                          //     .read<ChatsCubit>()
+                                          //     .readAllMessages(
+                                          //       chat,
+                                          //       currentUser.id,
+                                          //     );
 
-                                          context.read<ChatsCubit>().openChat(
-                                                chat.id,
-                                              );
+                                          // context.read<ChatsCubit>().openChat(
+                                          //       chat.id,
+                                          //     );
 
                                           Navigator.of(context).pushNamed(
                                             '/chat',
-                                            arguments: ChatPageArguments(
-                                              chat,
-                                              context
-                                                  .read<ContactsCubit>()
-                                                  .state
-                                                  .contacts,
-                                            ),
+                                            arguments: chat,
                                           );
                                         },
                                         leading: const ChatAvatar(),

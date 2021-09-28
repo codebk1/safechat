@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/notifications/bloc/notification_bloc.dart';
-import 'package:safechat/notifications/repositories/notifications_repository.dart';
 
 import 'package:safechat/theme.dart';
 import 'package:safechat/router.dart';
 import 'package:safechat/user/user.dart';
+import 'package:safechat/utils/notification_service.dart';
 
 class App extends StatefulWidget {
   const App({Key? key}) : super(key: key);
@@ -17,12 +17,12 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   final _appRouter = AppRouter();
-  final _notificationRepository = NotificationsRepository();
+  //final _notificationRepository = NotificationsRepository();
 
   @override
   void dispose() {
     _appRouter.dispose();
-    _notificationRepository.dispose();
+    //_notificationRepository.dispose();
     super.dispose();
   }
 
@@ -37,7 +37,7 @@ class _AppState extends State<App> {
           create: (context) => UserRepository(),
         ),
         RepositoryProvider(
-          create: (context) => _notificationRepository..init(),
+          create: (context) => NotificationService()..init(),
         ),
       ],
       child: MultiBlocProvider(
@@ -50,7 +50,7 @@ class _AppState extends State<App> {
           ),
           BlocProvider(
             create: (context) => NotificationsBloc(
-              notificationsRepository: context.read<NotificationsRepository>(),
+              notificationService: context.read<NotificationService>(),
             ),
           )
         ],

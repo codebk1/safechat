@@ -10,7 +10,7 @@ abstract class NotificationsEvent extends Equatable {
 class NotificationRecieved extends NotificationsEvent {
   const NotificationRecieved(this.notification);
 
-  final Notification notification;
+  final RemoteMessage notification;
 
   @override
   List<Object> get props => [notification];

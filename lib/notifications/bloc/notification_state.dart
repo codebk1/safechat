@@ -12,7 +12,7 @@ class NotificationsInitial extends NotificationsState {}
 class NotificationReciveSuccess extends NotificationsState {
   const NotificationReciveSuccess(this.notification);
 
-  final Notification notification;
+  final RemoteMessage notification;
 
   @override
   List<Object> get props => [notification];

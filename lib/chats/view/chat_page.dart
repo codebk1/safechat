@@ -20,10 +20,10 @@ import 'package:safechat/user/user.dart';
 class ChatPage extends StatelessWidget {
   const ChatPage({
     Key? key,
-    required this.chat,
+    required this.chatId,
   }) : super(key: key);
 
-  final Chat chat;
+  final String chatId;
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +33,7 @@ class ChatPage extends StatelessWidget {
         //   opened: false,
         // ));
 
-        context.read<ChatsCubit>().closeChat(chat.id);
+        context.read<ChatsCubit>().closeChat(chatId);
 
         return Future.value(true);
       },
@@ -68,7 +68,7 @@ class ChatPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        state.contacts.length > 1
+                        state.contacts.length > 2
                             ? state.contacts.map((e) => e.firstName).join(', ')
                             : '${state.contacts.first.firstName} ${state.contacts.first.lastName}',
                         overflow: TextOverflow.ellipsis,
@@ -97,7 +97,7 @@ class ChatPage extends StatelessWidget {
               FocusManager.instance.primaryFocus!.unfocus();
             }
           },
-          child: MessagesSection(ch: chat),
+          child: MessagesSection(chatId: chatId),
         ),
       ),
     );
@@ -107,17 +107,21 @@ class ChatPage extends StatelessWidget {
 class MessagesSection extends StatelessWidget {
   const MessagesSection({
     Key? key,
-    required this.ch,
+    required this.chatId,
   }) : super(key: key);
 
-  final Chat ch;
+  final String chatId;
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChatsCubit, ChatsState>(
+      // buildWhen: (previous, current) {
+      //   return previous.chats.firstWhere((c) => c.id == ch.id) !=
+      //       current.chats.firstWhere((c) => c.id == ch.id);
+      // },
       builder: (context, state) {
         final currentUser = context.read<UserCubit>().state.user;
-        final chat = state.chats.firstWhere((c) => c.id == ch.id);
+        final chat = state.chats.firstWhere((c) => c.id == chatId);
 
         final lastSenderMsg = chat.messages.where(
           (msg) => msg.senderId == currentUser.id,

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -14,7 +15,9 @@ import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/chats/models/new_chat.dart';
 import 'package:safechat/chats/repository/chats_repository.dart';
 import 'package:safechat/contacts/contacts.dart';
+import 'package:safechat/notifications/models/notification.dart';
 import 'package:safechat/user/user.dart';
+import 'package:safechat/utils/notification_service.dart';
 import 'package:safechat/utils/utils.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
@@ -113,12 +116,44 @@ class ChatsCubit extends Cubit<ChatsState> {
             .toList(),
       ));
     });
+
+    _notificationService.notification.listen((event) {
+      print('KAKAKAKAKAKAKAKAK');
+      final chat = state.chats.firstWhere(
+        (c) => c.id == event.data['chatId'],
+      );
+
+      final sender = chat.participants.firstWhere(
+        (p) => p.id == event.data['senderId'],
+      );
+
+      final notification = Notification(
+        id: event.data['chatId'],
+        title: '${sender.firstName} ${sender.lastName}',
+        body: utf8.decode(
+          _encryptionService.chachaDecrypt(
+            event.data['body'],
+            chat.sharedKey,
+          ),
+        ),
+        image: sender.avatar,
+      );
+
+      _notificationService.showNotification(notification);
+    });
+
+    _notificationService.selectNotification.listen((chatId) {
+      final chat = state.chats.firstWhere((c) => c.id == chatId);
+
+      emit(state.copyWith(nextChat: chat));
+    });
   }
 
   final _wsService = SocketService();
   final _encryptionService = EncryptionService();
-  final _userRepository = UserRepository();
+  final _notificationService = NotificationService();
 
+  final _userRepository = UserRepository();
   final _chatsRepository = ChatsRepository();
 
   Future<void> getChats() async {
@@ -431,5 +466,12 @@ class ChatsCubit extends Cubit<ChatsState> {
         ),
       ));
     }
+  }
+
+  @override
+  Future<void> close() {
+    _notificationService.dispose();
+    //_notificationSubscription.cancel();
+    return super.close();
   }
 }
