@@ -115,11 +115,12 @@ class MessagesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChatsCubit, ChatsState>(
-      // buildWhen: (previous, current) {
-      //   return previous.chats.firstWhere((c) => c.id == ch.id) !=
-      //       current.chats.firstWhere((c) => c.id == ch.id);
-      // },
+      buildWhen: (previous, current) {
+        return previous.chats.firstWhere((c) => c.id == chatId) !=
+            current.chats.firstWhere((c) => c.id == chatId);
+      },
       builder: (context, state) {
+        print('DUPA BLADA');
         final currentUser = context.read<UserCubit>().state.user;
         final chat = state.chats.firstWhere((c) => c.id == chatId);
 

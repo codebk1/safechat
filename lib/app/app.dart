@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/notifications/bloc/notification_bloc.dart';
 
 import 'package:safechat/theme.dart';
 import 'package:safechat/router.dart';
@@ -17,12 +16,10 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   final _appRouter = AppRouter();
-  //final _notificationRepository = NotificationsRepository();
 
   @override
   void dispose() {
     _appRouter.dispose();
-    //_notificationRepository.dispose();
     super.dispose();
   }
 
@@ -48,11 +45,6 @@ class _AppState extends State<App> {
               context.read<UserRepository>(),
             )..authenticate(),
           ),
-          BlocProvider(
-            create: (context) => NotificationsBloc(
-              notificationService: context.read<NotificationService>(),
-            ),
-          )
         ],
         child: MaterialApp(
           debugShowCheckedModeBanner: false,

@@ -4,38 +4,19 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:safechat/common/models/notification.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // await Firebase.initializeApp();
+  //await Firebase.initializeApp();
 
-  // final token = await FirebaseMessaging.instance.getToken();
-  // print(token);
-
-  _streamController.add(message);
-
-  const androidPlatformChannelSpecifics = AndroidNotificationDetails(
-    'messages',
-    'Messages',
-    'New chat messages',
-    importance: Importance.max,
-    priority: Priority.high,
-    showWhen: true,
-    ledColor: Color.fromARGB(255, 255, 0, 0),
-    ledOnMs: 2000,
-    ledOffMs: 1000,
+  final notification = NotificationData(
+    id: message.data['chatId'],
+    title: 'Nowa wiadomość',
+    body: 'Kliknij aby zobaczyć zaszyfrowaną wiadomość.',
   );
 
-  await _flutterLocalNotificationsPlugin.show(
-    DateTime.now().millisecond,
-    'Nowa wiadomość',
-    'Kliknij aby zobaczyć zaszyfrowaną wiadomość.',
-    const NotificationDetails(android: androidPlatformChannelSpecifics),
-    payload: message.data['chatId'],
-  );
+  NotificationService().showNotification(notification);
 }
-
-final _streamController = StreamController<RemoteMessage>();
-final _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
 class NotificationService {
   static final _notificationService = NotificationService._internal();
@@ -46,6 +27,8 @@ class NotificationService {
 
   NotificationService._internal();
 
+  final _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  final _streamController = StreamController<RemoteMessage>();
   final _selectNotificationStreamController = StreamController<String>();
 
   Stream<RemoteMessage> get notification async* {
@@ -58,8 +41,7 @@ class NotificationService {
 
   Future<void> init() async {
     await Firebase.initializeApp();
-    final token = await FirebaseMessaging.instance.getToken();
-    print(token);
+    await FirebaseMessaging.instance.getToken();
 
     FirebaseMessaging.onMessage.listen((message) async {
       _streamController.add(message);
@@ -68,11 +50,6 @@ class NotificationService {
     FirebaseMessaging.onBackgroundMessage(
       _firebaseMessagingBackgroundHandler,
     );
-
-    // FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    //   print('DUPA');
-    //   _streamController.add(message);
-    // });
 
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('app_icon');
@@ -89,18 +66,22 @@ class NotificationService {
     });
   }
 
-  void showNotification(notification) async {
+  void showNotification(NotificationData notification) async {
     final androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'messages',
       'Messages',
       'New chat messages',
       importance: Importance.max,
       priority: Priority.high,
+      largeIcon: notification.image != null
+          ? FilePathAndroidBitmap(notification.image!.path)
+          : null,
       showWhen: true,
-      largeIcon: FilePathAndroidBitmap(notification.image.path),
-      ledColor: const Color.fromARGB(255, 255, 0, 0),
-      ledOnMs: 2000,
-      ledOffMs: 1000,
+      when: DateTime.now().millisecondsSinceEpoch - 120 * 1000,
+      enableLights: true,
+      ledColor: const Color.fromARGB(255, 0, 0, 255),
+      ledOnMs: 1000,
+      ledOffMs: 500,
     );
 
     await _flutterLocalNotificationsPlugin.show(
@@ -113,7 +94,6 @@ class NotificationService {
   }
 
   void dispose() {
-    //_foregroundStream.cancel();
     _streamController.close();
   }
 }

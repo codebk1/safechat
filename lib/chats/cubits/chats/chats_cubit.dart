@@ -15,7 +15,7 @@ import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/chats/models/new_chat.dart';
 import 'package:safechat/chats/repository/chats_repository.dart';
 import 'package:safechat/contacts/contacts.dart';
-import 'package:safechat/notifications/models/notification.dart';
+import 'package:safechat/common/models/notification.dart';
 import 'package:safechat/user/user.dart';
 import 'package:safechat/utils/notification_service.dart';
 import 'package:safechat/utils/utils.dart';
@@ -127,7 +127,7 @@ class ChatsCubit extends Cubit<ChatsState> {
         (p) => p.id == event.data['senderId'],
       );
 
-      final notification = Notification(
+      final notification = NotificationData(
         id: event.data['chatId'],
         title: '${sender.firstName} ${sender.lastName}',
         body: utf8.decode(

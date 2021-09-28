@@ -80,29 +80,24 @@ class AppRouter {
           ),
         );
       case '/chat':
-        final chat = routeSettings.arguments as Chat;
+        final args = routeSettings.arguments as ChatPageArguments;
         return PageRouteBuilder(
           pageBuilder: (context, __, ___) => MultiBlocProvider(
             providers: [
               BlocProvider(
-                create: (_) => ContactsCubit(
-                  contacts: List.of(chat.participants)
-                    ..removeWhere(
-                      (p) => p.id == context.read<UserCubit>().state.user.id,
-                    ),
-                ),
+                create: (_) => ContactsCubit(contacts: args.contacts),
               ),
               BlocProvider.value(
                 value: _chatsCubit
                   ..readAllMessages(
-                    chat,
+                    args.chat,
                     context.read<UserCubit>().state.user.id,
                   )
-                  ..openChat(chat.id),
+                  ..openChat(args.chat.id),
               ),
             ],
             child: ChatPage(
-              chatId: chat.id,
+              chatId: args.chat.id,
             ),
           ),
         );
@@ -148,8 +143,9 @@ class MediaPageArguments {
   final Attachment attachment;
 }
 
-// class ChatPageArguments {
-//   ChatPageArguments(this.chat);
+class ChatPageArguments {
+  ChatPageArguments(this.chat, this.contacts);
 
-//   final Chat chat;
-// }
+  final Chat chat;
+  final List<Contact> contacts;
+}

@@ -19,22 +19,18 @@ class HomePage extends StatelessWidget {
       listener: (context, state) {
         if (state.nextChat != null) {
           final currentUser = context.read<UserCubit>().state.user;
-          final nextChat = state.nextChat!;
-
-          // context.read<ChatsCubit>().readAllMessages(
-          //       nextChat,
-          //       currentUser.id,
-          //     );
-
-          // context.read<ChatsCubit>().openChat(
-          //       nextChat.id,
-          //     );
 
           context.read<ChatsCubit>().emit(state.copyWith(nextChat: null));
 
           Navigator.of(context).pushNamed(
             '/chat',
-            arguments: nextChat,
+            arguments: ChatPageArguments(
+              state.nextChat!,
+              List.of(state.nextChat!.participants)
+                ..removeWhere(
+                  (p) => p.id == currentUser.id,
+                ),
+            ),
           );
         }
       },

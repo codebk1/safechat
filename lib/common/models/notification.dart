@@ -1,15 +1,15 @@
 import 'dart:io';
 
-class Notification {
-  const Notification({
+class NotificationData {
+  const NotificationData({
     required this.id,
     required this.title,
     required this.body,
-    required this.image,
+    this.image,
   });
 
   final String id;
   final String title;
   final String body;
-  final File image;
+  final File? image;
 }

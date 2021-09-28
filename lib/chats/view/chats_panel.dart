@@ -108,125 +108,122 @@ class MainPanel extends StatelessWidget {
                                     create: (_) => ContactsCubit(
                                       contacts: contacts,
                                     ),
-                                    child: Builder(builder: (context) {
-                                      return ListTile(
-                                        onLongPress: () {
-                                          showModalBottomSheet(
-                                              context: context,
-                                              shape:
-                                                  const RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.vertical(
-                                                  top: Radius.circular(
-                                                    10.0,
+                                    child: BlocBuilder<ContactsCubit,
+                                        ContactsState>(
+                                      builder: (context, state) {
+                                        return ListTile(
+                                          onLongPress: () {
+                                            showModalBottomSheet(
+                                                context: context,
+                                                shape:
+                                                    const RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.vertical(
+                                                    top: Radius.circular(
+                                                      10.0,
+                                                    ),
                                                   ),
                                                 ),
+                                                builder: (BuildContext _) {
+                                                  return SizedBox(
+                                                    height:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .height *
+                                                            0.4,
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(15.0),
+                                                          child: Text(
+                                                            'Opcje czatu',
+                                                            style: Theme.of(
+                                                                    context)
+                                                                .textTheme
+                                                                .headline5,
+                                                          ),
+                                                        ),
+                                                        ListTile(
+                                                          onTap: () {},
+                                                          leading: const Icon(
+                                                            Icons.logout,
+                                                          ),
+                                                          title: const Text(
+                                                            'Opuść czat',
+                                                          ),
+                                                        ),
+                                                        ListTile(
+                                                          onTap: () {
+                                                            context
+                                                                .read<
+                                                                    ChatsCubit>()
+                                                                .deleteChat(
+                                                                    chat.id);
+
+                                                            Navigator.of(
+                                                                    context)
+                                                                .pop();
+                                                          },
+                                                          leading: const Icon(
+                                                            Icons.delete,
+                                                          ),
+                                                          title: const Text(
+                                                            'Usuń czat',
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                });
+                                          },
+                                          onTap: () {
+                                            Navigator.of(context).pushNamed(
+                                              '/chat',
+                                              arguments: ChatPageArguments(
+                                                chat,
+                                                state.contacts,
                                               ),
-                                              builder: (BuildContext _) {
-                                                return SizedBox(
-                                                  height: MediaQuery.of(context)
-                                                          .size
-                                                          .height *
-                                                      0.4,
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(15.0),
-                                                        child: Text(
-                                                          'Opcje czatu',
-                                                          style:
-                                                              Theme.of(context)
-                                                                  .textTheme
-                                                                  .headline5,
-                                                        ),
-                                                      ),
-                                                      ListTile(
-                                                        onTap: () {},
-                                                        leading: const Icon(
-                                                          Icons.logout,
-                                                        ),
-                                                        title: const Text(
-                                                          'Opuść czat',
-                                                        ),
-                                                      ),
-                                                      ListTile(
-                                                        onTap: () {
-                                                          context
-                                                              .read<
-                                                                  ChatsCubit>()
-                                                              .deleteChat(
-                                                                  chat.id);
-
-                                                          Navigator.of(context)
-                                                              .pop();
-                                                        },
-                                                        leading: const Icon(
-                                                          Icons.delete,
-                                                        ),
-                                                        title: const Text(
-                                                          'Usuń czat',
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                );
-                                              });
-                                        },
-                                        onTap: () {
-                                          // context
-                                          //     .read<ChatsCubit>()
-                                          //     .readAllMessages(
-                                          //       chat,
-                                          //       currentUser.id,
-                                          //     );
-
-                                          // context.read<ChatsCubit>().openChat(
-                                          //       chat.id,
-                                          //     );
-
-                                          Navigator.of(context).pushNamed(
-                                            '/chat',
-                                            arguments: chat,
-                                          );
-                                        },
-                                        leading: const ChatAvatar(),
-                                        title: Text(
-                                          contacts.length > 1
-                                              ? contacts
-                                                  .map((e) => e.firstName)
-                                                  .join(', ')
-                                              : '${contacts.first.firstName} ${contacts.first.lastName}',
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontWeight: isUnreadMsg
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
+                                            );
+                                          },
+                                          leading: const ChatAvatar(),
+                                          title: Text(
+                                            contacts.length > 1
+                                                ? contacts
+                                                    .map((e) => e.firstName)
+                                                    .join(', ')
+                                                : '${contacts.first.firstName} ${contacts.first.lastName}',
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontWeight: isUnreadMsg
+                                                  ? FontWeight.bold
+                                                  : FontWeight.normal,
+                                            ),
                                           ),
-                                        ),
-                                        subtitle: Text(
-                                          chat.messages.isNotEmpty
-                                              ? chat.messages.first.content
-                                                          .first.type ==
-                                                      MessageType.text
-                                                  ? chat.messages.first.content
-                                                      .first.data
-                                                  : '${contacts.first.firstName} wysłał załącznik(-i).'
-                                              : 'Wyślij pierwszą wiadomość',
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 1,
-                                          style: TextStyle(
-                                            fontWeight: isUnreadMsg
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
+                                          subtitle: Text(
+                                            chat.messages.isNotEmpty
+                                                ? chat.messages.first.content
+                                                            .first.type ==
+                                                        MessageType.text
+                                                    ? chat.messages.first
+                                                        .content.first.data
+                                                    : '${contacts.first.firstName} wysłał załącznik(-i).'
+                                                : 'Wyślij pierwszą wiadomość',
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                            style: TextStyle(
+                                              fontWeight: isUnreadMsg
+                                                  ? FontWeight.bold
+                                                  : FontWeight.normal,
+                                            ),
                                           ),
-                                        ),
-                                      );
-                                    }),
+                                        );
+                                      },
+                                    ),
                                   );
                                 },
                               ),

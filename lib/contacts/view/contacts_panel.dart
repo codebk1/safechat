@@ -243,7 +243,10 @@ class _ContactActions extends StatelessWidget {
             if (chat != null) {
               Navigator.of(context).pushNamed(
                 '/chat',
-                arguments: chat,
+                arguments: ChatPageArguments(
+                  chat,
+                  [contact],
+                ),
               );
             }
           },
