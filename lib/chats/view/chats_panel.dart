@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:safechat/chats/models/chat.dart';
 import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/contacts/contacts.dart';
 
@@ -148,15 +149,17 @@ class MainPanel extends StatelessWidget {
                                                                 .headline5,
                                                           ),
                                                         ),
-                                                        ListTile(
-                                                          onTap: () {},
-                                                          leading: const Icon(
-                                                            Icons.logout,
+                                                        if (chat.type ==
+                                                            ChatType.group)
+                                                          ListTile(
+                                                            onTap: () {},
+                                                            leading: const Icon(
+                                                              Icons.logout,
+                                                            ),
+                                                            title: const Text(
+                                                              'Opuść grupe',
+                                                            ),
                                                           ),
-                                                          title: const Text(
-                                                            'Opuść czat',
-                                                          ),
-                                                        ),
                                                         ListTile(
                                                           onTap: () {
                                                             context

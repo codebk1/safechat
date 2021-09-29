@@ -12,7 +12,7 @@ class NewChat extends Equatable {
   final FormStatus status;
 
   @override
-  List<Object> get props => [selectedParticipants];
+  List<Object> get props => [selectedParticipants, status];
 
   NewChat copyWith({
     List<Contact>? selectedParticipants,

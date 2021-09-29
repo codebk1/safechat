@@ -181,11 +181,14 @@ class _ContactActions extends StatelessWidget {
 
   Widget _actionWidget(BuildContext context) {
     if (contact.working) {
-      return Transform.scale(
-        scale: 0.5,
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          color: Colors.grey.shade800,
+      return Padding(
+        padding: const EdgeInsets.only(right: 7.0),
+        child: Transform.scale(
+          scale: 0.5,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: Colors.grey.shade800,
+          ),
         ),
       );
     }
@@ -230,15 +233,33 @@ class _ContactActions extends StatelessWidget {
       case CurrentState.accepted:
         return IconButton(
           onPressed: () async {
-            context.read<ContactsCubit>().startLoading(contact.id);
+            Chat? chat;
 
-            final chat = await context.read<ChatsCubit>().createChat(
-              ChatType.direct,
-              context.read<UserCubit>().state.user,
-              [contact],
-            );
+            var newParticipants = [
+              contact.id,
+              context.read<UserCubit>().state.user.id,
+            ];
 
-            context.read<ContactsCubit>().stopLoading(contact.id);
+            var checkChats = context.read<ChatsCubit>().state.chats.where(
+                (dynamic c) =>
+                    c.participants
+                        .every((p) => newParticipants.contains(p.id)) &&
+                    c.participants.length == newParticipants.length &&
+                    c.type == ChatType.direct);
+
+            if (checkChats.isNotEmpty) {
+              chat = checkChats.first;
+            } else {
+              context.read<ContactsCubit>().startLoading(contact.id);
+
+              chat = await context.read<ChatsCubit>().createChat(
+                ChatType.direct,
+                context.read<UserCubit>().state.user,
+                [contact],
+              );
+
+              context.read<ContactsCubit>().stopLoading(contact.id);
+            }
 
             if (chat != null) {
               Navigator.of(context).pushNamed(

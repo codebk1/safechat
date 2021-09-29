@@ -182,13 +182,25 @@ class ChatsCubit extends Cubit<ChatsState> {
     List<Contact> participants,
   ) async {
     try {
+      emit(state.copyWith(
+        newChat: state.newChat.copyWith(
+          status: const FormStatus.loading(),
+        ),
+      ));
+
       final chat = await _chatsRepository.createChat(
         type,
         creator,
         participants,
       );
 
-      emit(state.copyWith(chats: [...state.chats, chat]));
+      emit(state.copyWith(
+        chats: [...state.chats, chat],
+        newChat: state.newChat.copyWith(
+          selectedParticipants: [],
+          status: const FormStatus.success(),
+        ),
+      ));
 
       return chat;
     } on DioError catch (e) {
@@ -456,6 +468,7 @@ class ChatsCubit extends Cubit<ChatsState> {
         newChat: state.newChat.copyWith(
           selectedParticipants: List.of(state.newChat.selectedParticipants)
             ..removeWhere((e) => e == participant),
+          status: const FormStatus.init(),
         ),
       ));
     } else {
@@ -463,6 +476,7 @@ class ChatsCubit extends Cubit<ChatsState> {
         newChat: state.newChat.copyWith(
           selectedParticipants: List.of(state.newChat.selectedParticipants)
             ..add(participant),
+          status: const FormStatus.init(),
         ),
       ));
     }
