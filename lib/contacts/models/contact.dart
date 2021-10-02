@@ -14,6 +14,7 @@ class Contact extends Equatable {
     required this.lastName,
     this.avatar,
     this.status = Status.offline,
+    this.lastSeen,
     this.currentState = CurrentState.inviting,
     this.sharedKey,
     this.working = false,
@@ -25,6 +26,7 @@ class Contact extends Equatable {
   final String lastName;
   final dynamic avatar;
   final Status status;
+  final DateTime? lastSeen;
   final CurrentState currentState;
   final Uint8List? sharedKey;
   final bool working;
@@ -36,6 +38,7 @@ class Contact extends Equatable {
         lastName,
         avatar,
         status,
+        lastSeen,
         currentState,
         working,
       ];
@@ -47,6 +50,7 @@ class Contact extends Equatable {
     String? lastName,
     dynamic avatar,
     Status? status,
+    DateTime? lastSeen,
     CurrentState? currentState,
     Uint8List? sharedKey,
     bool? working,
@@ -58,6 +62,7 @@ class Contact extends Equatable {
       lastName: lastName ?? this.lastName,
       avatar: avatar ?? this.avatar,
       status: status ?? this.status,
+      lastSeen: lastSeen ?? this.lastSeen,
       currentState: currentState ?? this.currentState,
       sharedKey: sharedKey ?? this.sharedKey,
       working: working ?? this.working,
@@ -71,6 +76,8 @@ class Contact extends Equatable {
         lastName = json['profile']['lastName']!,
         avatar = json['profile']['avatar'],
         status = json['online']! == 1 ? Status.online : Status.offline,
+        lastSeen =
+            json['lastSeen'] == null ? null : DateTime.parse(json['lastSeen']),
         currentState = CurrentState.values.firstWhere((e) =>
             e.toString().split('.').last == (json['state'] ?? 'accepted')),
         sharedKey = json['sharedKey'],

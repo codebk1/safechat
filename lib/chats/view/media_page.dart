@@ -198,7 +198,7 @@ class _VideoMessageThumbnailState extends State<Video> {
                 Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: Text(
-                    '${formatDuration(_controller.value.position)} / ${formatDuration(_controller.value.duration)}',
+                    '${_formatDuration(_controller.value.position)} / ${_formatDuration(_controller.value.duration)}',
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.6),
                     ),
@@ -214,7 +214,7 @@ class _VideoMessageThumbnailState extends State<Video> {
 }
 
 // chewie: https://github.com/brianegan/chewie/blob/master/lib/src/helpers/utils.dart
-String formatDuration(Duration position) {
+String _formatDuration(Duration position) {
   final ms = position.inMilliseconds;
 
   int seconds = ms ~/ 1000;

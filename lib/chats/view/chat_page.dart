@@ -41,7 +41,19 @@ class ChatPage extends StatelessWidget {
         appBar: AppBar(
           actions: [
             IconButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.of(context).pushNamed(
+                  '/chat/info',
+                  arguments: ChatPageArguments(
+                    context
+                        .read<ChatsCubit>()
+                        .state
+                        .chats
+                        .firstWhere((c) => c.id == chatId),
+                    context.read<ContactsCubit>().state.contacts,
+                  ),
+                );
+              },
               icon: const Icon(Icons.info),
             ),
           ],
@@ -67,15 +79,29 @@ class ChatPage extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        state.contacts.length > 2
-                            ? state.contacts.map((e) => e.firstName).join(', ')
-                            : '${state.contacts.first.firstName} ${state.contacts.first.lastName}',
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.headline6,
+                      BlocBuilder<ChatsCubit, ChatsState>(
+                        builder: (context, chatsState) {
+                          final chat = chatsState.chats.firstWhere(
+                            (c) => c.id == chatId,
+                          );
+
+                          return Text(
+                            chat.name != null
+                                ? chat.name!
+                                : state.contacts.length > 2
+                                    ? state.contacts
+                                        .map((e) => e.firstName)
+                                        .join(', ')
+                                    : '${state.contacts.first.firstName} ${state.contacts.first.lastName}',
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.headline6,
+                          );
+                        },
                       ),
                       Text(
-                        'Ostatnia aktywność 5min temu',
+                        state.contacts.first.status == Status.online
+                            ? 'Aktywny(a) teraz'
+                            : 'Aktywny(a) ${_formatLastSeen(state.contacts.first.lastSeen!)} temu',
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context)
                             .textTheme
@@ -757,5 +783,23 @@ class FilesMessage extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+String _formatLastSeen(DateTime date) {
+  final difference = DateTime.now().difference(date);
+
+  if (difference.inDays > 0) {
+    var diff = difference.inDays;
+
+    return diff == 1 ? '$diff dzień' : '$diff dni';
+  } else if (difference.inHours > 0) {
+    var diff = difference.inHours;
+    return diff == 1 ? '$diff godzinę' : '$diff godzin';
+  } else if (difference.inMinutes > 0) {
+    var diff = difference.inMinutes;
+    return diff == 1 ? '$diff minutę' : '$diff minut';
+  } else {
+    return 'przed chwilą';
   }
 }

@@ -23,9 +23,18 @@ class ChatsRepository {
     List<Chat> chats = [];
 
     for (var i = 0; i < chatsData.length; i++) {
+      String? decryptedName;
+
       final decryptedChatSharedKey = _encryptionService.rsaDecrypt(
         chatsData[i]['sharedKey'],
       );
+
+      if (chatsData[i]['name'] != null) {
+        decryptedName = utf8.decode(_encryptionService.chachaDecrypt(
+          chatsData[i]['name'],
+          decryptedChatSharedKey,
+        ));
+      }
 
       final chatParticipants =
           await _contactsRepository.getDecryptedContactsList(
@@ -59,6 +68,7 @@ class ChatsRepository {
         type: ChatType.values.firstWhere(
           (e) => describeEnum(e) == chatsData[i]['type'],
         ),
+        name: decryptedName,
         participants: chatParticipants,
         messages: chatMessages.reversed.toList(),
       );
@@ -228,6 +238,20 @@ class ChatsRepository {
   Future<void> readAllMessages(String chatId) async {
     await _apiService.post('/chat/messages/readall', data: {
       'chatId': chatId,
+    });
+  }
+
+  Future<void> updateChatName(Chat chat, String name) async {
+    final encryptedName = _encryptionService.chachaEncrypt(
+      Uint8List.fromList(utf8.encode(name.trim())),
+      chat.sharedKey,
+    );
+
+    await _apiService.patch('/chat', data: {
+      'id': chat.id,
+      'chat': {
+        'name': base64.encode(encryptedName),
+      }
     });
   }
 

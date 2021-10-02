@@ -12,6 +12,7 @@ import 'package:image/image.dart';
 import 'package:safechat/chats/models/attachment.dart';
 import 'package:safechat/chats/models/chat.dart';
 import 'package:safechat/chats/models/message.dart';
+import 'package:safechat/chats/models/name.dart';
 import 'package:safechat/chats/models/new_chat.dart';
 import 'package:safechat/chats/repository/chats_repository.dart';
 import 'package:safechat/contacts/contacts.dart';
@@ -480,6 +481,36 @@ class ChatsCubit extends Cubit<ChatsState> {
         ),
       ));
     }
+  }
+
+  Future<void> editChatNameSubmit(String chatId) async {
+    try {
+      emit(state.copyWith(status: const FormStatus.loading()));
+
+      await _chatsRepository.updateChatName(
+        state.chats.firstWhere((chat) => chat.id == chatId),
+        state.name.value,
+      );
+
+      emit(state.copyWith(
+          chats: List.of(state.chats)
+              .map((chat) => chat.id == chatId
+                  ? chat.copyWith(name: state.name.value)
+                  : chat)
+              .toList(),
+          status: const FormStatus.success()));
+    } on DioError catch (e) {
+      emit(state.copyWith(
+        status: FormStatus.failure(e.response!.data['message']),
+      ));
+    }
+  }
+
+  void nameChanged(String value) {
+    emit(state.copyWith(
+      name: Name(value),
+      status: const FormStatus.init(),
+    ));
   }
 
   @override

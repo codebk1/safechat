@@ -30,6 +30,7 @@ class MainPanel extends StatelessWidget {
           Navigator.of(context).pushNamed('/chats/create');
         },
         child: const Icon(Icons.add_comment),
+        backgroundColor: Colors.blue.shade800,
         elevation: 0,
         focusElevation: 0,
       ),
@@ -195,11 +196,13 @@ class MainPanel extends StatelessWidget {
                                           },
                                           leading: const ChatAvatar(),
                                           title: Text(
-                                            contacts.length > 1
-                                                ? contacts
-                                                    .map((e) => e.firstName)
-                                                    .join(', ')
-                                                : '${contacts.first.firstName} ${contacts.first.lastName}',
+                                            chat.name != null
+                                                ? chat.name!
+                                                : contacts.length > 1
+                                                    ? contacts
+                                                        .map((e) => e.firstName)
+                                                        .join(', ')
+                                                    : '${contacts.first.firstName} ${contacts.first.lastName}',
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
                                               fontWeight: isUnreadMsg

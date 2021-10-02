@@ -23,6 +23,9 @@ class ContactsCubit extends Cubit<ContactsState> {
 
           newContacts[index] = state.contacts[index].copyWith(
             status: data['status'] == 'online' ? Status.online : Status.offline,
+            lastSeen: data['date'] != null
+                ? DateTime.parse(data['date'])
+                : state.contacts[index].lastSeen,
           );
 
           emit(state.copyWith(contacts: newContacts));

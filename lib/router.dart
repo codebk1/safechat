@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
 import 'package:safechat/chats/view/chat_page.dart';
 import 'package:safechat/chats/view/create_chat_page.dart';
+import 'package:safechat/chats/view/edit_chat_name_page.dart';
 import 'package:safechat/chats/view/media_page.dart';
 import 'package:safechat/profile/cubit/profile_cubit.dart';
 import 'package:safechat/profile/view/edit_profile_page.dart';
@@ -19,6 +20,7 @@ import 'package:safechat/home/home.dart';
 import 'chats/cubits/attachments/attachments_cubit.dart';
 import 'chats/models/attachment.dart';
 import 'chats/models/chat.dart';
+import 'chats/view/chat_info_page.dart';
 
 class AppRouter {
   final _contactsCubit = ContactsCubit();
@@ -99,6 +101,29 @@ class AppRouter {
             child: ChatPage(
               chatId: args.chat.id,
             ),
+          ),
+        );
+      case '/chat/info':
+        final args = routeSettings.arguments as ChatPageArguments;
+        return PageRouteBuilder(
+          pageBuilder: (context, __, ___) => MultiBlocProvider(
+            providers: [
+              BlocProvider(
+                create: (_) => ContactsCubit(contacts: args.contacts),
+              ),
+              BlocProvider.value(value: _chatsCubit),
+            ],
+            child: ChatInfoPage(chatId: args.chat.id),
+          ),
+        );
+      case '/chat/edit/name':
+        final chatId = routeSettings.arguments as String;
+        return PageRouteBuilder(
+          pageBuilder: (context, __, ___) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: _chatsCubit),
+            ],
+            child: EditChatNamePage(chatId: chatId),
           ),
         );
       case '/chats/create':
