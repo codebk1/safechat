@@ -6,6 +6,7 @@ import 'package:safechat/chats/models/chat.dart';
 
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/contacts/cubit/cubits.dart';
+import 'package:safechat/contacts/view/widgets/status_indicator.dart';
 import 'package:safechat/router.dart';
 import 'package:safechat/user/cubit/user_cubit.dart';
 
@@ -126,20 +127,10 @@ class ContactsPanel extends StatelessWidget {
                                                   Positioned(
                                                     right: 0,
                                                     bottom: 0,
-                                                    child: Container(
-                                                      height: 14,
-                                                      width: 14,
-                                                      decoration: BoxDecoration(
-                                                        color: contact.status ==
-                                                                Status.online
-                                                            ? Colors.green
-                                                            : Colors.grey,
-                                                        shape: BoxShape.circle,
-                                                        border: Border.all(
-                                                          width: 2,
-                                                          color: Colors.white,
-                                                        ),
-                                                      ),
+                                                    child: StatusIndicator(
+                                                      isOnline:
+                                                          contact.isOnline,
+                                                      status: contact.status,
                                                     ),
                                                   ),
                                               ],

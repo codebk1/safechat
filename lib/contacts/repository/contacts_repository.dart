@@ -48,6 +48,8 @@ class ContactsRepository {
       email: res.data['email'],
       firstName: '',
       lastName: '',
+      isOnline: false,
+      status: Status.visible,
       currentState: CurrentState.pending,
     );
   }
@@ -103,6 +105,8 @@ class ContactsRepository {
             ? _encryptionService.rsaDecrypt(contactsData[i]['sharedKey'])
             : null;
       }
+
+      print(contactsData[i]);
 
       var contact = Contact.fromJson(contactsData[i]);
 

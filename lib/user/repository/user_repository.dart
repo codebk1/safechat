@@ -3,7 +3,9 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/user/models/user.dart';
 import 'package:safechat/utils/utils.dart';
 
@@ -106,6 +108,14 @@ class UserRepository {
       'profile': {
         'firstName': base64.encode(encryptedFirstName),
         'lastName': base64.encode(encryptedLastName),
+      }
+    });
+  }
+
+  Future<void> updateStatus(Status status) async {
+    await _apiService.patch('/user', data: {
+      'profile': {
+        'status': describeEnum(status),
       }
     });
   }

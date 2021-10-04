@@ -3,7 +3,9 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/utils/socket_service.dart';
 
 import 'package:socket_io_client/socket_io_client.dart';
@@ -108,6 +110,19 @@ class UserCubit extends Cubit<UserState> {
     await _userRepository.updateAvatar(state.user.id, avatar);
 
     emit(state.copyWith(user: state.user.copyWith(avatar: avatarName)));
+  }
+
+  updateStatus(Status status) async {
+    emit(state.copyWith(
+      user: state.user.copyWith(status: status),
+    ));
+
+    _wsService.socket.emit(
+      'status',
+      describeEnum(status),
+    );
+
+    await _userRepository.updateStatus(status);
   }
 
   removeAvatar() async {

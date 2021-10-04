@@ -14,6 +14,7 @@ import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/chats/view/chats_panel.dart';
 import 'package:safechat/chats/view/widgets/message_text_field.dart';
 import 'package:safechat/contacts/contacts.dart';
+import 'package:safechat/contacts/view/widgets/status_indicator.dart';
 import 'package:safechat/router.dart';
 import 'package:safechat/user/user.dart';
 
@@ -99,7 +100,7 @@ class ChatPage extends StatelessWidget {
                         },
                       ),
                       Text(
-                        state.contacts.first.status == Status.online
+                        state.contacts.first.isOnline
                             ? 'Aktywny(a) teraz'
                             : 'Aktywny(a) ${_formatLastSeen(state.contacts.first.lastSeen!)} temu',
                         overflow: TextOverflow.ellipsis,
@@ -351,19 +352,10 @@ class MessageBubble extends StatelessWidget {
                                   Positioned(
                                     right: 0,
                                     bottom: 0,
-                                    child: Container(
-                                      height: 12,
-                                      width: 12,
-                                      decoration: BoxDecoration(
-                                        color: contact.status == Status.online
-                                            ? Colors.green
-                                            : Colors.grey,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          width: 2,
-                                          color: Colors.white,
-                                        ),
-                                      ),
+                                    child: StatusIndicator(
+                                      isOnline: contact.isOnline,
+                                      status: contact.status,
+                                      size: 10,
                                     ),
                                   ),
                                 ],

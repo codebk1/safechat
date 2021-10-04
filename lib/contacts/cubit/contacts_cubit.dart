@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:safechat/user/user.dart';
 import 'package:safechat/common/common.dart';
@@ -12,6 +13,28 @@ part 'contacts_state.dart';
 class ContactsCubit extends Cubit<ContactsState> {
   ContactsCubit({List<Contact> contacts = const []})
       : super(ContactsState(contacts: contacts)) {
+    _wsService.socket.on('activity', (data) {
+      print(data);
+      print('ONLINE/OFFLINE');
+
+      if (state.contacts.isNotEmpty) {
+        final index = state.contacts.indexWhere((c) => c.id == data['id']);
+
+        if (index != -1) {
+          final newContacts = List.of(state.contacts);
+
+          newContacts[index] = state.contacts[index].copyWith(
+            isOnline: data['isOnline']!,
+            lastSeen: data['lastSeen'] != null
+                ? DateTime.parse(data['lastSeen'])
+                : state.contacts[index].lastSeen,
+          );
+
+          emit(state.copyWith(contacts: newContacts));
+        }
+      }
+    });
+
     _wsService.socket.on('status', (data) {
       print('STATUS');
 
@@ -22,10 +45,9 @@ class ContactsCubit extends Cubit<ContactsState> {
           final newContacts = List.of(state.contacts);
 
           newContacts[index] = state.contacts[index].copyWith(
-            status: data['status'] == 'online' ? Status.online : Status.offline,
-            lastSeen: data['date'] != null
-                ? DateTime.parse(data['date'])
-                : state.contacts[index].lastSeen,
+            status: Status.values.firstWhere(
+              (e) => describeEnum(e) == data['status']!,
+            ),
           );
 
           emit(state.copyWith(contacts: newContacts));

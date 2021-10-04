@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/chats/models/chat.dart';
 import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/contacts/contacts.dart';
+import 'package:safechat/contacts/view/widgets/status_indicator.dart';
 
 import 'package:safechat/home/view/panels/side_panels.dart';
 import 'package:safechat/router.dart';
@@ -324,21 +325,11 @@ class ChatAvatar extends StatelessWidget {
             Positioned(
               right: 0,
               bottom: 0,
-              child: Container(
-                height: 14,
-                width: 14,
-                decoration: BoxDecoration(
-                  color: state.contacts.any(
-                    (contact) => contact.status == Status.online,
-                  )
-                      ? Colors.green
-                      : Colors.grey,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    width: 2,
-                    color: Colors.white,
-                  ),
+              child: StatusIndicator(
+                isOnline: state.contacts.any(
+                  (contact) => contact.isOnline,
                 ),
+                status: state.contacts.first.status,
               ),
             ),
           ],

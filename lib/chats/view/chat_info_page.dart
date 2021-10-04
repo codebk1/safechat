@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/contacts/contacts.dart';
+import 'package:safechat/contacts/view/widgets/status_indicator.dart';
 
 class ChatInfoPage extends StatelessWidget {
   const ChatInfoPage({Key? key, required this.chatId}) : super(key: key);
@@ -92,19 +93,9 @@ class ChatInfoPage extends StatelessWidget {
                                     Positioned(
                                       right: 0,
                                       bottom: 0,
-                                      child: Container(
-                                        height: 14,
-                                        width: 14,
-                                        decoration: BoxDecoration(
-                                          color: contact.status == Status.online
-                                              ? Colors.green
-                                              : Colors.grey,
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            width: 2,
-                                            color: Colors.white,
-                                          ),
-                                        ),
+                                      child: StatusIndicator(
+                                        isOnline: contact.isOnline,
+                                        status: contact.status,
                                       ),
                                     ),
                                 ],

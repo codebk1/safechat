@@ -1,8 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
-enum Status { online, offline }
+enum Status { visible, idle, busy, invisible }
 enum CurrentState { inviting, pending, accepted, rejected, deleting }
 // INVITING
 
@@ -13,7 +14,8 @@ class Contact extends Equatable {
     required this.firstName,
     required this.lastName,
     this.avatar,
-    this.status = Status.offline,
+    required this.status,
+    required this.isOnline,
     this.lastSeen,
     this.currentState = CurrentState.inviting,
     this.sharedKey,
@@ -26,6 +28,7 @@ class Contact extends Equatable {
   final String lastName;
   final dynamic avatar;
   final Status status;
+  final bool isOnline;
   final DateTime? lastSeen;
   final CurrentState currentState;
   final Uint8List? sharedKey;
@@ -38,6 +41,7 @@ class Contact extends Equatable {
         lastName,
         avatar,
         status,
+        isOnline,
         lastSeen,
         currentState,
         working,
@@ -50,6 +54,7 @@ class Contact extends Equatable {
     String? lastName,
     dynamic avatar,
     Status? status,
+    bool? isOnline,
     DateTime? lastSeen,
     CurrentState? currentState,
     Uint8List? sharedKey,
@@ -62,6 +67,7 @@ class Contact extends Equatable {
       lastName: lastName ?? this.lastName,
       avatar: avatar ?? this.avatar,
       status: status ?? this.status,
+      isOnline: isOnline ?? this.isOnline,
       lastSeen: lastSeen ?? this.lastSeen,
       currentState: currentState ?? this.currentState,
       sharedKey: sharedKey ?? this.sharedKey,
@@ -75,11 +81,14 @@ class Contact extends Equatable {
         firstName = json['profile']['firstName']!,
         lastName = json['profile']['lastName']!,
         avatar = json['profile']['avatar'],
-        status = json['online']! == 1 ? Status.online : Status.offline,
-        lastSeen =
-            json['lastSeen'] == null ? null : DateTime.parse(json['lastSeen']),
-        currentState = CurrentState.values.firstWhere((e) =>
-            e.toString().split('.').last == (json['state'] ?? 'accepted')),
+        status = Status.values.firstWhere(
+          (e) => describeEnum(e) == json['profile']['status']!,
+        ),
+        isOnline = json['isOnline']!,
+        lastSeen = DateTime.parse(json['lastSeen']!),
+        //json['lastSeen'] == null ? null : DateTime.parse(json['lastSeen']),
+        currentState = CurrentState.values.firstWhere(
+            (e) => describeEnum(e) == (json['state'] ?? 'accepted')),
         sharedKey = json['sharedKey'],
         working = false;
 }

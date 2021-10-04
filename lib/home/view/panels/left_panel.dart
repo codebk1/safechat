@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:safechat/contacts/contacts.dart';
+import 'package:safechat/contacts/view/widgets/status_indicator.dart';
 import 'package:safechat/user/user.dart';
 
 class LeftPanel extends StatelessWidget {
@@ -51,17 +53,9 @@ class LeftPanel extends StatelessWidget {
                               Positioned(
                                 right: 0,
                                 bottom: 0,
-                                child: Container(
-                                  height: 14,
-                                  width: 14,
-                                  decoration: BoxDecoration(
-                                    color: Colors.green,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      width: 2,
-                                      color: Colors.white,
-                                    ),
-                                  ),
+                                child: StatusIndicator(
+                                  isOnline: true,
+                                  status: state.status,
                                 ),
                               ),
                             ],
@@ -92,7 +86,35 @@ class LeftPanel extends StatelessWidget {
                       style: TextStyle(fontSize: 16),
                     ),
                     leading: const Icon(Icons.online_prediction_sharp),
-                    onTap: () {},
+                    onTap: () {
+                      showModalBottomSheet(
+                          context: context,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(
+                                10.0,
+                              ),
+                            ),
+                          ),
+                          builder: (BuildContext _) {
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(15.0),
+                                  child: Text(
+                                    'Ustaw status',
+                                    style:
+                                        Theme.of(context).textTheme.headline5,
+                                  ),
+                                ),
+                                for (Status value in Status.values)
+                                  StatusListTile(status: value),
+                              ],
+                            );
+                          });
+                    },
                   ),
                   ListTile(
                     title: const Text(
@@ -137,6 +159,57 @@ class LeftPanel extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class StatusListTile extends StatelessWidget {
+  const StatusListTile({
+    Key? key,
+    required this.status,
+  }) : super(key: key);
+
+  final Status status;
+
+  String _getTitleText() {
+    switch (status) {
+      case Status.visible:
+        return 'Dostępny';
+      case Status.idle:
+        return 'Zaraz wracam';
+      case Status.busy:
+        return 'Nie przeszkadzać';
+      case Status.invisible:
+        return 'Niewidoczny';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<UserCubit, UserState>(
+      builder: (context, state) {
+        return ListTile(
+          onTap: () {
+            context.read<UserCubit>().updateStatus(status);
+            Navigator.of(context).pop();
+          },
+          leading: CircleAvatar(
+            backgroundColor: Colors.transparent,
+            child: StatusIndicator(
+              isOnline: true,
+              status: status,
+            ),
+          ),
+          title: Text(
+            _getTitleText(),
+          ),
+          trailing: state.user.status == status
+              ? const Icon(
+                  Icons.check,
+                )
+              : null,
+        );
+      },
     );
   }
 }

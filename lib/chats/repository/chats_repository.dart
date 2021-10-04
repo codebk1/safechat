@@ -137,6 +137,8 @@ class ChatsRepository {
       firstName: creator.firstName,
       lastName: creator.lastName,
       avatar: creator.avatar,
+      status: creator.status,
+      isOnline: true,
     );
 
     return Chat(
