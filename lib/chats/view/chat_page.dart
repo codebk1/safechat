@@ -71,22 +71,25 @@ class ChatPage extends StatelessWidget {
               //         chat.participants.map((p) => p.id).contains(contact.id))
               //     .toList();
 
-              return Row(
-                children: [
-                  const ChatAvatar(),
-                  const SizedBox(
-                    width: 15.0,
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      BlocBuilder<ChatsCubit, ChatsState>(
-                        builder: (context, chatsState) {
-                          final chat = chatsState.chats.firstWhere(
+              return BlocBuilder<ChatsCubit, ChatsState>(
+                builder: (context, chatsState) {
+                  final chat =
+                      context.read<ChatsCubit>().state.chats.firstWhere(
                             (c) => c.id == chatId,
                           );
 
-                          return Text(
+                  return Row(
+                    children: [
+                      ChatAvatar(
+                        avatar: chat.avatar,
+                      ),
+                      const SizedBox(
+                        width: 15.0,
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
                             chat.name != null
                                 ? chat.name!
                                 : state.contacts.length > 2
@@ -96,22 +99,22 @@ class ChatPage extends StatelessWidget {
                                     : '${state.contacts.first.firstName} ${state.contacts.first.lastName}',
                             overflow: TextOverflow.ellipsis,
                             style: Theme.of(context).textTheme.headline6,
-                          );
-                        },
-                      ),
-                      Text(
-                        state.contacts.first.isOnline
-                            ? 'Aktywny(a) teraz'
-                            : 'Aktywny(a) ${_formatLastSeen(state.contacts.first.lastSeen!)} temu',
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context)
-                            .textTheme
-                            .subtitle2!
-                            .copyWith(fontSize: 12),
+                          ),
+                          Text(
+                            state.contacts.first.isOnline
+                                ? 'Aktywny(a) teraz'
+                                : 'Aktywny(a) ${_formatLastSeen(state.contacts.first.lastSeen!)} temu',
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .subtitle2!
+                                .copyWith(fontSize: 12),
+                          ),
+                        ],
                       ),
                     ],
-                  ),
-                ],
+                  );
+                },
               );
             },
           ),

@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:safechat/chats/models/chat.dart';
 import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/contacts/contacts.dart';
@@ -14,6 +16,8 @@ import 'package:safechat/utils/utils.dart';
 class ChatsRepository {
   final _apiService = ApiService().init();
   final _encryptionService = EncryptionService();
+  final _cacheManager = DefaultCacheManager();
+
   final _contactsRepository = ContactsRepository();
 
   Future<List<Chat>> getChats() async {
@@ -23,55 +27,72 @@ class ChatsRepository {
     List<Chat> chats = [];
 
     for (var i = 0; i < chatsData.length; i++) {
-      String? decryptedName;
-
-      final decryptedChatSharedKey = _encryptionService.rsaDecrypt(
+      chatsData[i]['sharedKey'] = _encryptionService.rsaDecrypt(
         chatsData[i]['sharedKey'],
       );
 
-      if (chatsData[i]['name'] != null) {
-        decryptedName = utf8.decode(_encryptionService.chachaDecrypt(
-          chatsData[i]['name'],
-          decryptedChatSharedKey,
-        ));
-      }
-
-      final chatParticipants =
+      chatsData[i]['participants'] =
           await _contactsRepository.getDecryptedContactsList(
-        chatsData[i]['participants'] as List,
-        decryptedChatSharedKey,
+        chatsData[i]['participants'],
+        chatsData[i]['sharedKey'],
       );
 
-      List<Message> chatMessages = [];
+      var chat = Chat.fromJson(chatsData[i]);
 
-      for (var j = 0; j < chatsData[i]['messages'].length; j++) {
-        // DODAC ID DO WIADOMOSCI
-        final msg = Message.fromJson(chatsData[i]['messages'][j]);
-
-        chatMessages.add(msg.copyWith(
-            content: msg.content.map((item) {
-          if (item.type == MessageType.text) {
-            return item.copyWith(
-                data: utf8.decode(_encryptionService.chachaDecrypt(
-              item.data,
-              decryptedChatSharedKey,
-            )));
-          }
-
-          return item;
-        }).toList()));
+      if (chat.name != null) {
+        chat = chat.copyWith(
+          name: utf8.decode(_encryptionService.chachaDecrypt(
+            chat.name!,
+            chat.sharedKey,
+          )),
+        );
       }
 
-      final chat = Chat(
-        id: chatsData[i]['id'],
-        sharedKey: decryptedChatSharedKey,
-        type: ChatType.values.firstWhere(
-          (e) => describeEnum(e) == chatsData[i]['type'],
-        ),
-        name: decryptedName,
-        participants: chatParticipants,
-        messages: chatMessages.reversed.toList(),
+      print(chat.avatar);
+
+      if (chat.avatar != null) {
+        var cachedFile = await _cacheManager.getFileFromCache(
+          chat.avatar,
+        );
+
+        if (cachedFile != null) {
+          chat = chat.copyWith(avatar: () => cachedFile.file);
+        } else {
+          final avatar = await _getAvatar(chat.id, chat.sharedKey);
+
+          chat = chat.copyWith(
+            avatar: await _cacheManager.putFile(chat.avatar, avatar),
+          );
+        }
+      }
+
+      chat = chat.copyWith(
+        messages: chat.messages
+            .map((message) => message.copyWith(
+                  content: message.content.map((item) {
+                    if (item.type == MessageType.text) {
+                      return item.copyWith(
+                          data: utf8.decode(_encryptionService.chachaDecrypt(
+                        item.data,
+                        chat.sharedKey,
+                      )));
+                    }
+
+                    return item;
+                  }).toList(),
+                ))
+            .toList(),
       );
+      // final chat = Chat(
+      //   id: chatsData[i]['id'],
+      //   sharedKey: decryptedChatSharedKey,
+      //   type: ChatType.values.firstWhere(
+      //     (e) => describeEnum(e) == chatsData[i]['type'],
+      //   ),
+      //   name: decryptedName,
+      //   participants: chatParticipants,
+      //   messages: chatMessages.reversed.toList(),
+      // );
 
       chats.add(chat);
     }
@@ -257,9 +278,47 @@ class ChatsRepository {
     });
   }
 
+  Future<void> updateAvatar(Chat chat, File avatar) async {
+    final encryptedAvatar = _encryptionService.chachaEncrypt(
+      avatar.readAsBytesSync(),
+      chat.sharedKey,
+    );
+
+    final formData = FormData.fromMap(
+      {
+        'id': chat.id,
+        'avatarName': '${chat.id}.jpg',
+        'avatar': MultipartFile.fromBytes(
+          encryptedAvatar,
+          filename: '${chat.id}.jpg',
+        )
+      },
+    );
+
+    await _apiService.post('/chat/avatar', data: formData);
+  }
+
   Future<void> deleteChat(String chatId) async {
     await _apiService.post('/chat/delete/messages', data: {
       'chatId': chatId,
     });
+  }
+
+  Future<void> deleteAvatar(String chatId) async {
+    await _apiService.patch('/chat', data: {
+      'id': chatId,
+      'chat': {
+        'avatar': null,
+      }
+    });
+  }
+
+  Future<Uint8List> _getAvatar(String chatId, Uint8List sharedKey) async {
+    final res = await _apiService.get('/chat/$chatId/avatar');
+
+    return _encryptionService.chachaDecrypt(
+      res.data,
+      sharedKey,
+    );
   }
 }

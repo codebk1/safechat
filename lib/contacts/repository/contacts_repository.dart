@@ -106,8 +106,6 @@ class ContactsRepository {
             : null;
       }
 
-      print(contactsData[i]);
-
       var contact = Contact.fromJson(contactsData[i]);
 
       if (contact.sharedKey != null) {

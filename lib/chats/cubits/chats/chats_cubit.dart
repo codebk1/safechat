@@ -9,6 +9,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:image/image.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:safechat/chats/models/attachment.dart';
 import 'package:safechat/chats/models/chat.dart';
 import 'package:safechat/chats/models/message.dart';
@@ -153,6 +154,7 @@ class ChatsCubit extends Cubit<ChatsState> {
   final _wsService = SocketService();
   final _encryptionService = EncryptionService();
   final _notificationService = NotificationService();
+  final _cacheManager = DefaultCacheManager();
 
   final _userRepository = UserRepository();
   final _chatsRepository = ChatsRepository();
@@ -506,6 +508,50 @@ class ChatsCubit extends Cubit<ChatsState> {
     }
   }
 
+  Future<void> setAvatar(String chatId) async {
+    final chat = state.chats.firstWhere((chat) => chat.id == chatId);
+
+    final XFile? pickedPhoto = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+    );
+
+    if (pickedPhoto != null) {
+      emit(state.copyWith(loadingAvatar: true));
+
+      var data = await pickedPhoto.readAsBytes();
+      var processedAvatar = await computeCropAvatar(data) as Uint8List;
+
+      final avatar = await _cacheManager.putFile(
+        '$chatId.jpg',
+        processedAvatar,
+      );
+
+      await _chatsRepository.updateAvatar(chat, avatar);
+
+      emit(state.copyWith(
+        chats: List.of(state.chats)
+            .map((chat) =>
+                chat.id == chatId ? chat.copyWith(avatar: () => avatar) : chat)
+            .toList(),
+        loadingAvatar: false,
+      ));
+    }
+  }
+
+  Future<void> removeAvatar(String chatId) async {
+    emit(state.copyWith(loadingAvatar: true));
+
+    await _chatsRepository.deleteAvatar(chatId);
+
+    emit(state.copyWith(
+      chats: List.of(state.chats)
+          .map((chat) =>
+              chat.id == chatId ? chat.copyWith(avatar: () => null) : chat)
+          .toList(),
+      loadingAvatar: false,
+    ));
+  }
+
   void nameChanged(String value) {
     emit(state.copyWith(
       name: Name(value),
@@ -513,10 +559,22 @@ class ChatsCubit extends Cubit<ChatsState> {
     ));
   }
 
+  Future<List<int>> computeCropAvatar(Uint8List photo) async {
+    return await compute(cropAvatar, photo);
+  }
+
   @override
   Future<void> close() {
     _notificationService.dispose();
-    //_notificationSubscription.cancel();
     return super.close();
   }
+}
+
+List<int> cropAvatar(Uint8List data) {
+  Image croppedPhoto = copyResizeCropSquare(
+    decodeImage(data)!,
+    150,
+  );
+
+  return encodeJpg(croppedPhoto);
 }

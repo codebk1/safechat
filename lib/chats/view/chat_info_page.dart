@@ -42,7 +42,12 @@ class ChatInfoPage extends StatelessWidget {
             ),
           ),
           ListTile(
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context).pushNamed(
+                '/chat/edit/avatar',
+                arguments: chatId,
+              );
+            },
             leading: const Icon(Icons.add_photo_alternate),
             title: const Text(
               'Avatar',

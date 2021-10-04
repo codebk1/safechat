@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
@@ -195,7 +197,9 @@ class MainPanel extends StatelessWidget {
                                               ),
                                             );
                                           },
-                                          leading: const ChatAvatar(),
+                                          leading: ChatAvatar(
+                                            avatar: chat.avatar,
+                                          ),
                                           title: Text(
                                             chat.name != null
                                                 ? chat.name!
@@ -245,7 +249,12 @@ class MainPanel extends StatelessWidget {
 }
 
 class ChatAvatar extends StatelessWidget {
-  const ChatAvatar({Key? key}) : super(key: key);
+  const ChatAvatar({
+    Key? key,
+    this.avatar,
+  }) : super(key: key);
+
+  final File? avatar;
 
   @override
   Widget build(BuildContext context) {
@@ -258,68 +267,74 @@ class ChatAvatar extends StatelessWidget {
                 width: 45,
                 height: 45,
                 color: Colors.grey.shade100,
-                child: Flex(
-                  direction: Axis.vertical,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Flexible(
-                      //fit: FlexFit.tight,
-                      child: Flex(
-                        direction: Axis.horizontal,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: state.contacts
-                            .take(2)
-                            .map(
-                              (contact) => Flexible(
-                                fit: FlexFit.tight,
-                                child: FittedBox(
-                                  fit: BoxFit.cover,
-                                  clipBehavior: Clip.antiAlias,
-                                  child: contact.avatar != null
-                                      ? Image.file(
-                                          contact.avatar!,
-                                        )
-                                      : Icon(
-                                          Icons.person,
-                                          color: Colors.grey.shade300,
-                                        ),
-                                ),
-                              ),
-                            )
-                            .toList(),
-                      ),
-                    ),
-                    if (state.contacts.length > 2)
-                      Flexible(
-                        fit: FlexFit.tight,
-                        child: Flex(
-                          direction: Axis.horizontal,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: state.contacts
-                              .skip(2)
-                              .take(2)
-                              .map(
-                                (contact) => Flexible(
-                                  fit: FlexFit.tight,
-                                  child: FittedBox(
-                                    fit: BoxFit.cover,
-                                    clipBehavior: Clip.antiAlias,
-                                    child: contact.avatar != null
-                                        ? Image.file(
-                                            contact.avatar!,
-                                          )
-                                        : Icon(
-                                            Icons.person,
-                                            color: Colors.grey.shade300,
-                                          ),
-                                  ),
-                                ),
-                              )
-                              .toList(),
+                child: avatar != null
+                    ? ClipOval(
+                        child: Image.file(
+                          avatar!,
                         ),
+                      )
+                    : Flex(
+                        direction: Axis.vertical,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Flexible(
+                            //fit: FlexFit.tight,
+                            child: Flex(
+                              direction: Axis.horizontal,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: state.contacts
+                                  .take(2)
+                                  .map(
+                                    (contact) => Flexible(
+                                      fit: FlexFit.tight,
+                                      child: FittedBox(
+                                        fit: BoxFit.cover,
+                                        clipBehavior: Clip.antiAlias,
+                                        child: contact.avatar != null
+                                            ? Image.file(
+                                                contact.avatar!,
+                                              )
+                                            : Icon(
+                                                Icons.person,
+                                                color: Colors.grey.shade300,
+                                              ),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                          ),
+                          if (state.contacts.length > 2)
+                            Flexible(
+                              fit: FlexFit.tight,
+                              child: Flex(
+                                direction: Axis.horizontal,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: state.contacts
+                                    .skip(2)
+                                    .take(2)
+                                    .map(
+                                      (contact) => Flexible(
+                                        fit: FlexFit.tight,
+                                        child: FittedBox(
+                                          fit: BoxFit.cover,
+                                          clipBehavior: Clip.antiAlias,
+                                          child: contact.avatar != null
+                                              ? Image.file(
+                                                  contact.avatar!,
+                                                )
+                                              : Icon(
+                                                  Icons.person,
+                                                  color: Colors.grey.shade300,
+                                                ),
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
+                            ),
+                        ],
                       ),
-                  ],
-                ),
               ),
             ),
             Positioned(

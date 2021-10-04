@@ -40,10 +40,11 @@ class UserCubit extends Cubit<UserState> {
     print('END SOCKET INIT');
   }
 
+  final _wsService = SocketService();
+  final _cacheManager = DefaultCacheManager();
+
   final AuthRepository _authRepository;
   final UserRepository _userRepository;
-  final SocketService _wsService = SocketService();
-  final DefaultCacheManager _cacheManager = DefaultCacheManager();
 
   Future<void> authenticate() async {
     try {

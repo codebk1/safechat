@@ -8,6 +8,7 @@ class ChatsState extends Equatable {
     this.listStatus = ListStatus.unknow,
     this.newChat = const NewChat(),
     this.nextChat,
+    this.loadingAvatar = false,
   });
 
   final List<Chat> chats;
@@ -16,6 +17,7 @@ class ChatsState extends Equatable {
   final ListStatus listStatus;
   final NewChat newChat;
   final Chat? nextChat;
+  final bool loadingAvatar;
 
   @override
   List<Object?> get props => [
@@ -25,16 +27,17 @@ class ChatsState extends Equatable {
         listStatus,
         newChat,
         nextChat,
+        loadingAvatar,
       ];
 
-  ChatsState copyWith({
-    List<Chat>? chats,
-    Name? name,
-    FormStatus? status,
-    ListStatus? listStatus,
-    NewChat? newChat,
-    Chat? nextChat,
-  }) {
+  ChatsState copyWith(
+      {List<Chat>? chats,
+      Name? name,
+      FormStatus? status,
+      ListStatus? listStatus,
+      NewChat? newChat,
+      Chat? nextChat,
+      bool? loadingAvatar}) {
     return ChatsState(
       chats: chats ?? this.chats,
       name: name ?? this.name,
@@ -42,6 +45,7 @@ class ChatsState extends Equatable {
       listStatus: listStatus ?? this.listStatus,
       newChat: newChat ?? this.newChat,
       nextChat: nextChat,
+      loadingAvatar: loadingAvatar ?? this.loadingAvatar,
     );
   }
 }

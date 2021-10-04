@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
 import 'package:safechat/chats/view/chat_page.dart';
 import 'package:safechat/chats/view/create_chat_page.dart';
+import 'package:safechat/chats/view/edit_chat_avatar_page.dart';
 import 'package:safechat/chats/view/edit_chat_name_page.dart';
 import 'package:safechat/chats/view/media_page.dart';
 import 'package:safechat/profile/cubit/profile_cubit.dart';
@@ -124,6 +125,16 @@ class AppRouter {
               BlocProvider.value(value: _chatsCubit),
             ],
             child: EditChatNamePage(chatId: chatId),
+          ),
+        );
+      case '/chat/edit/avatar':
+        final chatId = routeSettings.arguments as String;
+        return PageRouteBuilder(
+          pageBuilder: (context, __, ___) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: _chatsCubit),
+            ],
+            child: EditChatAvatarPage(chatId: chatId),
           ),
         );
       case '/chats/create':

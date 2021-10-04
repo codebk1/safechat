@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:safechat/contacts/models/contact.dart';
 
 import 'message.dart';
@@ -13,6 +14,7 @@ class Chat extends Equatable {
     required this.sharedKey,
     required this.type,
     this.name,
+    this.avatar,
     this.participants = const [],
     this.messages = const [],
     this.message = Message.empty,
@@ -24,6 +26,7 @@ class Chat extends Equatable {
   final Uint8List sharedKey;
   final ChatType type;
   final String? name;
+  final dynamic avatar;
   final List<Contact> participants;
   final List<Message> messages;
   final Message message;
@@ -33,6 +36,7 @@ class Chat extends Equatable {
   @override
   List<Object?> get props => [
         name,
+        avatar,
         participants,
         messages,
         message,
@@ -45,6 +49,7 @@ class Chat extends Equatable {
     Uint8List? sharedKey,
     ChatType? type,
     String? name,
+    dynamic avatar,
     List<Contact>? participants,
     List<Message>? messages,
     Message? message,
@@ -57,6 +62,7 @@ class Chat extends Equatable {
       sharedKey: sharedKey ?? this.sharedKey,
       type: type ?? this.type,
       name: name ?? this.name,
+      avatar: avatar != null ? avatar() : this.avatar,
       participants: participants ?? this.participants,
       messages: messages ?? this.messages,
       message: message ?? this.message,
@@ -64,4 +70,20 @@ class Chat extends Equatable {
       opened: opened ?? this.opened,
     );
   }
+
+  Chat.fromJson(Map<String, dynamic> json)
+      : id = json['id']!,
+        sharedKey = json['sharedKey']!,
+        type = ChatType.values.firstWhere(
+          (e) => describeEnum(e) == json['type'],
+        ),
+        name = json['name'],
+        avatar = json['avatar'],
+        participants = json['participants']!,
+        messages = (json['messages']! as List)
+            .map((item) => Message.fromJson(item))
+            .toList(),
+        message = Message.empty,
+        opened = false,
+        typing = [];
 }
