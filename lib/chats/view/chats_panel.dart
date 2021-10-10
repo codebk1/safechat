@@ -169,8 +169,9 @@ class MainPanel extends StatelessWidget {
                                                             context
                                                                 .read<
                                                                     ChatsCubit>()
-                                                                .deleteChat(
-                                                                    chat.id);
+                                                                .deleteMessages(
+                                                                  chat.id,
+                                                                );
 
                                                             Navigator.of(
                                                                     context)

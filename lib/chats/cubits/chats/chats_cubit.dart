@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:collection/collection.dart';
 import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
@@ -27,9 +28,9 @@ part 'chats_state.dart';
 
 class ChatsCubit extends Cubit<ChatsState> {
   ChatsCubit() : super(const ChatsState()) {
-    _wsService.socket.on('msg', (data) {
+    _wsService.socket.on('msg', (data) async {
+      final chat = await _findOrFetchChat(data['room']);
       var msg = Message.fromJson(data['msg']);
-      var chat = state.chats.firstWhere((chat) => chat.id == data['room']);
 
       print({'uuuuuuuuuu', chat.opened});
       if (chat.opened) {
@@ -71,8 +72,8 @@ class ChatsCubit extends Cubit<ChatsState> {
       ));
     });
 
-    _wsService.socket.on('messages.readby', (data) {
-      var chat = state.chats.firstWhere((chat) => chat.id == data['room']);
+    _wsService.socket.on('messages.readby', (data) async {
+      final chat = await _findOrFetchChat(data['room']);
 
       emit(state.copyWith(
         chats: List.of(state.chats)
@@ -89,9 +90,9 @@ class ChatsCubit extends Cubit<ChatsState> {
       ));
     });
 
-    _wsService.socket.on('typing.start', (data) {
+    _wsService.socket.on('typing.start', (data) async {
       print('ON TYPING START');
-      var chat = state.chats.firstWhere((chat) => chat.id == data['room']);
+      final chat = await _findOrFetchChat(data['room']);
 
       emit(state.copyWith(
         chats: List.of(state.chats)
@@ -104,8 +105,8 @@ class ChatsCubit extends Cubit<ChatsState> {
       ));
     });
 
-    _wsService.socket.on('typing.stop', (data) {
-      var chat = state.chats.firstWhere((chat) => chat.id == data['room']);
+    _wsService.socket.on('typing.stop', (data) async {
+      final chat = await _findOrFetchChat(data['room']);
 
       emit(state.copyWith(
         chats: List.of(state.chats)
@@ -119,33 +120,33 @@ class ChatsCubit extends Cubit<ChatsState> {
       ));
     });
 
-    _notificationService.notification.listen((event) {
+    _notificationService.notification.listen((event) async {
       print('KAKAKAKAKAKAKAKAK');
-      final chat = state.chats.firstWhere(
-        (c) => c.id == event.data['chatId'],
-      );
+      final chat = await _findOrFetchChat(event.data['chatId']);
 
-      final sender = chat.participants.firstWhere(
-        (p) => p.id == event.data['senderId'],
-      );
+      if (chat.opened == false) {
+        final sender = chat.participants.firstWhere(
+          (p) => p.id == event.data['senderId'],
+        );
 
-      final notification = NotificationData(
-        id: event.data['chatId'],
-        title: '${sender.firstName} ${sender.lastName}',
-        body: utf8.decode(
-          _encryptionService.chachaDecrypt(
-            event.data['body'],
-            chat.sharedKey,
+        final notification = NotificationData(
+          id: event.data['chatId'],
+          title: '${sender.firstName} ${sender.lastName}',
+          body: utf8.decode(
+            _encryptionService.chachaDecrypt(
+              event.data['body'],
+              chat.sharedKey,
+            ),
           ),
-        ),
-        image: sender.avatar,
-      );
+          image: sender.avatar,
+        );
 
-      _notificationService.showNotification(notification);
+        _notificationService.showNotification(notification);
+      }
     });
 
-    _notificationService.selectNotification.listen((chatId) {
-      final chat = state.chats.firstWhere((c) => c.id == chatId);
+    _notificationService.selectNotification.listen((chatId) async {
+      final chat = await _findOrFetchChat(chatId);
 
       emit(state.copyWith(nextChat: chat));
     });
@@ -158,6 +159,19 @@ class ChatsCubit extends Cubit<ChatsState> {
 
   final _userRepository = UserRepository();
   final _chatsRepository = ChatsRepository();
+
+  Future<Chat> _findOrFetchChat(String chatId) async {
+    var chat = state.chats.firstWhereOrNull(
+      (c) => c.id == chatId,
+    );
+
+    if (chat == null) {
+      chat = await _chatsRepository.getChat(chatId);
+      emit(state.copyWith(chats: List.of(state.chats)..insert(0, chat)));
+    }
+
+    return chat;
+  }
 
   Future<void> getChats() async {
     try {
@@ -264,8 +278,6 @@ class ChatsCubit extends Cubit<ChatsState> {
     List<MultipartFile> encryptedAttachments = [];
     List<MessageItem> items = [];
 
-    print({'fhgfhg', chat.message.senderId});
-
     for (var i = 0; i < attachments.length; i++) {
       final attachmentName =
           '${DateTime.now().millisecondsSinceEpoch}_$i.${attachments[i].name.split('.').last}';
@@ -358,7 +370,7 @@ class ChatsCubit extends Cubit<ChatsState> {
       }).toList(),
     );
 
-    await _chatsRepository.addMessage(
+    final messageId = await _chatsRepository.addMessage(
       chat.id,
       encryptedMessage,
       encryptedAttachments,
@@ -368,14 +380,17 @@ class ChatsCubit extends Cubit<ChatsState> {
 
     _wsService.socket.emit('msg', {
       'room': chat.id,
-      'msg': encryptedMessage.toJson(),
+      'msg': encryptedMessage.copyWith(id: messageId).toJson(),
     });
 
     emit(state.copyWith(
       chats: List.of(state.chats)
           .map((c) => c.id == chat.id
               ? c.copyWith(messages: [
-                  c.messages[0].copyWith(status: MessageStatus.sent),
+                  c.messages[0].copyWith(
+                    id: messageId,
+                    status: MessageStatus.sent,
+                  ),
                   ...c.messages.sublist(1)
                 ])
               : c)
@@ -409,11 +424,40 @@ class ChatsCubit extends Cubit<ChatsState> {
     }
   }
 
-  deleteChat(String chatId) async {
-    await _chatsRepository.deleteChat(chatId);
-
+  deleteMessages(String chatId) async {
     emit(state.copyWith(
       chats: List.of(state.chats)..removeWhere((chat) => chat.id == chatId),
+    ));
+
+    await _chatsRepository.deleteMessages(chatId);
+  }
+
+  deleteMessage(String chatId, String messageId) async {
+    emit(state.copyWith(
+      chats: List.of(state.chats)
+          .map((chat) => chat.id == chatId
+              ? chat.copyWith(
+                  messages: List.of(chat.messages)
+                      .map((m) => m.id == messageId
+                          ? m.copyWith(status: MessageStatus.deleting)
+                          : m)
+                      .toList(),
+                )
+              : chat)
+          .toList(),
+    ));
+
+    await _chatsRepository.deleteMessage(chatId, messageId);
+
+    emit(state.copyWith(
+      chats: List.of(state.chats)
+          .map((chat) => chat.id == chatId
+              ? chat.copyWith(
+                  messages: List.of(chat.messages)
+                    ..removeWhere((m) => m.id == messageId),
+                )
+              : chat)
+          .toList(),
     ));
   }
 

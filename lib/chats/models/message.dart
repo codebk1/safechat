@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 
 enum MessageType { text, photo, video, file }
-enum MessageStatus { sending, sent, failure, unknow }
+enum MessageStatus { sending, sent, deleting, failure, unknow }
 
 class MessageItem extends Equatable {
   const MessageItem({
@@ -29,14 +29,14 @@ class MessageItem extends Equatable {
 
 class Message extends Equatable {
   const Message({
-    this.id,
+    required this.id,
     required this.senderId,
     this.content = const [],
     this.status = MessageStatus.unknow,
     this.unreadBy = const [],
   });
 
-  final String? id;
+  final String id;
   final String senderId;
   final List<MessageItem> content;
   final MessageStatus status;
@@ -46,6 +46,7 @@ class Message extends Equatable {
   List<Object?> get props => [senderId, content, status, unreadBy];
 
   static const empty = Message(
+    id: '',
     senderId: '',
   );
 
@@ -66,7 +67,7 @@ class Message extends Equatable {
   }
 
   Message.fromJson(Map<String, dynamic> json)
-      : id = json['id'],
+      : id = json['_id']!,
         senderId = json['sender']!,
         content = (json['content']! as List)
             .map((item) => MessageItem(
@@ -80,7 +81,7 @@ class Message extends Equatable {
 
   Map toJson() {
     return {
-      'id': id,
+      '_id': id,
       'sender': senderId,
       'content': content
           .map((e) => {

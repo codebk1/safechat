@@ -189,24 +189,92 @@ class MessagesSection extends StatelessWidget {
                             BuildContext context,
                             int index,
                           ) {
+                            final message = chat.messages[index];
                             final isLastInSet =
                                 chat.messages[index == 0 ? index : index - 1]
                                             .senderId !=
-                                        chat.messages[index].senderId ||
+                                        message.senderId ||
                                     index == 0;
 
                             return Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 15.0,
                               ),
-                              child: MessageBubble(
-                                chat: chat,
-                                message: chat.messages[index],
-                                isLastInSet: isLastInSet,
-                                isLastSentMsg: lastSenderMsg.isNotEmpty
-                                    ? lastSenderMsg.first ==
-                                        chat.messages[index]
-                                    : false,
+                              child: GestureDetector(
+                                onLongPress: () {
+                                  showModalBottomSheet(
+                                      context: context,
+                                      shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.vertical(
+                                          top: Radius.circular(
+                                            10.0,
+                                          ),
+                                        ),
+                                      ),
+                                      builder: (BuildContext _) {
+                                        return SizedBox(
+                                          height: MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                              0.4,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.all(15.0),
+                                                child: Text(
+                                                  'Opcje wiadomości',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .headline5,
+                                                ),
+                                              ),
+                                              ListTile(
+                                                onTap: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                                leading: const Icon(
+                                                  Icons.delete,
+                                                ),
+                                                title: const Text(
+                                                  'Usuń dla siebie',
+                                                ),
+                                              ),
+                                              if (message.senderId ==
+                                                  currentUser.id)
+                                                ListTile(
+                                                  onTap: () {
+                                                    context
+                                                        .read<ChatsCubit>()
+                                                        .deleteMessage(
+                                                          chat.id,
+                                                          message.id,
+                                                        );
+
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  leading: const Icon(
+                                                    Icons.delete_forever,
+                                                  ),
+                                                  title: const Text(
+                                                    'Usuń dla wszystkich',
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        );
+                                      });
+                                },
+                                child: MessageBubble(
+                                  chat: chat,
+                                  message: message,
+                                  isLastInSet: isLastInSet,
+                                  isLastSentMsg: lastSenderMsg.isNotEmpty
+                                      ? lastSenderMsg.first == message
+                                      : false,
+                                ),
                               ),
                             );
                           }),
@@ -439,13 +507,24 @@ class MessageBubble extends StatelessWidget {
                                           ),
                                     backgroundColor: Colors.grey.shade300,
                                   )
-                            : Icon(
-                                message.status == MessageStatus.sending
-                                    ? Icons.check_circle_outline
-                                    : Icons.check_circle,
-                                size: 16,
-                                color: Colors.blue.shade800,
-                              )
+                            : message.status == MessageStatus.deleting
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: Padding(
+                                      padding: EdgeInsets.all(2.0),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 1,
+                                      ),
+                                    ),
+                                  )
+                                : Icon(
+                                    message.status == MessageStatus.sending
+                                        ? Icons.check_circle_outline
+                                        : Icons.check_circle,
+                                    size: 16,
+                                    color: Colors.blue.shade800,
+                                  )
                         : const SizedBox(width: 16)
                   ],
                 ],

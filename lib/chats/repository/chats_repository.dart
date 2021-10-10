@@ -17,8 +17,70 @@ class ChatsRepository {
   final _apiService = ApiService().init();
   final _encryptionService = EncryptionService();
   final _cacheManager = DefaultCacheManager();
-
   final _contactsRepository = ContactsRepository();
+
+  Future<Chat> getChat(String chatId) async {
+    final res = await _apiService.get('/chat/$chatId');
+
+    res.data['sharedKey'] = _encryptionService.rsaDecrypt(
+      res.data['sharedKey'],
+    );
+
+    res.data['participants'] =
+        await _contactsRepository.getDecryptedContactsList(
+      res.data['participants'],
+      res.data['sharedKey'],
+    );
+
+    var chat = Chat.fromJson(res.data);
+
+    if (chat.name != null) {
+      chat = chat.copyWith(
+        name: utf8.decode(_encryptionService.chachaDecrypt(
+          chat.name!,
+          chat.sharedKey,
+        )),
+      );
+    }
+
+    if (chat.avatar != null) {
+      var cachedFile = await _cacheManager.getFileFromCache(
+        chat.avatar,
+      );
+
+      if (cachedFile != null) {
+        chat = chat.copyWith(avatar: () => cachedFile.file);
+      } else {
+        final avatar = await _getAvatar(chat.id, chat.sharedKey);
+
+        chat = chat.copyWith(
+          avatar: await _cacheManager.putFile(chat.avatar, avatar),
+        );
+      }
+    }
+
+    chat = chat.copyWith(
+      messages: chat.messages
+          .map((message) => message.copyWith(
+                content: message.content.map((item) {
+                  if (item.type == MessageType.text) {
+                    return item.copyWith(
+                        data: utf8.decode(_encryptionService.chachaDecrypt(
+                      item.data,
+                      chat.sharedKey,
+                    )));
+                  }
+
+                  return item;
+                }).toList(),
+              ))
+          .toList()
+          .reversed
+          .toList(),
+    );
+
+    return chat;
+  }
 
   Future<List<Chat>> getChats() async {
     final res = await _apiService.get('/chat');
@@ -47,8 +109,6 @@ class ChatsRepository {
           )),
         );
       }
-
-      print(chat.avatar);
 
       if (chat.avatar != null) {
         var cachedFile = await _cacheManager.getFileFromCache(
@@ -81,18 +141,10 @@ class ChatsRepository {
                     return item;
                   }).toList(),
                 ))
+            .toList()
+            .reversed
             .toList(),
       );
-      // final chat = Chat(
-      //   id: chatsData[i]['id'],
-      //   sharedKey: decryptedChatSharedKey,
-      //   type: ChatType.values.firstWhere(
-      //     (e) => describeEnum(e) == chatsData[i]['type'],
-      //   ),
-      //   name: decryptedName,
-      //   participants: chatParticipants,
-      //   messages: chatMessages.reversed.toList(),
-      // );
 
       chats.add(chat);
     }
@@ -236,7 +288,7 @@ class ChatsRepository {
     return decryptedAttachment;
   }
 
-  Future<void> addMessage(
+  Future<dynamic> addMessage(
     String chatId,
     Message encryptedMessage,
     List<MultipartFile> encryptedAttachments,
@@ -249,13 +301,15 @@ class ChatsRepository {
       },
     );
 
-    await _apiService.post(
+    final res = await _apiService.post(
       '/chat/messages',
       data: formData,
       onSendProgress: (int sent, int total) {
         //print('${(sent / total) * 100} %');
       },
     );
+
+    return res.data;
   }
 
   Future<void> readAllMessages(String chatId) async {
@@ -298,9 +352,16 @@ class ChatsRepository {
     await _apiService.post('/chat/avatar', data: formData);
   }
 
-  Future<void> deleteChat(String chatId) async {
+  Future<void> deleteMessages(String chatId) async {
     await _apiService.post('/chat/delete/messages', data: {
       'chatId': chatId,
+    });
+  }
+
+  Future<void> deleteMessage(String chatId, String messageId) async {
+    await _apiService.post('/chat/delete/message', data: {
+      'chatId': chatId,
+      'messageId': messageId,
     });
   }
 
