@@ -1,3 +1,4 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:socket_io_client/socket_io_client.dart';
 
 class SocketService {
@@ -9,7 +10,7 @@ class SocketService {
 
   SocketService._internal() {
     socket = io(
-      'https://80ee-46-215-60-187.ngrok.io',
+      dotenv.env['BASE_URL'],
       OptionBuilder().disableAutoConnect().setTransports(['websocket']).build(),
     );
   }
