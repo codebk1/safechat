@@ -17,7 +17,7 @@ class CreateChatPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocConsumer<ChatsCubit, ChatsState>(
       listener: (context, state) {
-        if (state.newChat.status.isSuccess) {
+        if (state.newChat.form.isSuccess) {
           // context.read<ChatsCubit>().emit(state.copyWith(
           //       newChat: state.newChat.copyWith(
           //         status: const FormStatus.init(),
@@ -47,7 +47,7 @@ class CreateChatPage extends StatelessWidget {
           //   );
         }
 
-        if (state.newChat.status.isFailure) {
+        if (state.newChat.form.isFailure) {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
@@ -66,7 +66,7 @@ class CreateChatPage extends StatelessWidget {
                     const SizedBox(
                       width: 10.0,
                     ),
-                    Text(state.newChat.status.error),
+                    Text(state.newChat.form.error!),
                   ],
                 ),
               ),
@@ -80,7 +80,7 @@ class CreateChatPage extends StatelessWidget {
             context.read<ChatsCubit>().emit(state.copyWith(
                   newChat: state.newChat.copyWith(
                     selectedParticipants: [],
-                    status: const FormStatus.init(),
+                    //status: const FormStatus.init(),
                   ),
                 ));
 
@@ -268,8 +268,7 @@ class CreateChatPage extends StatelessWidget {
                                         child: SizedBox(
                                           height: 60.0,
                                           child: Center(
-                                            child: state
-                                                    .newChat.status.isLoading
+                                            child: state.newChat.form.isLoading
                                                 ? Transform.scale(
                                                     scale: 0.6,
                                                     child:

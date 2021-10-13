@@ -4,29 +4,29 @@ class ProfileState extends Equatable {
   const ProfileState({
     this.firstName = const FirstName(''),
     this.lastName = const LastName(''),
-    this.status = const FormStatus.init(),
+    this.formStatus = FormStatus.init,
     this.loadingAvatar = false,
   });
 
   final FirstName firstName;
   final LastName lastName;
-  final FormStatus status;
+  final FormStatus formStatus;
   final bool loadingAvatar;
 
   ProfileState copyWith({
     FirstName? firstName,
     LastName? lastName,
-    FormStatus? status,
+    FormStatus? formStatus,
     bool? loadingAvatar,
   }) {
     return ProfileState(
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
-      status: status ?? this.status,
+      formStatus: formStatus ?? this.formStatus,
       loadingAvatar: loadingAvatar ?? this.loadingAvatar,
     );
   }
 
   @override
-  List<Object> get props => [firstName, lastName, status, loadingAvatar];
+  List<Object> get props => [firstName, lastName, formStatus, loadingAvatar];
 }

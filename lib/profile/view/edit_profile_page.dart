@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/profile/cubit/profile_cubit.dart';
 
+import 'package:safechat/utils/utils.dart';
 import 'package:safechat/user/user.dart';
 
 class EditProfilePage extends StatefulWidget {
@@ -19,11 +20,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget build(BuildContext context) {
     return BlocConsumer<ProfileCubit, ProfileState>(
       listener: (context, state) {
-        if (state.status.isSuccess) {
+        if (state.formStatus.isSuccess) {
           Navigator.of(context).pop();
         }
 
-        if (state.status.isFailure) {
+        if (state.formStatus.isFailure) {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
@@ -42,7 +43,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     const SizedBox(
                       width: 10.0,
                     ),
-                    Text(state.status.error),
+                    Text(state.formStatus.error!),
                   ],
                 ),
               ),
@@ -77,59 +78,56 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     padding: const EdgeInsets.all(15.0),
                     child: Column(
                       children: [
-                        Form(
-                          key: _formKey,
-                          child: Column(
-                            children: [
-                              _FirstNameTextFormField(),
-                              const SizedBox(
-                                height: 15.0,
+                        Column(
+                          children: [
+                            _FirstNameTextFormField(),
+                            const SizedBox(
+                              height: 15.0,
+                            ),
+                            _LastNameTextFormField(),
+                            const SizedBox(
+                              height: 15.0,
+                            ),
+                            Ink(
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).primaryColor,
+                                borderRadius: BorderRadius.circular(5),
                               ),
-                              _LastNameTextFormField(),
-                              const SizedBox(
-                                height: 15.0,
-                              ),
-                              Ink(
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).primaryColor,
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                                child: BlocBuilder<ProfileCubit, ProfileState>(
-                                  builder: (context, state) {
-                                    return InkWell(
-                                      borderRadius: BorderRadius.circular(5.0),
-                                      onTap: () {
-                                        if (_formKey.currentState!.validate()) {
-                                          context
-                                              .read<ProfileCubit>()
-                                              .editProfileSubmit();
-                                        }
-                                      },
-                                      child: SizedBox(
-                                        height: 60.0,
-                                        child: Center(
-                                          child: state.status.isLoading
-                                              ? const CircularProgressIndicator(
-                                                  color: Colors.white,
-                                                  strokeWidth: 2.0,
-                                                )
-                                              : Text(
-                                                  'Zapisz',
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .headline6!
-                                                      .copyWith(
-                                                        color: Colors.white,
-                                                      ),
-                                                ),
-                                        ),
+                              child: BlocBuilder<ProfileCubit, ProfileState>(
+                                builder: (context, state) {
+                                  return InkWell(
+                                    borderRadius: BorderRadius.circular(5.0),
+                                    onTap: () {
+                                      //if (_formKey.currentState!.validate()) {
+                                      context
+                                          .read<ProfileCubit>()
+                                          .editProfileSubmit();
+                                      //}
+                                    },
+                                    child: SizedBox(
+                                      height: 60.0,
+                                      child: Center(
+                                        child: state.formStatus.isLoading
+                                            ? const CircularProgressIndicator(
+                                                color: Colors.white,
+                                                strokeWidth: 2.0,
+                                              )
+                                            : Text(
+                                                'Zapisz',
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .headline6!
+                                                    .copyWith(
+                                                      color: Colors.white,
+                                                    ),
+                                              ),
                                       ),
-                                    );
-                                  },
-                                ),
+                                    ),
+                                  );
+                                },
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

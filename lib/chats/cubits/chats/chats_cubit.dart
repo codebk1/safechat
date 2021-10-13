@@ -201,7 +201,7 @@ class ChatsCubit extends Cubit<ChatsState> {
     try {
       emit(state.copyWith(
         newChat: state.newChat.copyWith(
-          status: const FormStatus.loading(),
+          form: FormStatus.loading,
         ),
       ));
 
@@ -215,7 +215,7 @@ class ChatsCubit extends Cubit<ChatsState> {
         chats: [...state.chats, chat],
         newChat: state.newChat.copyWith(
           selectedParticipants: [],
-          status: const FormStatus.success(),
+          form: FormStatus.success,
         ),
       ));
 
@@ -272,6 +272,8 @@ class ChatsCubit extends Cubit<ChatsState> {
 
     return await cacheManager.putFile(attachmentName, attachmentFile);
   }
+
+  checkIfChatExist(List<String> participantsIDs) {}
 
   sendMessage(Chat chat, String senderId, List<Attachment> attachments) async {
     DefaultCacheManager cacheManager = DefaultCacheManager();
@@ -515,7 +517,7 @@ class ChatsCubit extends Cubit<ChatsState> {
         newChat: state.newChat.copyWith(
           selectedParticipants: List.of(state.newChat.selectedParticipants)
             ..removeWhere((e) => e == participant),
-          status: const FormStatus.init(),
+          form: FormStatus.init,
         ),
       ));
     } else {
@@ -523,7 +525,7 @@ class ChatsCubit extends Cubit<ChatsState> {
         newChat: state.newChat.copyWith(
           selectedParticipants: List.of(state.newChat.selectedParticipants)
             ..add(participant),
-          status: const FormStatus.init(),
+          form: FormStatus.init,
         ),
       ));
     }
@@ -531,7 +533,7 @@ class ChatsCubit extends Cubit<ChatsState> {
 
   Future<void> editChatNameSubmit(String chatId) async {
     try {
-      emit(state.copyWith(status: const FormStatus.loading()));
+      emit(state.copyWith(form: FormStatus.loading));
 
       await _chatsRepository.updateChatName(
         state.chats.firstWhere((chat) => chat.id == chatId),
@@ -539,15 +541,16 @@ class ChatsCubit extends Cubit<ChatsState> {
       );
 
       emit(state.copyWith(
-          chats: List.of(state.chats)
-              .map((chat) => chat.id == chatId
-                  ? chat.copyWith(name: state.name.value)
-                  : chat)
-              .toList(),
-          status: const FormStatus.success()));
+        chats: List.of(state.chats)
+            .map((chat) => chat.id == chatId
+                ? chat.copyWith(name: state.name.value)
+                : chat)
+            .toList(),
+        form: FormStatus.success,
+      ));
     } on DioError catch (e) {
       emit(state.copyWith(
-        status: FormStatus.failure(e.response!.data['message']),
+        form: FormStatus.failure(e.response!.data['message']),
       ));
     }
   }
@@ -599,7 +602,7 @@ class ChatsCubit extends Cubit<ChatsState> {
   void nameChanged(String value) {
     emit(state.copyWith(
       name: Name(value),
-      status: const FormStatus.init(),
+      form: FormStatus.init,
     ));
   }
 

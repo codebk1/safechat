@@ -52,17 +52,17 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   Future<void> editProfileSubmit() async {
     try {
-      emit(state.copyWith(status: const FormStatus.loading()));
+      emit(state.copyWith(formStatus: FormStatus.loading));
 
       await _userCubit.updateProfile(
         state.firstName.value,
         state.lastName.value,
       );
 
-      emit(state.copyWith(status: const FormStatus.success()));
+      emit(state.copyWith(formStatus: FormStatus.success));
     } on DioError catch (e) {
       emit(state.copyWith(
-        status: FormStatus.failure(e.response!.data['message']),
+        formStatus: FormStatus.failure(e.response!.data['message']),
       ));
     }
   }
@@ -70,14 +70,14 @@ class ProfileCubit extends Cubit<ProfileState> {
   void firstNameChanged(String value) {
     emit(state.copyWith(
       firstName: FirstName(value),
-      status: const FormStatus.init(),
+      formStatus: FormStatus.init,
     ));
   }
 
   void lastNameChanged(String value) {
     emit(state.copyWith(
       lastName: LastName(value),
-      status: const FormStatus.init(),
+      formStatus: FormStatus.init,
     ));
   }
 

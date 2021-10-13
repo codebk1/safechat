@@ -75,19 +75,19 @@ class ContactsCubit extends Cubit<ContactsState> {
     } on DioError catch (e) {
       print({'CONTACTS', e});
       emit(state.copyWith(
-        status: FormStatus.failure(e.response?.data['message']),
+        form: FormStatus.failure(e.response?.data['message']),
       ));
     } catch (e) {
       print({'CONTACTS', e});
       emit(state.copyWith(
-        status: FormStatus.failure(e.toString()),
+        form: FormStatus.failure(e.toString()),
       ));
     }
   }
 
   Future<void> addContact(User user) async {
     try {
-      emit(state.copyWith(status: const FormStatus.loading()));
+      emit(state.copyWith(form: const FormStatus(status: FStatus.loading)));
 
       final newContact = await _contactsRepository.addContact(
         user,
@@ -100,14 +100,14 @@ class ContactsCubit extends Cubit<ContactsState> {
       ];
 
       emit(state.copyWith(
-          status: const FormStatus.success(), contacts: contacts));
+          form: const FormStatus(status: FStatus.success), contacts: contacts));
     } on DioError catch (e) {
       emit(state.copyWith(
-        status: FormStatus.failure(e.response?.data['message']),
+        form: FormStatus.failure(e.response?.data['message']),
       ));
     } catch (e) {
       emit(state.copyWith(
-        status: FormStatus.failure(e.toString()),
+        form: FormStatus.failure(e.toString()),
       ));
     }
   }
@@ -122,11 +122,11 @@ class ContactsCubit extends Cubit<ContactsState> {
       ));
     } on DioError catch (e) {
       emit(state.copyWith(
-        status: FormStatus.failure(e.response?.data['message']),
+        form: FormStatus.failure(e.response?.data['message']),
       ));
     } catch (e) {
       emit(state.copyWith(
-        status: FormStatus.failure(e.toString()),
+        form: FormStatus.failure(e.toString()),
       ));
     }
   }
@@ -215,7 +215,7 @@ class ContactsCubit extends Cubit<ContactsState> {
   void emailChanged(String value) {
     emit(state.copyWith(
       email: Email(value),
-      status: const FormStatus.init(),
+      form: FormStatus.init,
     ));
   }
 }

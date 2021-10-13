@@ -15,7 +15,7 @@ class SignupCubit extends Cubit<SignupState> {
 
   Future<void> submit() async {
     try {
-      emit(state.copyWith(status: const FormStatus.loading()));
+      emit(state.copyWith(form: const FormStatus(status: FStatus.loading)));
 
       await _authRepository.signup(
         state.firstName.value,
@@ -24,10 +24,10 @@ class SignupCubit extends Cubit<SignupState> {
         state.password.value,
       );
 
-      emit(state.copyWith(status: const FormStatus.success()));
+      emit(state.copyWith(form: const FormStatus(status: FStatus.success)));
     } on DioError catch (e) {
       emit(state.copyWith(
-        status: FormStatus.failure(e.response!.data['message']),
+        form: FormStatus.failure(e.response!.data['message']),
       ));
     }
   }
@@ -35,35 +35,35 @@ class SignupCubit extends Cubit<SignupState> {
   void firstNameChanged(String value) {
     emit(state.copyWith(
       firstName: FirstName(value),
-      status: const FormStatus.init(),
+      form: FormStatus.init,
     ));
   }
 
   void lastNameChanged(String value) {
     emit(state.copyWith(
       lastName: LastName(value),
-      status: const FormStatus.init(),
+      form: FormStatus.init,
     ));
   }
 
   void emailChanged(String value) {
     emit(state.copyWith(
       email: Email(value),
-      status: const FormStatus.init(),
+      form: FormStatus.init,
     ));
   }
 
   void passwordChanged(String value) {
     emit(state.copyWith(
       password: Password(value),
-      status: const FormStatus.init(),
+      form: FormStatus.init,
     ));
   }
 
   void confirmPasswordChanged(String value) {
     emit(state.copyWith(
       confirmPassword: Password(value),
-      status: const FormStatus.init(),
+      form: FormStatus.init,
     ));
   }
 }

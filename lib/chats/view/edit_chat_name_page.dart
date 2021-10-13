@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
+import 'package:safechat/utils/form_helper.dart';
 
 class EditChatNamePage extends StatefulWidget {
   const EditChatNamePage({
@@ -22,11 +23,11 @@ class _EditChatNamePageState extends State<EditChatNamePage> {
   Widget build(BuildContext context) {
     return BlocConsumer<ChatsCubit, ChatsState>(
       listener: (context, state) {
-        if (state.status.isSuccess) {
+        if (state.form.isSuccess) {
           Navigator.of(context).pop();
         }
 
-        if (state.status.isFailure) {
+        if (state.form.isFailure) {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
@@ -45,7 +46,7 @@ class _EditChatNamePageState extends State<EditChatNamePage> {
                     const SizedBox(
                       width: 10.0,
                     ),
-                    Text(state.status.error),
+                    Text(state.form.error!),
                   ],
                 ),
               ),
@@ -80,61 +81,58 @@ class _EditChatNamePageState extends State<EditChatNamePage> {
                     padding: const EdgeInsets.all(15.0),
                     child: Column(
                       children: [
-                        Form(
-                          key: _formKey,
-                          child: Column(
-                            children: [
-                              _NameTextFormField(
-                                initialValue: state.chats
-                                    .firstWhere((c) => c.id == widget.chatId)
-                                    .name,
+                        Column(
+                          children: [
+                            _NameTextFormField(
+                              initialValue: state.chats
+                                  .firstWhere((c) => c.id == widget.chatId)
+                                  .name,
+                            ),
+                            const SizedBox(
+                              height: 15.0,
+                            ),
+                            Ink(
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).primaryColor,
+                                borderRadius: BorderRadius.circular(5),
                               ),
-                              const SizedBox(
-                                height: 15.0,
-                              ),
-                              Ink(
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).primaryColor,
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                                child: BlocBuilder<ChatsCubit, ChatsState>(
-                                  builder: (context, state) {
-                                    return InkWell(
-                                      borderRadius: BorderRadius.circular(5.0),
-                                      onTap: () {
-                                        if (_formKey.currentState!.validate()) {
-                                          context
-                                              .read<ChatsCubit>()
-                                              .editChatNameSubmit(
-                                                widget.chatId,
-                                              );
-                                        }
-                                      },
-                                      child: SizedBox(
-                                        height: 60.0,
-                                        child: Center(
-                                          child: state.status.isLoading
-                                              ? const CircularProgressIndicator(
-                                                  color: Colors.white,
-                                                  strokeWidth: 2.0,
-                                                )
-                                              : Text(
-                                                  'Zapisz',
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .headline6!
-                                                      .copyWith(
-                                                        color: Colors.white,
-                                                      ),
-                                                ),
-                                        ),
+                              child: BlocBuilder<ChatsCubit, ChatsState>(
+                                builder: (context, state) {
+                                  return InkWell(
+                                    borderRadius: BorderRadius.circular(5.0),
+                                    onTap: () {
+                                      if (_formKey.currentState!.validate()) {
+                                        context
+                                            .read<ChatsCubit>()
+                                            .editChatNameSubmit(
+                                              widget.chatId,
+                                            );
+                                      }
+                                    },
+                                    child: SizedBox(
+                                      height: 60.0,
+                                      child: Center(
+                                        child: state.form.isLoading
+                                            ? const CircularProgressIndicator(
+                                                color: Colors.white,
+                                                strokeWidth: 2.0,
+                                              )
+                                            : Text(
+                                                'Zapisz',
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .headline6!
+                                                    .copyWith(
+                                                      color: Colors.white,
+                                                    ),
+                                              ),
                                       ),
-                                    );
-                                  },
-                                ),
+                                    ),
+                                  );
+                                },
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

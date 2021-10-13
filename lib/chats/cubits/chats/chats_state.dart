@@ -4,7 +4,7 @@ class ChatsState extends Equatable {
   const ChatsState({
     this.chats = const [],
     this.name = const Name(''),
-    this.status = const FormStatus.init(),
+    this.form = FormStatus.init,
     this.listStatus = ListStatus.unknow,
     this.newChat = const NewChat(),
     this.nextChat,
@@ -13,7 +13,7 @@ class ChatsState extends Equatable {
 
   final List<Chat> chats;
   final Name name;
-  final FormStatus status;
+  final FormStatus form;
   final ListStatus listStatus;
   final NewChat newChat;
   final Chat? nextChat;
@@ -23,7 +23,7 @@ class ChatsState extends Equatable {
   List<Object?> get props => [
         chats,
         name,
-        status,
+        form,
         listStatus,
         newChat,
         nextChat,
@@ -33,7 +33,7 @@ class ChatsState extends Equatable {
   ChatsState copyWith(
       {List<Chat>? chats,
       Name? name,
-      FormStatus? status,
+      FormStatus? form,
       ListStatus? listStatus,
       NewChat? newChat,
       Chat? nextChat,
@@ -41,7 +41,7 @@ class ChatsState extends Equatable {
     return ChatsState(
       chats: chats ?? this.chats,
       name: name ?? this.name,
-      status: status ?? this.status,
+      form: form ?? this.form,
       listStatus: listStatus ?? this.listStatus,
       newChat: newChat ?? this.newChat,
       nextChat: nextChat,

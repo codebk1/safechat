@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/contacts/cubit/cubits.dart';
 
 import 'package:safechat/user/user.dart';
+import 'package:safechat/utils/form_helper.dart';
 
 class AddContactPage extends StatefulWidget {
   const AddContactPage({Key? key}) : super(key: key);
@@ -22,7 +23,7 @@ class _AddContactPageState extends State<AddContactPage> {
 
     return BlocConsumer<ContactsCubit, ContactsState>(
       listener: (context, state) {
-        if (state.status.isSuccess) {
+        if (state.form.isSuccess) {
           Navigator.of(context).pop();
 
           // ScaffoldMessenger.of(context)
@@ -46,7 +47,7 @@ class _AddContactPageState extends State<AddContactPage> {
           //   );
         }
 
-        if (state.status.isFailure) {
+        if (state.form.isFailure) {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
@@ -65,7 +66,7 @@ class _AddContactPageState extends State<AddContactPage> {
                     const SizedBox(
                       width: 10.0,
                     ),
-                    Text(state.status.error),
+                    Text(state.form.error!),
                   ],
                 ),
               ),
@@ -105,55 +106,52 @@ class _AddContactPageState extends State<AddContactPage> {
                 const SizedBox(
                   height: 20.0,
                 ),
-                Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      _EmailTextFormField(),
-                      const SizedBox(
-                        height: 15.0,
+                Column(
+                  children: [
+                    _EmailTextFormField(),
+                    const SizedBox(
+                      height: 15.0,
+                    ),
+                    Ink(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).primaryColor,
+                        borderRadius: BorderRadius.circular(5),
                       ),
-                      Ink(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor,
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: BlocBuilder<ContactsCubit, ContactsState>(
-                          builder: (context, state) {
-                            return InkWell(
-                              borderRadius: BorderRadius.circular(5.0),
-                              onTap: () {
-                                if (_formKey.currentState!.validate()) {
-                                  context.read<ContactsCubit>().addContact(
-                                        context.read<UserCubit>().state.user,
-                                      );
-                                }
-                              },
-                              child: SizedBox(
-                                height: 60.0,
-                                child: Center(
-                                  child: state.status.isLoading
-                                      ? const CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2.0,
-                                        )
-                                      : Text(
-                                          'Wyślij zaproszenie',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .headline6!
-                                              .copyWith(
-                                                color: Colors.white,
-                                              ),
-                                        ),
-                                ),
+                      child: BlocBuilder<ContactsCubit, ContactsState>(
+                        builder: (context, state) {
+                          return InkWell(
+                            borderRadius: BorderRadius.circular(5.0),
+                            onTap: () {
+                              if (_formKey.currentState!.validate()) {
+                                context.read<ContactsCubit>().addContact(
+                                      context.read<UserCubit>().state.user,
+                                    );
+                              }
+                            },
+                            child: SizedBox(
+                              height: 60.0,
+                              child: Center(
+                                child: state.form.isLoading
+                                    ? const CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2.0,
+                                      )
+                                    : Text(
+                                        'Wyślij zaproszenie',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .headline6!
+                                            .copyWith(
+                                              color: Colors.white,
+                                            ),
+                                      ),
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                          );
+                        },
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ],
             ),

@@ -5,13 +5,13 @@ enum ListStatus { unknow, loading, success, failure }
 class ContactsState extends Equatable {
   const ContactsState({
     this.email = const Email(''),
-    this.status = const FormStatus.init(),
+    this.form = FormStatus.init,
     this.listStatus = ListStatus.unknow,
     this.contacts = const [],
   });
 
   final Email email;
-  final FormStatus status;
+  final FormStatus form;
   final ListStatus listStatus;
   final List<Contact> contacts;
 
@@ -36,18 +36,18 @@ class ContactsState extends Equatable {
 
   ContactsState copyWith({
     Email? email,
-    FormStatus? status,
+    FormStatus? form,
     ListStatus? listStatus,
     List<Contact>? contacts,
   }) {
     return ContactsState(
       email: email ?? this.email,
-      status: status ?? this.status,
+      form: form ?? this.form,
       listStatus: listStatus ?? this.listStatus,
       contacts: contacts ?? this.contacts,
     );
   }
 
   @override
-  List<Object> get props => [email, status, listStatus, contacts];
+  List<Object> get props => [email, form, listStatus, contacts];
 }

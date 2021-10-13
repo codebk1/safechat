@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 
 import 'package:safechat/user/user.dart';
 import 'package:safechat/signup/signup.dart';
+import 'package:safechat/utils/form_helper.dart';
 
 class SignupPage extends StatelessWidget {
   const SignupPage({Key? key}) : super(key: key);
@@ -34,7 +35,7 @@ class _SignupViewState extends State<SignupView> {
 
     return BlocConsumer<SignupCubit, SignupState>(
       listener: (context, state) {
-        if (state.status.isSuccess) {
+        if (state.form.isSuccess) {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
@@ -63,7 +64,7 @@ class _SignupViewState extends State<SignupView> {
           Navigator.of(context).pushReplacementNamed('/login');
         }
 
-        if (state.status.isFailure) {
+        if (state.form.isFailure) {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
@@ -82,7 +83,7 @@ class _SignupViewState extends State<SignupView> {
                     const SizedBox(
                       width: 10.0,
                     ),
-                    Text(state.status.error),
+                    Text(state.form.error!),
                   ],
                 ),
               ),
@@ -160,33 +161,28 @@ class _SignupViewState extends State<SignupView> {
                                     ),
                                   ),
                                   const SizedBox(height: 25),
-                                  Form(
-                                    key: _formKey,
-                                    autovalidateMode:
-                                        AutovalidateMode.onUserInteraction,
-                                    child: Column(
-                                      children: [
-                                        Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Flexible(
-                                              child: _FirstNameTextFormField(),
-                                            ),
-                                            const SizedBox(width: 15),
-                                            Flexible(
-                                              child: _LastNameTextFormField(),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 15),
-                                        _EmailTextFormField(),
-                                        const SizedBox(height: 15),
-                                        _PasswordTextFormField(),
-                                        const SizedBox(height: 15),
-                                        _ConfirmPasswordTextFormField(),
-                                      ],
-                                    ),
+                                  Column(
+                                    children: [
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Flexible(
+                                            child: _FirstNameTextFormField(),
+                                          ),
+                                          const SizedBox(width: 15),
+                                          Flexible(
+                                            child: _LastNameTextFormField(),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 15),
+                                      _EmailTextFormField(),
+                                      const SizedBox(height: 15),
+                                      _PasswordTextFormField(),
+                                      const SizedBox(height: 15),
+                                      _ConfirmPasswordTextFormField(),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -228,7 +224,7 @@ class _SignupViewState extends State<SignupView> {
                                       child: SizedBox(
                                         height: 60.0,
                                         child: Center(
-                                          child: state.status.isLoading
+                                          child: state.form.isLoading
                                               ? const CircularProgressIndicator(
                                                   color: Colors.white,
                                                   strokeWidth: 2.0,

@@ -5,22 +5,22 @@ import 'package:safechat/utils/utils.dart';
 class NewChat extends Equatable {
   const NewChat({
     this.selectedParticipants = const [],
-    this.status = const FormStatus.init(),
+    this.form = FormStatus.init,
   });
 
   final List<Contact> selectedParticipants;
-  final FormStatus status;
+  final FormStatus form;
 
   @override
-  List<Object> get props => [selectedParticipants, status];
+  List<Object> get props => [selectedParticipants, form];
 
   NewChat copyWith({
     List<Contact>? selectedParticipants,
-    FormStatus? status,
+    FormStatus? form,
   }) {
     return NewChat(
       selectedParticipants: selectedParticipants ?? this.selectedParticipants,
-      status: status ?? this.status,
+      form: form ?? this.form,
     );
   }
 }

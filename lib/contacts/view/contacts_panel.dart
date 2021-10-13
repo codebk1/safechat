@@ -1,3 +1,4 @@
+import 'package:collection/src/iterable_extensions.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -224,23 +225,22 @@ class _ContactActions extends StatelessWidget {
       case CurrentState.accepted:
         return IconButton(
           onPressed: () async {
-            Chat? chat;
-
-            var newParticipants = [
+            final newParticipants = [
               contact.id,
               context.read<UserCubit>().state.user.id,
             ];
 
-            var checkChats = context.read<ChatsCubit>().state.chats.where(
-                (dynamic c) =>
+            Chat? chat = context
+                .read<ChatsCubit>()
+                .state
+                .chats
+                .firstWhereOrNull((c) =>
                     c.participants
                         .every((p) => newParticipants.contains(p.id)) &&
                     c.participants.length == newParticipants.length &&
                     c.type == ChatType.direct);
 
-            if (checkChats.isNotEmpty) {
-              chat = checkChats.first;
-            } else {
+            if (chat == null) {
               context.read<ContactsCubit>().startLoading(contact.id);
 
               chat = await context.read<ChatsCubit>().createChat(
@@ -252,15 +252,13 @@ class _ContactActions extends StatelessWidget {
               context.read<ContactsCubit>().stopLoading(contact.id);
             }
 
-            if (chat != null) {
-              Navigator.of(context).pushNamed(
-                '/chat',
-                arguments: ChatPageArguments(
-                  chat,
-                  [contact],
-                ),
-              );
-            }
+            Navigator.of(context).pushNamed(
+              '/chat',
+              arguments: ChatPageArguments(
+                chat!,
+                [contact],
+              ),
+            );
           },
           icon: const Icon(
             Icons.chat,
