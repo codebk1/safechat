@@ -15,13 +15,9 @@ class LoginCubit extends Cubit<LoginState> {
   final AuthRepository _authRepository;
 
   Future<void> submit() async {
-    emit(state.copyWith(
-      email: Email(state.email.value),
-      password: Password(state.password.value),
-      formStatus: FormStatus.validate([state.email, state.email]),
-    ));
+    emit(state.copyWith(formStatus: FormStatus.submiting));
 
-    if (state.formStatus.isValid) {
+    if (state.validate.isValid) {
       try {
         emit(state.copyWith(formStatus: FormStatus.loading));
 
@@ -42,20 +38,14 @@ class LoginCubit extends Cubit<LoginState> {
   }
 
   void emailChanged(String value) {
-    final email = Email(value);
-
     emit(state.copyWith(
-      email: email,
-      formStatus: FormStatus.validate([email, state.password]),
+      email: Email(value),
     ));
   }
 
   void passwordChanged(String value) {
-    final password = Password(value);
-
     emit(state.copyWith(
-      password: password,
-      formStatus: FormStatus.validate([state.email, password]),
+      password: Password(value),
     ));
   }
 }

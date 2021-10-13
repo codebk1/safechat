@@ -1,50 +1,28 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
-import 'package:safechat/user/user.dart';
+import 'package:safechat/utils/utils.dart';
 import 'package:safechat/signup/signup.dart';
-import 'package:safechat/utils/form_helper.dart';
 
 class SignupPage extends StatelessWidget {
   const SignupPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => SignupCubit(context.read<AuthRepository>()),
-      child: const SignupView(),
-    );
-  }
-}
-
-class SignupView extends StatefulWidget {
-  const SignupView({Key? key}) : super(key: key);
-
-  @override
-  _SignupViewState createState() => _SignupViewState();
-}
-
-class _SignupViewState extends State<SignupView> {
-  final _formKey = GlobalKey<FormState>();
-
-  @override
-  Widget build(BuildContext context) {
-    final bool _keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
-    final Orientation _orientation = MediaQuery.of(context).orientation;
+    final _keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+    final _orientation = MediaQuery.of(context).orientation;
+    final _showHero = !_keyboardOpen && _orientation == Orientation.portrait;
 
     return BlocConsumer<SignupCubit, SignupState>(
+      buildWhen: (previous, current) => previous.email != current.email,
       listener: (context, state) {
-        if (state.form.isSuccess) {
+        if (state.formStatus.isSuccess) {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
               SnackBar(
-                // action: SnackBarAction(
-                //   onPressed: () =>
-                //       ScaffoldMessenger.of(context).hideCurrentSnackBar(),
-                //   label: 'Zamknij',
-                // ),
                 duration: const Duration(seconds: 1),
                 content: Row(
                   children: const <Widget>[
@@ -64,7 +42,7 @@ class _SignupViewState extends State<SignupView> {
           Navigator.of(context).pushReplacementNamed('/login');
         }
 
-        if (state.form.isFailure) {
+        if (state.formStatus.isFailure) {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
@@ -83,7 +61,7 @@ class _SignupViewState extends State<SignupView> {
                     const SizedBox(
                       width: 10.0,
                     ),
-                    Text(state.form.error!),
+                    Text(state.formStatus.error!),
                   ],
                 ),
               ),
@@ -105,17 +83,11 @@ class _SignupViewState extends State<SignupView> {
                     hasScrollBody: false,
                     child: Column(
                       children: [
-                        if (!_keyboardOpen &&
-                            _orientation == Orientation.portrait)
+                        if (_showHero)
                           Column(
                             children: [
-                              Row(
-                                children: [
-                                  IconButton(
-                                    onPressed: () {},
-                                    icon: const Icon(Icons.reply),
-                                  ),
-                                ],
+                              const SizedBox(
+                                height: 25.0,
                               ),
                               SvgPicture.asset(
                                 'assets/logo.svg',
@@ -128,12 +100,12 @@ class _SignupViewState extends State<SignupView> {
                                   thickness: 1,
                                 ),
                               ),
+                              const Divider(
+                                height: 0,
+                                thickness: 1,
+                              ),
                             ],
                           ),
-                        const Divider(
-                          height: 0,
-                          thickness: 1,
-                        ),
                         Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 20.0,
@@ -217,14 +189,12 @@ class _SignupViewState extends State<SignupView> {
                                     return InkWell(
                                       borderRadius: BorderRadius.circular(5.0),
                                       onTap: () {
-                                        if (_formKey.currentState!.validate()) {
-                                          context.read<SignupCubit>().submit();
-                                        }
+                                        context.read<SignupCubit>().submit();
                                       },
                                       child: SizedBox(
                                         height: 60.0,
                                         child: Center(
-                                          child: state.form.isLoading
+                                          child: state.formStatus.isLoading
                                               ? const CircularProgressIndicator(
                                                   color: Colors.white,
                                                   strokeWidth: 2.0,
@@ -253,8 +223,13 @@ class _SignupViewState extends State<SignupView> {
                                         Theme.of(context).textTheme.subtitle2,
                                   ),
                                   TextButton(
-                                    onPressed: () => Navigator.of(context)
-                                        .pushReplacementNamed('/login'),
+                                    onPressed: () {
+                                      Navigator.of(context)
+                                          .pushNamedAndRemoveUntil(
+                                        '/login',
+                                        (Route<dynamic> route) => false,
+                                      );
+                                    },
                                     child: const Text(
                                       'Zaloguj się',
                                       style: TextStyle(color: Colors.black),
@@ -282,18 +257,18 @@ class _FirstNameTextFormField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SignupCubit, SignupState>(
-      buildWhen: (previous, current) => previous.firstName != current.firstName,
       builder: (context, state) {
         return TextFormField(
           onChanged: (value) =>
               context.read<SignupCubit>().firstNameChanged(value),
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Imię',
+            errorText:
+                state.formStatus.isSubmiting ? state.firstName.error : null,
           ),
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           validator: (String? value) {
-            if (value!.isEmpty) {
-              return 'Imię jest wymagane.';
-            }
+            return state.firstName.error;
           },
         );
       },
@@ -305,18 +280,18 @@ class _LastNameTextFormField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SignupCubit, SignupState>(
-      buildWhen: (previous, current) => previous.lastName != current.lastName,
       builder: (context, state) {
         return TextFormField(
           onChanged: (value) =>
               context.read<SignupCubit>().lastNameChanged(value),
-          decoration: const InputDecoration(
-            labelText: 'Naziwsko',
+          decoration: InputDecoration(
+            labelText: 'Nazwisko',
+            errorText:
+                state.formStatus.isSubmiting ? state.lastName.error : null,
           ),
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           validator: (String? value) {
-            if (value!.isEmpty) {
-              return 'Nazwisko jest wymagane.';
-            }
+            return state.lastName.error;
           },
         );
       },
@@ -328,17 +303,16 @@ class _EmailTextFormField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SignupCubit, SignupState>(
-      buildWhen: (previous, current) => previous.email != current.email,
       builder: (context, state) {
         return TextFormField(
           onChanged: (value) => context.read<SignupCubit>().emailChanged(value),
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Email',
+            errorText: state.formStatus.isSubmiting ? state.email.error : null,
           ),
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           validator: (String? value) {
-            if (value!.isEmpty) {
-              return 'Email jest wymagany.';
-            }
+            return state.email.error;
           },
         );
       },
@@ -350,19 +324,19 @@ class _PasswordTextFormField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SignupCubit, SignupState>(
-      buildWhen: (previous, current) => previous.password != current.password,
       builder: (context, state) {
         return TextFormField(
           onChanged: (value) =>
               context.read<SignupCubit>().passwordChanged(value),
           obscureText: true,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Hasło',
+            errorText:
+                state.formStatus.isSubmiting ? state.password.error : null,
           ),
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           validator: (String? value) {
-            if (value!.isEmpty) {
-              return 'Hasło jest wymagane.';
-            }
+            return state.password.error;
           },
         );
       },
@@ -374,22 +348,20 @@ class _ConfirmPasswordTextFormField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SignupCubit, SignupState>(
-      buildWhen: (previous, current) =>
-          previous.confirmPassword != current.confirmPassword,
       builder: (context, state) {
         return TextFormField(
           onChanged: (value) =>
               context.read<SignupCubit>().confirmPasswordChanged(value),
           obscureText: true,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Potwierdź hasło',
+            errorText: state.formStatus.isSubmiting
+                ? state.confirmPassword.error
+                : null,
           ),
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           validator: (String? value) {
-            if (value!.isEmpty) {
-              return 'Potwierdzenie hasła jest wymagane.';
-            } else if (value != state.password.value) {
-              return 'Podane hasła różnią się.';
-            }
+            return state.confirmPassword.error;
           },
         );
       },

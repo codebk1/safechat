@@ -45,7 +45,12 @@ class AppRouter {
         );
       case '/signup':
         return PageRouteBuilder(
-          pageBuilder: (_, __, ___) => const SignupPage(),
+          pageBuilder: (context, __, ___) => BlocProvider(
+            create: (_) => SignupCubit(
+              context.read<AuthRepository>(),
+            ),
+            child: const SignupPage(),
+          ),
         );
       case '/home':
         return PageRouteBuilder(

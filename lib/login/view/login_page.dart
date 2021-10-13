@@ -14,6 +14,7 @@ class LoginPage extends StatelessWidget {
     final _showHero = !_keyboardOpen && _orientation == Orientation.portrait;
 
     return BlocConsumer<LoginCubit, LoginState>(
+      listenWhen: (prev, curr) => prev.formStatus != curr.formStatus,
       listener: (context, state) {
         if (state.formStatus.isSuccess) {
           Navigator.of(context).pushReplacementNamed('/home');

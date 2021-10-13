@@ -16,7 +16,7 @@ class SignupLink extends StatelessWidget {
         ),
         TextButton(
           onPressed: () {
-            Navigator.of(context).pushReplacementNamed('/signup');
+            Navigator.of(context).pushNamed('/signup');
           },
           child: const Text(
             'Zarejestruj się',

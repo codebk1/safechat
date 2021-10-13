@@ -16,8 +16,13 @@ class PasswordTextFormField extends StatelessWidget {
           obscureText: true,
           decoration: InputDecoration(
             labelText: 'Hasło',
-            errorText: state.formStatus.isInvalid ? state.password.error : null,
+            errorText:
+                state.formStatus.isSubmiting ? state.password.error : null,
           ),
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          validator: (String? value) {
+            return state.password.error;
+          },
         );
       },
     );

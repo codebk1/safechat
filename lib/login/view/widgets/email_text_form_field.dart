@@ -14,8 +14,12 @@ class EmailTextFormField extends StatelessWidget {
           onChanged: (value) => context.read<LoginCubit>().emailChanged(value),
           decoration: InputDecoration(
             labelText: 'Email',
-            errorText: state.formStatus.isInvalid ? state.email.error : null,
+            errorText: state.formStatus.isSubmiting ? state.email.error : null,
           ),
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          validator: (String? value) {
+            return state.email.error;
+          },
         );
       },
     );

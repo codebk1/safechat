@@ -1,9 +1,9 @@
 part of 'login_cubit.dart';
 
-class LoginState extends Equatable {
+class LoginState extends Equatable with ValidationMixin {
   const LoginState({
-    this.email = const Email.init(),
-    this.password = const Password.init(),
+    this.email = const Email(''),
+    this.password = const Password(''),
     this.formStatus = FormStatus.init,
   });
 
@@ -13,6 +13,9 @@ class LoginState extends Equatable {
 
   @override
   List<Object> get props => [email, password, formStatus];
+
+  @override
+  List<FormItem> get inputs => [email, password];
 
   LoginState copyWith({
     Email? email,

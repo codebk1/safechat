@@ -1,16 +1,15 @@
-import 'package:safechat/common/models/password.dart';
 import 'package:safechat/utils/form_helper.dart';
 import 'package:safechat/utils/validator.dart';
 
 class ConfirmPassword extends FormItem<String> {
-  const ConfirmPassword({required this.password, String value = ''})
+  const ConfirmPassword({required String value, required this.password})
       : super(value);
 
-  final Password password;
+  final String password;
 
   @override
   List<Validator> get validators => [
         RequiredValidator(errorText: 'Hasło jest wymagane.'),
-        MatchValidator(password.value, 'Podane hasła różnią się.'),
+        MatchValidator(password, 'Podane hasła różnią się.'),
       ];
 }
