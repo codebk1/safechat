@@ -2,14 +2,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:dio/dio.dart';
 
-import 'package:safechat/common/models/models.dart';
 import 'package:safechat/utils/utils.dart';
+import 'package:safechat/common/common.dart';
 import 'package:safechat/user/user.dart';
 
 part 'login_state.dart';
 
 class LoginCubit extends Cubit<LoginState> {
-  LoginCubit(this._userCubit, this._authRepository) : super(const LoginState());
+  LoginCubit(
+    this._userCubit,
+    this._authRepository,
+  ) : super(const LoginState());
 
   final UserCubit _userCubit;
   final AuthRepository _authRepository;
@@ -28,10 +31,6 @@ class LoginCubit extends Cubit<LoginState> {
       } on DioError catch (e) {
         emit(state.copyWith(
           formStatus: FormStatus.failure(e.response?.data['message']),
-        ));
-      } catch (e) {
-        emit(state.copyWith(
-          formStatus: FormStatus.failure(e.toString()),
         ));
       }
     }

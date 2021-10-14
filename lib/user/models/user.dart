@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
+
 import 'package:safechat/contacts/contacts.dart';
 
 class User extends Equatable {
@@ -19,11 +20,25 @@ class User extends Equatable {
   final String lastName;
   final dynamic avatar;
   final Status status;
-
   final String fcmToken;
 
   @override
-  List<Object?> get props => [email, firstName, lastName, avatar, status];
+  List<Object?> get props => [
+        email,
+        firstName,
+        lastName,
+        avatar,
+        status,
+      ];
+
+  static const empty = User(
+    id: '',
+    email: '',
+    firstName: '',
+    lastName: '',
+    status: Status.visible,
+    fcmToken: '',
+  );
 
   User.fromJson(Map<String, dynamic> json)
       : id = json['id']!,
@@ -35,15 +50,6 @@ class User extends Equatable {
           (e) => describeEnum(e) == json['profile']['status']!,
         ),
         fcmToken = json['fcmToken']!;
-
-  static const empty = User(
-    id: '',
-    email: '',
-    firstName: '',
-    lastName: '',
-    status: Status.visible,
-    fcmToken: '',
-  );
 
   User copyWith({
     String? id,

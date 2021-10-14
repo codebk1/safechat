@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:safechat/login/login.dart';
 import 'package:safechat/utils/utils.dart';
+import 'package:safechat/common/common.dart';
+import 'package:safechat/login/login.dart';
 
 class LoginPage extends StatelessWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -24,27 +28,9 @@ class LoginPage extends StatelessWidget {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(
-                action: SnackBarAction(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                  },
-                  label: 'Zamknij',
-                ),
-                content: Row(
-                  children: <Widget>[
-                    const Icon(
-                      Icons.error,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(
-                      width: 10.0,
-                    ),
-                    Text(
-                      state.formStatus.error!,
-                    ),
-                  ],
-                ),
+              getErrorSnackBar(
+                context,
+                errorText: state.formStatus.error!,
               ),
             );
         }
@@ -91,14 +77,16 @@ class LoginPage extends StatelessWidget {
                                   style: Theme.of(context).textTheme.subtitle2,
                                 ),
                               ),
-                              const SizedBox(
-                                height: 25,
-                              ),
-                              const EmailTextFormField(),
-                              const SizedBox(
-                                height: 15,
-                              ),
-                              const PasswordTextFormField(),
+                              ...const [
+                                SizedBox(
+                                  height: 25,
+                                ),
+                                EmailInput(),
+                                SizedBox(
+                                  height: 15,
+                                ),
+                                PasswordInput(),
+                              ]
                             ],
                           ),
                         ),
@@ -119,9 +107,13 @@ class LoginPage extends StatelessWidget {
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.end,
-                            children: const [
-                              PrimaryButton(),
-                              SignupLink(),
+                            children: [
+                              PrimaryButton(
+                                label: 'Zaloguj',
+                                onTap: context.read<LoginCubit>().submit,
+                                isLoading: state.formStatus.isLoading,
+                              ),
+                              const SignupLink(),
                             ],
                           ),
                         ),

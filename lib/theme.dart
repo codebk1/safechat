@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  AppTheme._();
+  //AppTheme._();
 
   static final ThemeData lightTheme = ThemeData(
     primaryColor: Colors.blue.shade800,
     fontFamily: 'Roboto',
     scaffoldBackgroundColor: Colors.white,
     dividerColor: Colors.blueGrey.shade50,
-    // iconTheme: const IconThemeData(
-    //   color: Colors.blueGrey,
-    // ),
     textTheme: const TextTheme(
       headline5: TextStyle(
         fontSize: 26,

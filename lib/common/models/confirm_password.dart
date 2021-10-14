@@ -9,7 +9,7 @@ class ConfirmPassword extends FormItem<String> {
 
   @override
   List<Validator> get validators => [
-        RequiredValidator(errorText: 'Hasło jest wymagane.'),
+        RequiredValidator(errorText: 'Potwierdzenia hasła jest wymagane.'),
         MatchValidator(password, 'Podane hasła różnią się.'),
       ];
 }

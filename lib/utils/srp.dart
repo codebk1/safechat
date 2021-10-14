@@ -21,10 +21,14 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:pointycastle/export.dart';
-import 'package:safechat/utils/encryption_service.dart';
+
+import 'package:safechat/utils/utils.dart';
 
 class SRP {
-  SRP({required this.N, required this.g});
+  SRP({
+    required this.N,
+    required this.g,
+  });
 
   final BigInt N;
   final BigInt g;

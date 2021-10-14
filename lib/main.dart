@@ -7,9 +7,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-import 'package:safechat/app/app_bloc_observer.dart';
 import 'package:safechat/app/app.dart';
-import 'package:safechat/utils/notification_service.dart';
+import 'package:safechat/app/app_bloc_observer.dart';
+import 'package:safechat/utils/utils.dart';
 
 class MyHttpOverrides extends HttpOverrides {
   @override
@@ -24,7 +24,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   HttpOverrides.global = MyHttpOverrides(); // błąd z certyfikatem
-
   Bloc.observer = AppBlocObserver();
 
   FlutterError.onError = (details) {

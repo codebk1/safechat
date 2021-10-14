@@ -4,11 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:safechat/theme.dart';
 import 'package:safechat/router.dart';
+import 'package:safechat/utils/utils.dart';
 import 'package:safechat/user/user.dart';
-import 'package:safechat/utils/notification_service.dart';
 
 class App extends StatefulWidget {
-  const App({Key? key}) : super(key: key);
+  const App({
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<App> createState() => _AppState();

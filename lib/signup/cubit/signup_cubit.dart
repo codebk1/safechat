@@ -3,16 +3,17 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:dio/dio.dart';
-import 'package:safechat/common/models/confirm_password.dart';
 
 import 'package:safechat/utils/utils.dart';
-import 'package:safechat/common/models/models.dart';
+import 'package:safechat/common/common.dart';
 import 'package:safechat/user/user.dart';
 
 part 'signup_state.dart';
 
 class SignupCubit extends Cubit<SignupState> {
-  SignupCubit(this._authRepository) : super(const SignupState());
+  SignupCubit(
+    this._authRepository,
+  ) : super(const SignupState());
 
   final AuthRepository _authRepository;
 
@@ -59,7 +60,7 @@ class SignupCubit extends Cubit<SignupState> {
 
   void passwordChanged(String value) {
     emit(state.copyWith(
-      password: Password(value),
+      password: Password(value, restrict: true),
     ));
   }
 

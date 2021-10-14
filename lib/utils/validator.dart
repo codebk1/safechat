@@ -34,7 +34,9 @@ class MultiValidator extends Validator<String?> {
 }
 
 class RequiredValidator extends Validator<String> {
-  RequiredValidator({required String errorText}) : super(errorText);
+  RequiredValidator({
+    String? errorText,
+  }) : super(errorText ?? 'Pole jest wymagane.');
 
   @override
   bool isValid(value) {
@@ -43,8 +45,9 @@ class RequiredValidator extends Validator<String> {
 }
 
 class EmailValidator extends Validator<String> {
-  EmailValidator([String? errorText])
-      : super(errorText ?? 'Podany email jest niepoprawny.');
+  EmailValidator({
+    String? errorText,
+  }) : super(errorText ?? 'Podany email jest niepoprawny.');
 
   @override
   bool isValid(String value) {
@@ -56,9 +59,39 @@ class EmailValidator extends Validator<String> {
   }
 }
 
+class MinLengthValidator extends Validator<String> {
+  MinLengthValidator(
+    this.minLength, {
+    String? errorText,
+  }) : super(errorText ?? 'Wymagane minimum $minLength znaków.');
+
+  final int minLength;
+
+  @override
+  bool isValid(String value) {
+    return value.length >= minLength;
+  }
+}
+
+class PatternValidator extends Validator<String> {
+  PatternValidator(
+    this.pattern, {
+    String? errorText,
+  }) : super(errorText ?? 'Wprowadzono wratość niezgodną z wymaganiami.');
+
+  final String pattern;
+
+  @override
+  bool isValid(String value) {
+    return RegExp(pattern).hasMatch(value);
+  }
+}
+
 class MatchValidator extends Validator<String> {
-  MatchValidator(this.firstValue, [String? errorText])
-      : super(errorText ?? 'Podane wartości różnią się.');
+  MatchValidator(
+    this.firstValue, [
+    String? errorText,
+  ]) : super(errorText ?? 'Podane wartości różnią się.');
 
   final String firstValue;
 

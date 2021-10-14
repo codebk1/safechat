@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:safechat/common/common.dart';
 
 class HeroSection extends StatelessWidget {
   const HeroSection({
@@ -13,10 +15,8 @@ class HeroSection extends StatelessWidget {
         const SizedBox(
           height: 25.0,
         ),
-        SvgPicture.asset(
-          'assets/logo.svg',
-          allowDrawingOutsideViewBox: true,
-          width: 180,
+        const Logo(
+          size: 180.0,
         ),
         Stack(
           alignment: Alignment.center,

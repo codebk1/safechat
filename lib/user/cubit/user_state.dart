@@ -11,6 +11,9 @@ class UserState extends Equatable {
   final AuthState authState;
   final User user;
 
+  @override
+  List<Object> get props => [authState, user];
+
   UserState copyWith({
     AuthState? authState,
     User? user,
@@ -20,7 +23,4 @@ class UserState extends Equatable {
       user: user ?? this.user,
     );
   }
-
-  @override
-  List<Object> get props => [authState, user];
 }

@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
-import 'package:safechat/utils/validator.dart';
+
+import 'package:safechat/utils/utils.dart';
 
 enum FStatus { init, submiting, loading, success, failure }
 enum VStatus { valid, invalid }
@@ -12,11 +13,8 @@ abstract class FormItem<T> {
 
   bool get isValid => validators.every((v) => v.isValid(value));
 
-  String? get error => validators
-      .firstWhereOrNull(
-        (v) => !v.isValid(value),
-      )
-      ?.errorText;
+  String? get error =>
+      validators.firstWhereOrNull((v) => !v.isValid(value))?.errorText;
 }
 
 class FormStatus {
@@ -26,10 +24,10 @@ class FormStatus {
   });
 
   static const FormStatus init = FormStatus(status: FStatus.init);
-
   static const FormStatus submiting = FormStatus(status: FStatus.submiting);
   static const FormStatus loading = FormStatus(status: FStatus.loading);
   static const FormStatus success = FormStatus(status: FStatus.success);
+
   const FormStatus.failure(String error)
       : this(status: FStatus.failure, error: error);
 

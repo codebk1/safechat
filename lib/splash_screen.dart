@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 
+import 'package:safechat/common/common.dart';
 import 'package:safechat/user/user.dart';
 
 class SplashScreen extends StatelessWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -31,10 +33,8 @@ class SplashScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SvgPicture.asset(
-              'assets/logo.svg',
-              allowDrawingOutsideViewBox: true,
-              width: 180,
+            const Logo(
+              size: 180,
             ),
             const SizedBox(
               height: 35.0,

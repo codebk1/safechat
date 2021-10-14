@@ -9,7 +9,7 @@ import 'package:pointycastle/asn1/primitives/asn1_sequence.dart';
 import 'package:pointycastle/export.dart';
 
 class EncryptionService {
-  static final EncryptionService _singleton = EncryptionService._internal();
+  static final _singleton = EncryptionService._internal();
 
   factory EncryptionService() {
     return _singleton;
@@ -22,7 +22,6 @@ class EncryptionService {
   Uint8List? sharedKey;
 
   Future<void> init() async {
-    print('ENCRYPTION SERVICE INIT');
     const storage = FlutterSecureStorage();
 
     final publicKey = await storage.read(key: 'publicKey');
@@ -34,15 +33,15 @@ class EncryptionService {
       this.privateKey = parsePrivateKeyFromPem(privateKey);
       this.sharedKey = base64.decode(sharedKey);
     }
-
-    print('END INIT');
   }
 
   String rsaEncrypt(Uint8List data, [RSAPublicKey? key]) {
     final encryptor = OAEPEncoding(RSAEngine())
       ..init(
         true,
-        PublicKeyParameter<RSAPublicKey>(key ?? publicKey as RSAPublicKey),
+        PublicKeyParameter<RSAPublicKey>(
+          key ?? publicKey as RSAPublicKey,
+        ),
       );
 
     final encryptedData = _processInBlocks(encryptor, data);
@@ -53,14 +52,13 @@ class EncryptionService {
   Uint8List rsaDecrypt(String data, [RSAPrivateKey? key]) {
     final decryptor = OAEPEncoding(RSAEngine())
       ..init(
-          false,
-          PrivateKeyParameter<RSAPrivateKey>(
-            key ?? privateKey as RSAPrivateKey,
-          ));
+        false,
+        PrivateKeyParameter<RSAPrivateKey>(
+          key ?? privateKey as RSAPrivateKey,
+        ),
+      );
 
-    final decryptedData = _processInBlocks(decryptor, base64.decode(data));
-
-    return decryptedData;
+    return _processInBlocks(decryptor, base64.decode(data));
   }
 
   Uint8List argon2DeriveKey(String data, Uint8List salt) {
@@ -71,7 +69,9 @@ class EncryptionService {
         desiredKeyLength: 32,
       ));
 
-    return argon2.process(Uint8List.fromList(data.codeUnits));
+    return argon2.process(
+      Uint8List.fromList(data.codeUnits),
+    );
   }
 
   Uint8List chachaEncrypt(
@@ -125,7 +125,7 @@ class EncryptionService {
       Uint8List(0),
     );
 
-    var decryptor = ChaCha20Poly1305(ChaCha7539Engine(), Poly1305())
+    final decryptor = ChaCha20Poly1305(ChaCha7539Engine(), Poly1305())
       ..init(false, parameters);
 
     final decryptedData = Uint8List(
@@ -159,41 +159,35 @@ class EncryptionService {
   RSAPublicKey parsePublicKeyFromPem(pemString) {
     Uint8List publicKeyDER = base64.decode(pemString);
 
-    var parser = ASN1Parser(publicKeyDER);
-    var sequence = parser.nextObject() as ASN1Sequence;
+    final parser = ASN1Parser(publicKeyDER);
+    final sequence = parser.nextObject() as ASN1Sequence;
 
-    // ignore: prefer_typing_uninitialized_variables
-    var modulus, exponent;
+    final modulus = sequence.elements![0] as ASN1Integer;
+    final exponent = sequence.elements![1] as ASN1Integer;
 
-    modulus = sequence.elements![0] as ASN1Integer;
-    exponent = sequence.elements![1] as ASN1Integer;
-
-    RSAPublicKey rsaPublicKey = RSAPublicKey(modulus.integer, exponent.integer);
-
-    return rsaPublicKey;
+    return RSAPublicKey(
+      modulus.integer!,
+      exponent.integer!,
+    );
   }
 
   RSAPrivateKey parsePrivateKeyFromPem(pemString) {
     Uint8List privateKeyDER = base64.decode(pemString);
-    var asn1Parser = ASN1Parser(privateKeyDER);
-    var topLevelSeq = asn1Parser.nextObject() as ASN1Sequence;
 
-    // ignore: prefer_typing_uninitialized_variables
-    var modulus, privateExponent, p, q;
+    final asn1Parser = ASN1Parser(privateKeyDER);
+    final topLevelSeq = asn1Parser.nextObject() as ASN1Sequence;
 
-    modulus = topLevelSeq.elements![0] as ASN1Integer;
-    privateExponent = topLevelSeq.elements![1] as ASN1Integer;
-    p = topLevelSeq.elements![2] as ASN1Integer;
-    q = topLevelSeq.elements![3] as ASN1Integer;
+    final modulus = topLevelSeq.elements![0] as ASN1Integer;
+    final privateExponent = topLevelSeq.elements![1] as ASN1Integer;
+    final p = topLevelSeq.elements![2] as ASN1Integer;
+    final q = topLevelSeq.elements![3] as ASN1Integer;
 
-    RSAPrivateKey rsaPrivateKey = RSAPrivateKey(
-      modulus.integer,
-      privateExponent.integer,
+    return RSAPrivateKey(
+      modulus.integer!,
+      privateExponent.integer!,
       p.integer,
       q.integer,
     );
-
-    return rsaPrivateKey;
   }
 
   Uint8List _processInBlocks(AsymmetricBlockCipher engine, Uint8List input) {
@@ -204,6 +198,7 @@ class EncryptionService {
 
     var inputOffset = 0;
     var outputOffset = 0;
+
     while (inputOffset < input.length) {
       final chunkSize = (inputOffset + engine.inputBlockSize <= input.length)
           ? engine.inputBlockSize

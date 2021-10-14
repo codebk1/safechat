@@ -4,40 +4,29 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:safechat/contacts/contacts.dart';
-import 'package:safechat/utils/socket_service.dart';
-
-import 'package:socket_io_client/socket_io_client.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:socket_io_client/socket_io_client.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
+import 'package:safechat/utils/utils.dart';
 import 'package:safechat/user/user.dart';
+import 'package:safechat/contacts/contacts.dart';
 
 part 'user_state.dart';
 
 class UserCubit extends Cubit<UserState> {
-  UserCubit(this._authRepository, this._userRepository)
-      : super(const UserState()) {
-    print('INIT USER SOCKET');
-
+  UserCubit(
+    this._authRepository,
+    this._userRepository,
+  ) : super(const UserState()) {
     _wsService.socket.onConnectError((data) {
-      print({'ERRRORRRRRRRR', data});
-      //this.unauthenticate();
+      unauthenticate();
     });
 
     _wsService.socket.onConnect((_) {
-      print('connected: ${state.user.id}');
-
-      //emit(state.copyWith(user: state.user.copyWith(status: Status.online)));
       _wsService.socket.emit('online', state.user.id);
     });
-
-    // _wsService.socket.onDisconnect((data) {
-    //   //_wsService.socket.emit('offline', state.user.id);
-    // });
-
-    print('END SOCKET INIT');
   }
 
   final _wsService = SocketService();
@@ -53,7 +42,10 @@ class UserCubit extends Cubit<UserState> {
       if (token != null) {
         final user = await _userRepository.getUser();
 
-        emit(state.copyWith(authState: AuthState.authenticated, user: user));
+        emit(state.copyWith(
+          authState: AuthState.authenticated,
+          user: user,
+        ));
 
         _wsService.socket.io.options['extraHeaders'] = {
           'authorization': 'Bearer $token',
@@ -61,20 +53,18 @@ class UserCubit extends Cubit<UserState> {
 
         _wsService.socket.connect();
       } else {
-        emit(state.copyWith(authState: AuthState.unauthenticated));
+        emit(state.copyWith(
+          authState: AuthState.unauthenticated,
+        ));
       }
     } on DioError catch (_) {
-      emit(state.copyWith(authState: AuthState.unauthenticated));
-    } catch (error) {
-      print('ERRROR $error');
-      emit(state.copyWith(authState: AuthState.unauthenticated));
+      emit(state.copyWith(
+        authState: AuthState.unauthenticated,
+      ));
     }
   }
 
   Future<void> unauthenticate() async {
-    //print('offline');
-    //_wsService.socket.emit('offline', state.user.id);
-
     await _authRepository.logout();
     _wsService.socket.disconnect();
 
@@ -110,7 +100,9 @@ class UserCubit extends Cubit<UserState> {
 
     await _userRepository.updateAvatar(state.user.id, avatar);
 
-    emit(state.copyWith(user: state.user.copyWith(avatar: avatarName)));
+    emit(state.copyWith(
+      user: state.user.copyWith(avatar: avatarName),
+    ));
   }
 
   updateStatus(Status status) async {
@@ -128,6 +120,8 @@ class UserCubit extends Cubit<UserState> {
 
   removeAvatar() async {
     await _userRepository.removeAvatar();
-    emit(state.copyWith(user: state.user.copyWith(avatar: null)));
+    emit(state.copyWith(
+      user: state.user.copyWith(avatar: null),
+    ));
   }
 }

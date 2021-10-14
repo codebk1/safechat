@@ -6,8 +6,8 @@ class ApiService {
   Dio init() {
     Dio _dio = Dio();
     _dio.interceptors.add(ApiInterceptors());
-
     _dio.options.baseUrl = dotenv.env['BASE_URL']!;
+
     return _dio;
   }
 }

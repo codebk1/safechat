@@ -1,17 +1,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:pointycastle/asn1/primitives/asn1_integer.dart';
-import 'package:pointycastle/asn1/primitives/asn1_sequence.dart';
 import 'package:pointycastle/export.dart';
-import 'package:safechat/utils/api_service.dart';
-import 'package:safechat/utils/encryption_service.dart';
+import 'package:pointycastle/pointycastle.dart';
 
-import 'package:safechat/utils/srp/srp.dart';
-import 'package:safechat/utils/srp/utils.dart';
+import 'package:safechat/utils/utils.dart';
 
 AsymmetricKeyPair<PublicKey, PrivateKey> getRsaKeyPair(
   SecureRandom secureRandom,
@@ -41,7 +37,9 @@ class AuthRepository {
     });
 
     final B = BigInt.parse(res.data['B']);
-    final s = _srpClient.bytesArrayToBigInt(base64.decode(res.data['s']));
+    final s = _srpClient.bytesArrayToBigInt(base64.decode(
+      res.data['s'],
+    ));
 
     final a = await _srpClient.a();
     final A = _srpClient.A(a);
@@ -50,9 +48,6 @@ class AuthRepository {
     final u = await _srpClient.u(A, B);
     final S = _srpClient.S(k, u, x, B, a);
     final m1 = await _srpClient.m1(A, B, S);
-
-    //print({'S', S});
-    //print({'m1', m1});
 
     final proof = await _apiService.post('/auth/proof', data: {
       'email': email,
@@ -63,14 +58,9 @@ class AuthRepository {
     final m2 = BigInt.parse(proof.data['M2']);
     final proofM2 = await _srpClient.proofServerM2(A, m1, S);
 
-    //print({'server M2', proof.data['M2']});
-    //print({'proof M2', proofM2});
-
     if (m2 != proofM2) {
       throw 'Błąd autoryzacji.';
     }
-
-    // print(proof.data);
 
     await _storage.write(
       key: 'accessToken',
@@ -123,17 +113,18 @@ class AuthRepository {
 
     _encryptionService.init();
 
-    final fcmToken = await FirebaseMessaging.instance.getToken();
-
     await _apiService.patch('/user', data: {
-      'fcmToken': fcmToken,
+      'fcmToken': await FirebaseMessaging.instance.getToken(),
     });
   }
 
   Future<AsymmetricKeyPair<PublicKey, PrivateKey>> computeRSAKeyPair(
     SecureRandom secureRandom,
   ) async {
-    return await compute(getRsaKeyPair, secureRandom);
+    return await compute(
+      getRsaKeyPair,
+      secureRandom,
+    );
   }
 
   Future<void> signup(
@@ -149,6 +140,7 @@ class AuthRepository {
     final pair = await computeRSAKeyPair(
       _encryptionService.genereateSecureRandom(),
     );
+
     final publicKey = pair.publicKey as RSAPublicKey;
     final privateKey = pair.privateKey as RSAPrivateKey;
 

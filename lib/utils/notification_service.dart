@@ -7,8 +7,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:safechat/common/models/notification.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  //await Firebase.initializeApp();
-
   final notification = NotificationData(
     id: message.data['chatId'],
     title: 'Nowa wiadomość',

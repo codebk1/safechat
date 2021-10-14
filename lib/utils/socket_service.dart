@@ -2,7 +2,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:socket_io_client/socket_io_client.dart';
 
 class SocketService {
-  static final SocketService _singleton = SocketService._internal();
+  static final _singleton = SocketService._internal();
 
   factory SocketService() {
     return _singleton;

@@ -5,12 +5,13 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:safechat/contacts/contacts.dart';
-import 'package:safechat/user/models/user.dart';
+
 import 'package:safechat/utils/utils.dart';
+import 'package:safechat/user/user.dart';
+import 'package:safechat/contacts/contacts.dart';
 
 class UserRepository {
-  static final UserRepository _singleton = UserRepository._internal();
+  static final _singleton = UserRepository._internal();
 
   factory UserRepository() {
     return _singleton;
@@ -18,9 +19,9 @@ class UserRepository {
 
   UserRepository._internal();
 
-  final Dio _apiService = ApiService().init();
-  final EncryptionService _encryptionService = EncryptionService();
-  final DefaultCacheManager _cacheManager = DefaultCacheManager();
+  final _apiService = ApiService().init();
+  final _encryptionService = EncryptionService();
+  final _cacheManager = DefaultCacheManager();
 
   User user = User.empty;
 
@@ -75,21 +76,21 @@ class UserRepository {
       _encryptionService.sharedKey!,
     );
 
-    final formData = FormData.fromMap(
-      {
-        'avatar': MultipartFile.fromBytes(
-          encryptedAvatar,
-          filename: '$userId.jpg',
-        )
-      },
-    );
+    final formData = FormData.fromMap({
+      'avatar': MultipartFile.fromBytes(
+        encryptedAvatar,
+        filename: '$userId.jpg',
+      )
+    });
 
     await _apiService.post('/user/profile/avatar', data: formData);
   }
 
   Future<void> removeAvatar() async {
     await _apiService.patch('/user', data: {
-      'profile': {'avatar': null}
+      'profile': {
+        'avatar': null,
+      }
     });
   }
 

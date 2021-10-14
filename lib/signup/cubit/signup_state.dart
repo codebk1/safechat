@@ -5,7 +5,7 @@ class SignupState extends Equatable with ValidationMixin {
     this.firstName = const FirstName(''),
     this.lastName = const LastName(''),
     this.email = const Email(''),
-    this.password = const Password(''),
+    this.password = const Password('', restrict: true),
     this.confirmPassword = const ConfirmPassword(value: '', password: ''),
     this.formStatus = FormStatus.init,
   });
