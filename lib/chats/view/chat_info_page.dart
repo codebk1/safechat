@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/contacts/contacts.dart';
-import 'package:safechat/contacts/view/widgets/status_indicator.dart';
+import 'package:safechat/contacts/contacts.dart';
 
 class ChatInfoPage extends StatelessWidget {
   const ChatInfoPage({Key? key, required this.chatId}) : super(key: key);

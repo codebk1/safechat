@@ -98,10 +98,10 @@ class UserCubit extends Cubit<UserState> {
     final avatarName = '${state.user.id}.jpg';
     final avatar = await _cacheManager.putFile(avatarName, processedAvatar);
 
-    await _userRepository.updateAvatar(state.user.id, avatar);
+    await _userRepository.updateAvatar(state.user.id, processedAvatar);
 
     emit(state.copyWith(
-      user: state.user.copyWith(avatar: avatarName),
+      user: state.user.copyWith(avatar: avatar),
     ));
   }
 

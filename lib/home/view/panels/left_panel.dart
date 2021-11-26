@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/contacts/contacts.dart';
-import 'package:safechat/contacts/view/widgets/status_indicator.dart';
 import 'package:safechat/user/user.dart';
 
 class LeftPanel extends StatelessWidget {
@@ -87,6 +87,9 @@ class LeftPanel extends StatelessWidget {
                     ),
                     leading: const Icon(Icons.online_prediction_sharp),
                     onTap: () {
+                      SystemChrome.setEnabledSystemUIMode(
+                        SystemUiMode.immersive,
+                      );
                       showModalBottomSheet(
                           context: context,
                           shape: const RoundedRectangleBorder(
@@ -113,7 +116,11 @@ class LeftPanel extends StatelessWidget {
                                   StatusListTile(status: value),
                               ],
                             );
-                          });
+                          }).whenComplete(
+                        () => SystemChrome.setEnabledSystemUIMode(
+                          SystemUiMode.edgeToEdge,
+                        ),
+                      );
                     },
                   ),
                   ListTile(
@@ -126,14 +133,14 @@ class LeftPanel extends StatelessWidget {
                       Navigator.of(context).pushNamed('/profile');
                     },
                   ),
-                  ListTile(
-                    title: const Text(
-                      "Ustawienia",
-                      style: TextStyle(fontSize: 16),
-                    ),
-                    leading: const Icon(Icons.settings),
-                    onTap: () {},
-                  ),
+                  // ListTile(
+                  //   title: const Text(
+                  //     "Ustawienia",
+                  //     style: TextStyle(fontSize: 16),
+                  //   ),
+                  //   leading: const Icon(Icons.settings),
+                  //   onTap: () {},
+                  // ),
                   Expanded(
                     child: Align(
                       alignment: Alignment.bottomCenter,

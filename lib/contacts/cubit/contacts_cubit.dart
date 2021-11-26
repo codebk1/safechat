@@ -1,12 +1,13 @@
+import 'package:flutter/foundation.dart';
+import "package:collection/collection.dart";
 import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 
-import 'package:safechat/user/user.dart';
-import 'package:safechat/common/common.dart';
-import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/utils/utils.dart';
+import 'package:safechat/common/common.dart';
+import 'package:safechat/user/user.dart';
+import 'package:safechat/contacts/contacts.dart';
 
 part 'contacts_state.dart';
 
@@ -65,55 +66,75 @@ class ContactsCubit extends Cubit<ContactsState> {
 
       final contacts = await _contactsRepository.getContacts();
 
-      contacts.sort(
-        (a, b) => b.currentState.toString().compareTo(
-              a.currentState.toString(),
-            ),
-      );
+      contacts.sort((a, b) => a.currentState.index.compareTo(
+            b.currentState.index,
+          ));
 
       emit(state.copyWith(contacts: contacts, listStatus: ListStatus.success));
     } on DioError catch (e) {
-      print({'CONTACTS', e});
       emit(state.copyWith(
-        form: FormStatus.failure(e.response?.data['message']),
-      ));
-    } catch (e) {
-      print({'CONTACTS', e});
-      emit(state.copyWith(
-        form: FormStatus.failure(e.toString()),
+        formStatus: FormStatus.failure(e.response!.data['message']),
       ));
     }
   }
 
   Future<void> addContact(User user) async {
+    emit(state.copyWith(formStatus: FormStatus.submiting));
+
+    if (state.validate.isValid) {
+      try {
+        emit(state.copyWith(formStatus: FormStatus.loading));
+
+        final newContact = await _contactsRepository.addContact(
+          user,
+          state.email.value,
+        );
+
+        final contacts = [
+          newContact,
+          ...state.contacts,
+        ];
+
+        emit(state.copyWith(
+          email: const Email(''),
+          formStatus: FormStatus.success,
+          contacts: contacts,
+        ));
+      } on DioError catch (e) {
+        emit(state.copyWith(
+          formStatus: FormStatus.failure(e.response!.data['message']),
+        ));
+      }
+    }
+  }
+
+  Future<void> acceptInvitation(String contactId) async {
     try {
-      emit(state.copyWith(form: const FormStatus(status: FStatus.loading)));
+      startLoading(contactId);
 
-      final newContact = await _contactsRepository.addContact(
-        user,
-        state.email.value,
-      );
-
-      final contacts = [
-        newContact,
-        ...state.contacts,
-      ];
+      await _contactsRepository.acceptInvitation(contactId);
 
       emit(state.copyWith(
-          form: const FormStatus(status: FStatus.success), contacts: contacts));
+        contacts: List.of(state.contacts)
+            .map((c) => c.id == contactId
+                ? c.copyWith(
+                    currentState: CurrentState.accepted,
+                    working: false,
+                  )
+                : c)
+            .toList(),
+      ));
     } on DioError catch (e) {
       emit(state.copyWith(
-        form: FormStatus.failure(e.response?.data['message']),
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        form: FormStatus.failure(e.toString()),
+        formStatus: FormStatus.failure(e.response!.data['message']),
       ));
     }
   }
 
   Future<void> cancelInvitation(String contactId) async {
     try {
+      startLoading(contactId);
+
       await _contactsRepository.cancelInvitation(contactId);
 
       emit(state.copyWith(
@@ -122,12 +143,19 @@ class ContactsCubit extends Cubit<ContactsState> {
       ));
     } on DioError catch (e) {
       emit(state.copyWith(
-        form: FormStatus.failure(e.response?.data['message']),
+        formStatus: FormStatus.failure(e.response!.data['message']),
       ));
-    } catch (e) {
-      emit(state.copyWith(
-        form: FormStatus.failure(e.toString()),
-      ));
+    }
+  }
+
+  toggleActionsMenu(String contactId) {
+    final index = state.contacts.indexWhere((c) => c.id == contactId);
+    final contact = state.contacts[index];
+    final newContacts = List.of(state.contacts);
+
+    if (contact.currentState.isAccepted) {
+      newContacts[index] = contact.copyWith(showActions: !contact.showActions);
+      emit(state.copyWith(contacts: newContacts));
     }
   }
 
@@ -147,75 +175,9 @@ class ContactsCubit extends Cubit<ContactsState> {
     ));
   }
 
-  Future<void> acceptInvitation(String contactId) async {
-    try {
-      await _contactsRepository.acceptInvitation(contactId);
-
-      emit(state.copyWith(
-        contacts: List.of(state.contacts)
-          ..firstWhere((c) => c.id == contactId).copyWith(
-            currentState: CurrentState.accepted,
-          ),
-      ));
-    } on DioError catch (e) {
-      print(e);
-      // emit(state.copyWith(
-      //   status: FormStatus.failure(e.response?.data['message']),
-      // ));
-    } catch (e) {
-      print(e);
-      // emit(state.copyWith(
-      //   status: FormStatus.failure(e.toString()),
-      // ));
-    }
-  }
-
-  toggleActionsMenu(String contactId) {
-    final index = state.contacts.indexWhere((c) => c.id == contactId);
-    final newContacts = List.of(state.contacts);
-
-    newContacts[index] = state.contacts[index].copyWith(
-        currentState:
-            state.contacts[index].currentState == CurrentState.deleting
-                ? CurrentState.accepted
-                : CurrentState.deleting);
-
-    emit(state.copyWith(contacts: newContacts));
-  }
-
-  // Future<void> acceptInvitation(ContactState contactState) async {
-  //   try {
-  //     await _contactsRepository.acceptInvitation(contactState);
-
-  //     final newContacts = state.contacts.toList();
-  //     final index = newContacts
-  //         .indexWhere((e) => e.contact.id == contactState.contact.id);
-  //     newContacts[index] =
-  //         contactState.copyWith(currentState: CurrentState.accepted);
-
-  //     emit(state.copyWith(contacts: newContacts));
-
-  //     // emit(state.copyWith(
-  //     //   contacts: List.of(state.contacts)
-  //     //     ..map((e) => e.id == contact.id
-  //     //         ? contact.copyWith(state: ContactState.accepted)
-  //     //         : e),
-  //     // ));
-  //   } on DioError catch (e) {
-  //     emit(state.copyWith(
-  //       status: FormStatus.failure(e.response?.data['message']),
-  //     ));
-  //   } catch (e) {
-  //     emit(state.copyWith(
-  //       status: FormStatus.failure(e.toString()),
-  //     ));
-  //   }
-  // }
-
   void emailChanged(String value) {
     emit(state.copyWith(
       email: Email(value),
-      form: FormStatus.init,
     ));
   }
 }

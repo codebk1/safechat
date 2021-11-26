@@ -9,6 +9,7 @@ abstract class FormItem<T> {
   const FormItem(this.value);
 
   final T value;
+
   List<Validator> get validators;
 
   bool get isValid => validators.every((v) => v.isValid(value));
@@ -42,12 +43,12 @@ mixin ValidationMixin {
   List<FormItem> get inputs;
 }
 
-extension VStatusExtension on VStatus {
+extension ValidationStatusExtension on VStatus {
   bool get isValid => this == VStatus.valid;
   bool get isInvalid => this == VStatus.invalid;
 }
 
-extension FormStatusExtenstion on FormStatus {
+extension FormStatusExtension on FormStatus {
   bool get isInit => status == FStatus.init;
   bool get isSubmiting => status == FStatus.submiting;
   bool get isLoading => status == FStatus.loading;

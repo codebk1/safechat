@@ -30,7 +30,7 @@ class LoginCubit extends Cubit<LoginState> {
         emit(state.copyWith(formStatus: FormStatus.success));
       } on DioError catch (e) {
         emit(state.copyWith(
-          formStatus: FormStatus.failure(e.response?.data['message']),
+          formStatus: FormStatus.failure(e.response!.data['message']),
         ));
       }
     }

@@ -28,7 +28,11 @@ class UserRepository {
   Future<User> getUser() async {
     final res = await _apiService.get('/user/profile');
 
+    print(res.data);
+
     user = User.fromJson(res.data);
+
+    print(user);
 
     if (user.avatar != null) {
       var cachedFile = await _cacheManager.getFileFromCache(user.avatar);
@@ -70,9 +74,9 @@ class UserRepository {
     );
   }
 
-  Future<void> updateAvatar(String userId, File avatar) async {
+  Future<void> updateAvatar(String userId, Uint8List avatar) async {
     final encryptedAvatar = _encryptionService.chachaEncrypt(
-      avatar.readAsBytesSync(),
+      avatar,
       _encryptionService.sharedKey!,
     );
 
@@ -89,7 +93,9 @@ class UserRepository {
   Future<void> removeAvatar() async {
     await _apiService.patch('/user', data: {
       'profile': {
-        'avatar': null,
+        'update': {
+          'avatar': null,
+        }
       }
     });
   }
@@ -107,8 +113,10 @@ class UserRepository {
 
     await _apiService.patch('/user', data: {
       'profile': {
-        'firstName': base64.encode(encryptedFirstName),
-        'lastName': base64.encode(encryptedLastName),
+        'update': {
+          'firstName': base64.encode(encryptedFirstName),
+          'lastName': base64.encode(encryptedLastName),
+        }
       }
     });
   }
@@ -116,7 +124,9 @@ class UserRepository {
   Future<void> updateStatus(Status status) async {
     await _apiService.patch('/user', data: {
       'profile': {
-        'status': describeEnum(status),
+        'update': {
+          'status': describeEnum(status),
+        }
       }
     });
   }

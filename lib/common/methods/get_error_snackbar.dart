@@ -21,8 +21,10 @@ SnackBar getErrorSnackBar(
         const SizedBox(
           width: 10.0,
         ),
-        Text(
-          errorText,
+        Expanded(
+          child: Text(
+            errorText,
+          ),
         ),
       ],
     ),

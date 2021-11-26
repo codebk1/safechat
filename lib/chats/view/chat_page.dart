@@ -14,7 +14,6 @@ import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/chats/view/chats_panel.dart';
 import 'package:safechat/chats/view/widgets/message_text_field.dart';
 import 'package:safechat/contacts/contacts.dart';
-import 'package:safechat/contacts/view/widgets/status_indicator.dart';
 import 'package:safechat/router.dart';
 import 'package:safechat/user/user.dart';
 

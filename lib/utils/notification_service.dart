@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
 import 'package:safechat/common/models/notification.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -26,11 +28,11 @@ class NotificationService {
   NotificationService._internal();
 
   final _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-  final _streamController = StreamController<RemoteMessage>();
+  final _notificationStreamController = StreamController<RemoteMessage>();
   final _selectNotificationStreamController = StreamController<String>();
 
   Stream<RemoteMessage> get notification async* {
-    yield* _streamController.stream;
+    yield* _notificationStreamController.stream;
   }
 
   Stream<String> get selectNotification async* {
@@ -42,7 +44,7 @@ class NotificationService {
     await FirebaseMessaging.instance.getToken();
 
     FirebaseMessaging.onMessage.listen((message) async {
-      _streamController.add(message);
+      _notificationStreamController.add(message);
     });
 
     FirebaseMessaging.onBackgroundMessage(
@@ -92,6 +94,7 @@ class NotificationService {
   }
 
   void dispose() {
-    _streamController.close();
+    _notificationStreamController.close();
+    _selectNotificationStreamController.close();
   }
 }

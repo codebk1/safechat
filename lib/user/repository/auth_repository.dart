@@ -32,8 +32,12 @@ class AuthRepository {
   final _encryptionService = EncryptionService()..init();
 
   Future<void> login(String email, String password) async {
+    final a = _srpClient.a();
+    final A = _srpClient.A(a);
+
     final res = await _apiService.post('/auth/challenge', data: {
       'email': email,
+      'A': A.toString(),
     });
 
     final B = BigInt.parse(res.data['B']);
@@ -41,22 +45,24 @@ class AuthRepository {
       res.data['s'],
     ));
 
-    final a = await _srpClient.a();
-    final A = _srpClient.A(a);
+    if (B % _srpClient.N == BigInt.zero) {
+      throw 'Błąd autoryzacji.';
+    }
+
     final x = await _srpClient.x(email, password, s);
     final k = await _srpClient.k();
     final u = await _srpClient.u(A, B);
     final S = _srpClient.S(k, u, x, B, a);
-    final m1 = await _srpClient.m1(A, B, S);
+    final K = await _srpClient.K(S);
+    final m1 = _srpClient.m1(A, B, K);
 
     final proof = await _apiService.post('/auth/proof', data: {
       'email': email,
-      'A': A.toString(),
       'M1': m1.toString(),
     });
 
     final m2 = BigInt.parse(proof.data['M2']);
-    final proofM2 = await _srpClient.proofServerM2(A, m1, S);
+    final proofM2 = _srpClient.proofServerM2(A, m1, K);
 
     if (m2 != proofM2) {
       throw 'Błąd autoryzacji.';
@@ -154,26 +160,25 @@ class AuthRepository {
       ..add(ASN1Integer(privateKey.p))
       ..add(ASN1Integer(privateKey.q));
 
-    final encodedPrivateKey = asn1PrivateKey.encode();
-
     final secretKey = _encryptionService.argon2DeriveKey(
       password,
       _srpClient.bigIntToBytesArray(s),
     );
 
     final encryptedPrivateKey = _encryptionService.chachaEncrypt(
-      encodedPrivateKey,
+      asn1PrivateKey.encode(),
       secretKey,
     );
 
     final sharedKey = _encryptionService.genereateSecureRandom().nextBytes(32);
+
     final encryptedSharedKey = _encryptionService.rsaEncrypt(
       sharedKey,
       publicKey,
     );
 
     final encryptedFirstName = _encryptionService.chachaEncrypt(
-      utf8.encode(firstName.trim()) as Uint8List,
+      Uint8List.fromList(utf8.encode(firstName.trim())),
       sharedKey,
     );
 

@@ -3,20 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:safechat/utils/utils.dart';
-import 'package:safechat/login/login.dart';
+import 'package:safechat/contacts/contacts.dart';
 
-class EmailInput extends StatelessWidget {
-  const EmailInput({
-    Key? key,
-  }) : super(key: key);
+class EmailTextFormField extends StatelessWidget {
+  const EmailTextFormField({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<LoginCubit, LoginState>(
+    return BlocBuilder<ContactsCubit, ContactsState>(
       builder: (context, state) {
         return TextFormField(
-          initialValue: 'bartek@gmail.com',
-          onChanged: (value) => context.read<LoginCubit>().emailChanged(value),
+          onChanged: (value) =>
+              context.read<ContactsCubit>().emailChanged(value),
           keyboardType: TextInputType.emailAddress,
           decoration: InputDecoration(
             labelText: 'Email',

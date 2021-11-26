@@ -41,9 +41,9 @@ class SRP {
     return secureRandom.nextBigInteger(length);
   }
 
-  Future<BigInt> x(String I, String p, BigInt s) async {
+  Future<BigInt> x(String I, String P, BigInt s) async {
     final digest = SHA512Digest();
-    final data = I + ':' + p;
+    final data = I + ':' + P;
     var out = Uint8List(digest.digestSize);
 
     digest.update(Uint8List.fromList(data.codeUnits), 0, data.length);
@@ -58,15 +58,20 @@ class SRP {
     return bytesArrayToBigInt(out);
   }
 
-  BigInt S(
-    BigInt k,
-    BigInt u,
-    BigInt x,
-    BigInt B,
-    BigInt a,
-  ) {
+  BigInt S(BigInt k, BigInt u, BigInt x, BigInt B, BigInt a) {
     return (B - (k * g.modPow(x, N)))
         .modPow(a + (u * x), N); // (B - (k * g^x)) ^ (a + (u * x)) % N
+  }
+
+  Future<BigInt> K(BigInt S) async {
+    final digest = SHA512Digest();
+    final data = bigIntToBytesArray(S);
+    var out = Uint8List(digest.digestSize);
+
+    digest.update(data, 0, data.length);
+    digest.doFinal(out, 0);
+
+    return bytesArrayToBigInt(out);
   }
 
   Future<BigInt> u(BigInt A, BigInt B) async {
@@ -101,36 +106,28 @@ class SRP {
     return g.modPow(x, N);
   }
 
-  Future<BigInt> a() async {
-    BigInt bi;
-
-    final random = Random.secure();
-    final bytes = Uint8List(32);
-
-    for (int i = 0; i < 32; i++) {
-      bytes[i] = random.nextInt(255);
-    }
-
-    final secureRandom = SecureRandom('Fortuna')..seed(KeyParameter(bytes));
+  BigInt a() {
+    final secureRandom = _encryptionService.genereateSecureRandom();
+    BigInt a;
 
     do {
-      bi = secureRandom.nextBigInteger(32) % N;
-    } while (bi == BigInt.zero);
+      a = secureRandom.nextBigInteger(32) % N;
+    } while (a == BigInt.zero);
 
-    return bi;
+    return a;
   }
 
   BigInt A(BigInt a) {
     return g.modPow(a, N); // A = g^a % N
   }
 
-  Future<BigInt> proofServerM2(BigInt A, BigInt m1, BigInt S) async {
+  BigInt proofServerM2(BigInt A, BigInt m1, BigInt K) {
     final digest = SHA512Digest();
     var out = Uint8List(digest.digestSize);
 
     final paddedA = _pad(A, N);
     final paddedM1 = _pad(m1, N);
-    final paddedS = _pad(S, N);
+    final paddedS = _pad(K, N);
 
     digest.update(paddedA, 0, paddedA.length);
     digest.update(paddedM1, 0, paddedM1.length);
@@ -140,13 +137,13 @@ class SRP {
     return bytesArrayToBigInt(out);
   }
 
-  Future<BigInt> m1(BigInt A, BigInt B, BigInt S) async {
+  BigInt m1(BigInt A, BigInt B, BigInt K) {
     final digest = SHA512Digest();
     var out = Uint8List(digest.digestSize);
 
     final paddedA = _pad(A, N);
     final paddedB = _pad(B, N);
-    final paddedS = _pad(S, N);
+    final paddedS = _pad(K, N);
 
     digest.update(paddedA, 0, paddedA.length);
     digest.update(paddedB, 0, paddedB.length);
@@ -173,20 +170,24 @@ class SRP {
   }
 
   Uint8List bigIntToBytesArray(BigInt number) {
-    var size = (number.bitLength + 7) >> 3;
+    final size = (number.bitLength + 7) >> 3;
     var result = Uint8List(size);
+
     for (var i = 0; i < size; i++) {
       result[size - i - 1] = (number & BigInt.from(0xff)).toInt();
       number = number >> 8;
     }
+
     return result;
   }
 
   BigInt bytesArrayToBigInt(Uint8List bytes) {
     var result = BigInt.from(0);
+
     for (var i = 0; i < bytes.length; i++) {
       result += BigInt.from(bytes[bytes.length - i - 1]) << (8 * i);
     }
+
     return result;
   }
 

@@ -8,7 +8,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/chats/models/chat.dart';
 import 'package:safechat/chats/models/message.dart';
 import 'package:safechat/contacts/contacts.dart';
-import 'package:safechat/contacts/view/widgets/status_indicator.dart';
 
 import 'package:safechat/home/view/panels/side_panels.dart';
 import 'package:safechat/router.dart';
@@ -25,8 +24,6 @@ class MainPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    //context.read<ChatsCubit>().getChats();
-
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () {

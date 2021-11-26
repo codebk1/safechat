@@ -3,10 +3,10 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:safechat/contacts/contacts.dart';
 
-import 'package:safechat/user/user.dart';
 import 'package:safechat/utils/utils.dart';
+import 'package:safechat/user/user.dart';
+import 'package:safechat/contacts/contacts.dart';
 
 class ContactsRepository {
   final Dio _apiService = ApiService().init();
@@ -68,14 +68,11 @@ class ContactsRepository {
       '/user/key/public/id/$contactId',
     );
 
-    final decodedPublicKey = _encryptionService.parsePublicKeyFromPem(
-      contactUser.data['publicKey'],
-    );
-
-    final sharedKey = _encryptionService.sharedKey;
     final encryptedSharedKey = _encryptionService.rsaEncrypt(
-      sharedKey!,
-      decodedPublicKey,
+      _encryptionService.sharedKey!,
+      _encryptionService.parsePublicKeyFromPem(
+        contactUser.data['publicKey'],
+      ),
     );
 
     await _apiService.post('/user/contacts/accept-invitation', data: {

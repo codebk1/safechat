@@ -79,6 +79,7 @@ class EncryptionService {
     Uint8List secretKey,
   ) {
     final nonce = genereateSecureRandom().nextBytes(12);
+
     final parameters = AEADParameters(
       KeyParameter(secretKey),
       128,
@@ -93,15 +94,10 @@ class EncryptionService {
       encryptor.getOutputSize(data.length),
     );
 
-    final len = encryptor.processBytes(
-      data,
-      0,
-      data.length,
-      encryptedData,
-      0,
-    );
+    final len = encryptor.processBytes(data, 0, data.length, encryptedData, 0);
 
     encryptor.doFinal(encryptedData, len);
+
     final encryptedDataWithNonce = BytesBuilder()
       ..add(nonce)
       ..add(encryptedData);
@@ -133,12 +129,7 @@ class EncryptionService {
     );
 
     final len = decryptor.processBytes(
-      encryptedData,
-      0,
-      encryptedData.length,
-      decryptedData,
-      0,
-    );
+        encryptedData, 0, encryptedData.length, decryptedData, 0);
 
     decryptor.doFinal(decryptedData, len);
 

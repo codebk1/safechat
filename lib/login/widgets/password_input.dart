@@ -15,6 +15,7 @@ class PasswordInput extends StatelessWidget {
     return BlocBuilder<LoginCubit, LoginState>(
       builder: (context, state) {
         return TextFormField(
+          initialValue: 'bartek123',
           onChanged: (value) {
             context.read<LoginCubit>().passwordChanged(value);
           },

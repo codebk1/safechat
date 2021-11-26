@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:safechat/contacts/contacts.dart';
 
 class StatusIndicator extends StatelessWidget {

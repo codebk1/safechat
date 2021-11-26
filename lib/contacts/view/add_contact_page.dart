@@ -1,20 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/contacts/cubit/cubits.dart';
 
+import 'package:safechat/utils/utils.dart';
+import 'package:safechat/common/common.dart';
 import 'package:safechat/user/user.dart';
-import 'package:safechat/utils/form_helper.dart';
+import 'package:safechat/contacts/contacts.dart';
 
-class AddContactPage extends StatefulWidget {
+class AddContactPage extends StatelessWidget {
   const AddContactPage({Key? key}) : super(key: key);
-
-  @override
-  _AddContactPageState createState() => _AddContactPageState();
-}
-
-class _AddContactPageState extends State<AddContactPage> {
-  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -22,53 +16,19 @@ class _AddContactPageState extends State<AddContactPage> {
     final Orientation _orientation = MediaQuery.of(context).orientation;
 
     return BlocConsumer<ContactsCubit, ContactsState>(
+      listenWhen: (prev, curr) => prev.formStatus != curr.formStatus,
       listener: (context, state) {
-        if (state.form.isSuccess) {
+        if (state.formStatus.isSuccess) {
           Navigator.of(context).pop();
-
-          // ScaffoldMessenger.of(context)
-          //   ..hideCurrentSnackBar()
-          //   ..showSnackBar(
-          //     SnackBar(
-          //       duration: Duration(seconds: 1),
-          //       content: Row(
-          //         children: <Widget>[
-          //           Icon(
-          //             Icons.check_circle,
-          //             color: Colors.white,
-          //           ),
-          //           SizedBox(
-          //             width: 10.0,
-          //           ),
-          //           Text('Wysłano zaproszenie.'),
-          //         ],
-          //       ),
-          //     ),
-          //   );
         }
 
-        if (state.form.isFailure) {
+        if (state.formStatus.isFailure) {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(
-                action: SnackBarAction(
-                  onPressed: () =>
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar(),
-                  label: 'Zamknij',
-                ),
-                content: Row(
-                  children: <Widget>[
-                    const Icon(
-                      Icons.error,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(
-                      width: 10.0,
-                    ),
-                    Text(state.form.error!),
-                  ],
-                ),
+              getErrorSnackBar(
+                context,
+                errorText: state.formStatus.error!,
               ),
             );
         }
@@ -79,7 +39,7 @@ class _AddContactPageState extends State<AddContactPage> {
             backgroundColor: Colors.white,
             elevation: 0,
             iconTheme: IconThemeData(
-              color: Colors.grey.shade800, //change your color here
+              color: Colors.grey.shade800,
             ),
           ),
           body: Padding(
@@ -93,93 +53,38 @@ class _AddContactPageState extends State<AddContactPage> {
                     color: Colors.grey.shade100,
                   ),
                 Text(
-                  'Dodaj swojego znajomego',
+                  'Dodaj nowy kontakt',
                   style: Theme.of(context).textTheme.headline5,
                 ),
                 const SizedBox(
                   height: 15.0,
                 ),
                 Text(
-                  'Podaj email i wyślij zaproszenie.',
+                  'Podaj adres email kontaktu, a następnie wyślij zaproszenie.',
                   style: Theme.of(context).textTheme.subtitle2,
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(
                   height: 20.0,
                 ),
                 Column(
                   children: [
-                    _EmailTextFormField(),
+                    const EmailTextFormField(),
                     const SizedBox(
                       height: 15.0,
                     ),
-                    Ink(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor,
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      child: BlocBuilder<ContactsCubit, ContactsState>(
-                        builder: (context, state) {
-                          return InkWell(
-                            borderRadius: BorderRadius.circular(5.0),
-                            onTap: () {
-                              if (_formKey.currentState!.validate()) {
-                                context.read<ContactsCubit>().addContact(
-                                      context.read<UserCubit>().state.user,
-                                    );
-                              }
-                            },
-                            child: SizedBox(
-                              height: 60.0,
-                              child: Center(
-                                child: state.form.isLoading
-                                    ? const CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2.0,
-                                      )
-                                    : Text(
-                                        'Wyślij zaproszenie',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .headline6!
-                                            .copyWith(
-                                              color: Colors.white,
-                                            ),
-                                      ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                    PrimaryButton(
+                      label: 'Wyślij zaproszenie',
+                      onTap: () => context.read<ContactsCubit>().addContact(
+                            context.read<UserCubit>().state.user,
+                          ),
+                      isLoading: state.formStatus.isLoading,
                     ),
                   ],
                 ),
               ],
             ),
           ),
-        );
-      },
-    );
-  }
-}
-
-class _EmailTextFormField extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<ContactsCubit, ContactsState>(
-      buildWhen: (previous, current) => previous.email != current.email,
-      builder: (context, state) {
-        return TextFormField(
-          onChanged: (value) =>
-              context.read<ContactsCubit>().emailChanged(value),
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          decoration: const InputDecoration(
-            labelText: 'Email',
-          ),
-          validator: (String? value) {
-            if (value!.isEmpty) {
-              return 'Email jest wymagany.';
-            }
-          },
         );
       },
     );
