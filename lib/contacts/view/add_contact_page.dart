@@ -42,48 +42,57 @@ class AddContactPage extends StatelessWidget {
               color: Colors.grey.shade800,
             ),
           ),
-          body: Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: Column(
-              children: [
-                if (!_keyboardOpen && _orientation == Orientation.portrait)
-                  Icon(
-                    Icons.person_add_alt_1,
-                    size: 150.0,
-                    color: Colors.grey.shade100,
-                  ),
-                Text(
-                  'Dodaj nowy kontakt',
-                  style: Theme.of(context).textTheme.headline5,
-                ),
-                const SizedBox(
-                  height: 15.0,
-                ),
-                Text(
-                  'Podaj adres email kontaktu, a następnie wyślij zaproszenie.',
-                  style: Theme.of(context).textTheme.subtitle2,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(
-                  height: 20.0,
-                ),
-                Column(
-                  children: [
-                    const EmailTextFormField(),
-                    const SizedBox(
-                      height: 15.0,
-                    ),
-                    PrimaryButton(
-                      label: 'Wyślij zaproszenie',
-                      onTap: () => context.read<ContactsCubit>().addContact(
-                            context.read<UserCubit>().state.user,
+          body: CustomScrollView(
+            slivers: [
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Column(
+                    children: [
+                      if (!_keyboardOpen &&
+                          _orientation == Orientation.portrait)
+                        Icon(
+                          Icons.person_add_alt_1,
+                          size: 150.0,
+                          color: Colors.grey.shade100,
+                        ),
+                      Text(
+                        'Dodaj nowy kontakt',
+                        style: Theme.of(context).textTheme.headline5,
+                      ),
+                      const SizedBox(
+                        height: 15.0,
+                      ),
+                      Text(
+                        'Podaj adres email kontaktu, a następnie wyślij zaproszenie.',
+                        style: Theme.of(context).textTheme.subtitle2,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(
+                        height: 20.0,
+                      ),
+                      Column(
+                        children: [
+                          const EmailTextFormField(),
+                          const SizedBox(
+                            height: 15.0,
                           ),
-                      isLoading: state.formStatus.isLoading,
-                    ),
-                  ],
+                          PrimaryButton(
+                            label: 'Wyślij zaproszenie',
+                            onTap: () =>
+                                context.read<ContactsCubit>().addContact(
+                                      context.read<UserCubit>().state.user,
+                                    ),
+                            isLoading: state.formStatus.isLoading,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },

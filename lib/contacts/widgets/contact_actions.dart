@@ -74,7 +74,12 @@ class ContactActions extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      context.read<ContactsCubit>().deleteContact(
+                            contact.id,
+                            context.read<UserCubit>().state.user.id,
+                          );
+                    },
                     icon: Icon(
                       Icons.delete,
                       color: Colors.red.shade800,

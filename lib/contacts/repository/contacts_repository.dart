@@ -87,6 +87,10 @@ class ContactsRepository {
     });
   }
 
+  Future<void> deleteContact(String id) async {
+    await _apiService.delete('/user/contacts/$id');
+  }
+
   Future<List<Contact>> getDecryptedContactsList(List<dynamic> contactsData,
       [Uint8List? sharedKey]) async {
     final List<Contact> contacts = [];

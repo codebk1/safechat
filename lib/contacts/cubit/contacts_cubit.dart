@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
-import "package:collection/collection.dart";
-import 'package:bloc/bloc.dart';
+
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:safechat/utils/utils.dart';
 import 'package:safechat/common/common.dart';
@@ -54,6 +54,13 @@ class ContactsCubit extends Cubit<ContactsState> {
           emit(state.copyWith(contacts: newContacts));
         }
       }
+    });
+
+    _wsService.socket.on('contact-deleted', (id) {
+      print({'deleted', id});
+      emit(state.copyWith(
+        contacts: List.of(state.contacts)..removeWhere((c) => c.id == id),
+      ));
     });
   }
 
@@ -141,6 +148,27 @@ class ContactsCubit extends Cubit<ContactsState> {
         contacts: List.of(state.contacts)
           ..removeWhere((e) => e.id == contactId),
       ));
+    } on DioError catch (e) {
+      emit(state.copyWith(
+        formStatus: FormStatus.failure(e.response!.data['message']),
+      ));
+    }
+  }
+
+  Future<void> deleteContact(String contactId, String userId) async {
+    try {
+      startLoading(contactId);
+
+      await _contactsRepository.deleteContact(contactId);
+
+      emit(state.copyWith(
+        contacts: List.of(state.contacts)
+          ..removeWhere((c) => c.id == contactId),
+      ));
+
+      // _wsService.socket.emit('contact-delete', {
+      //   'id': userId,
+      // });
     } on DioError catch (e) {
       emit(state.copyWith(
         formStatus: FormStatus.failure(e.response!.data['message']),
