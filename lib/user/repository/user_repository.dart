@@ -28,11 +28,7 @@ class UserRepository {
   Future<User> getUser() async {
     final res = await _apiService.get('/user/profile');
 
-    print(res.data);
-
     user = User.fromJson(res.data);
-
-    print(user);
 
     if (user.avatar != null) {
       var cachedFile = await _cacheManager.getFileFromCache(user.avatar);

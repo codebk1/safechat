@@ -81,9 +81,7 @@ class AddContactPage extends StatelessWidget {
                           PrimaryButton(
                             label: 'Wyślij zaproszenie',
                             onTap: () =>
-                                context.read<ContactsCubit>().addContact(
-                                      context.read<UserCubit>().state.user,
-                                    ),
+                                context.read<ContactsCubit>().addContact(),
                             isLoading: state.formStatus.isLoading,
                           ),
                         ],

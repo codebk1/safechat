@@ -11,10 +11,10 @@ class Contact extends Equatable {
   const Contact({
     required this.id,
     required this.email,
-    required this.firstName,
-    required this.lastName,
     required this.status,
-    required this.isOnline,
+    this.firstName = '',
+    this.lastName = '',
+    this.isOnline = false,
     this.avatar,
     this.lastSeen,
     this.currentState = CurrentState.inviting,

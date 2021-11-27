@@ -19,36 +19,26 @@ class ContactsRepository {
     return await getDecryptedContactsList(res.data as List);
   }
 
-  Future<Contact> addContact(User user, String contactEmail) async {
-    final encodedContactEmail = base64.encode(utf8.encode(contactEmail));
-
-    final contactPublicKeyRes = await _apiService.get(
-      '/user/key/public/$encodedContactEmail',
+  Future<Contact> addContact(String contactEmail) async {
+    var publicKeyRes = await _apiService.get(
+      '/user/key/public/${base64.encode(utf8.encode(contactEmail))}',
     );
-
-    final decodedPublicKey = _encryptionService.parsePublicKeyFromPem(
-      contactPublicKeyRes.data['publicKey'],
-    );
-
-    final sharedKey = _encryptionService.sharedKey;
 
     final encryptedSharedKey = _encryptionService.rsaEncrypt(
-      sharedKey!,
-      decodedPublicKey,
+      _encryptionService.sharedKey!,
+      _encryptionService.parsePublicKeyFromPem(
+        publicKeyRes.data['publicKey'],
+      ),
     );
 
-    final res = await _apiService.post('/user/contacts/add', data: {
-      'userId': user.id,
+    final addedContactRes = await _apiService.post('/user/contacts', data: {
       'userSharedKey': encryptedSharedKey,
       'contactEmail': contactEmail,
     });
 
     return Contact(
-      id: res.data['id'],
-      email: res.data['email'],
-      firstName: '',
-      lastName: '',
-      isOnline: false,
+      id: addedContactRes.data['id'],
+      email: addedContactRes.data['email'],
       status: Status.visible,
       currentState: CurrentState.pending,
     );
