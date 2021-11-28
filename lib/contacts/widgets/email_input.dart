@@ -5,8 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/utils/utils.dart';
 import 'package:safechat/contacts/contacts.dart';
 
-class EmailTextFormField extends StatelessWidget {
-  const EmailTextFormField({Key? key}) : super(key: key);
+class EmailInput extends StatelessWidget {
+  const EmailInput({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

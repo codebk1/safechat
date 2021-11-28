@@ -1,21 +1,15 @@
-import 'package:flutter/cupertino.dart';
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 
-import 'package:open_file/open_file.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rive/rive.dart';
-import 'package:safechat/chats/cubits/attachments/attachments_cubit.dart';
+import 'package:open_file/open_file.dart';
 
-import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
-import 'package:safechat/chats/models/attachment.dart';
-import 'package:safechat/chats/models/chat.dart';
-import 'package:safechat/chats/models/message.dart';
-import 'package:safechat/chats/view/chats_panel.dart';
-import 'package:safechat/chats/view/widgets/message_text_field.dart';
-import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/router.dart';
 import 'package:safechat/user/user.dart';
+import 'package:safechat/contacts/contacts.dart';
+import 'package:safechat/chats/chats.dart';
 
 class ChatPage extends StatelessWidget {
   const ChatPage({
@@ -603,65 +597,71 @@ class PhotoMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: min(photos.length, 3),
-          crossAxisSpacing: 5,
-          mainAxisSpacing: 5,
-        ),
-        itemCount: photos.length,
-        itemBuilder: (BuildContext context, index) {
-          return FutureBuilder(
-              future:
-                  context.read<ChatsCubit>().getAttachment(chat, photos[index]),
-              builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-                if (snapshot.hasData) {
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).pushNamed(
-                        '/chat/media',
-                        arguments: MediaPageArguments(
-                          chat,
-                          photos[index],
+    return BlocProvider(
+      create: (context) => AttachmentsCubit(),
+      child: GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: min(photos.length, 3),
+            crossAxisSpacing: 5,
+            mainAxisSpacing: 5,
+          ),
+          itemCount: photos.length,
+          itemBuilder: (BuildContext context, index) {
+            return FutureBuilder(
+                future: context
+                    .read<AttachmentsCubit>()
+                    .getAttachment(chat, photos[index]),
+                builder:
+                    (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                  if (snapshot.hasData) {
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          '/chat/media',
+                          arguments: MediaPageArguments(
+                            chat,
+                            photos[index],
+                          ),
+                        );
+                      },
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(10),
                         ),
-                      );
-                    },
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(10),
+                        child: Image.file(
+                          snapshot.data!,
+                          fit: BoxFit.cover,
+                          frameBuilder: (BuildContext context, Widget child,
+                              int? frame, bool wasSynchronouslyLoaded) {
+                            if (wasSynchronouslyLoaded) {
+                              return child;
+                            }
+                            return AnimatedOpacity(
+                              child: child,
+                              opacity: frame == null ? 0 : 1,
+                              duration: const Duration(seconds: 1),
+                              curve: Curves.easeOut,
+                            );
+                          },
+                          cacheWidth:
+                              (MediaQuery.of(context).size.width).round(),
+                          filterQuality: FilterQuality.medium,
+                        ),
                       ),
-                      child: Image.file(
-                        snapshot.data!,
-                        fit: BoxFit.cover,
-                        frameBuilder: (BuildContext context, Widget child,
-                            int? frame, bool wasSynchronouslyLoaded) {
-                          if (wasSynchronouslyLoaded) {
-                            return child;
-                          }
-                          return AnimatedOpacity(
-                            child: child,
-                            opacity: frame == null ? 0 : 1,
-                            duration: const Duration(seconds: 1),
-                            curve: Curves.easeOut,
-                          );
-                        },
-                        cacheWidth: (MediaQuery.of(context).size.width).round(),
-                        filterQuality: FilterQuality.medium,
+                    );
+                  } else {
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                    ),
-                  );
-                } else {
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  );
-                }
-              });
-        });
+                    );
+                  }
+                });
+          }),
+    );
   }
 }
 
@@ -677,85 +677,90 @@ class VideosMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: min(videos.length, 3),
-          crossAxisSpacing: 5,
-          mainAxisSpacing: 5,
-        ),
-        itemCount: videos.length,
-        itemBuilder: (BuildContext context, index) {
-          return FutureBuilder(
-              future:
-                  context.read<ChatsCubit>().getAttachment(chat, videos[index]),
-              builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-                if (snapshot.hasData) {
-                  return ClipRRect(
-                    borderRadius: const BorderRadius.all(
-                      Radius.circular(10),
-                    ),
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).pushNamed(
-                          '/chat/video',
-                          arguments: MediaPageArguments(
-                            chat,
-                            videos[index],
-                          ),
-                        );
-                      },
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          Image.file(
-                            snapshot.data!,
-                            fit: BoxFit.cover,
-                            frameBuilder: (
-                              BuildContext context,
-                              Widget child,
-                              int? frame,
-                              bool wasSynchronouslyLoaded,
-                            ) {
-                              if (wasSynchronouslyLoaded) {
-                                return child;
-                              }
-                              return AnimatedOpacity(
-                                child: child,
-                                opacity: frame == null ? 0 : 1,
-                                duration: const Duration(seconds: 1),
-                                curve: Curves.easeOut,
-                              );
-                            },
-                          ),
-                          const DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: Colors.black26,
-                            ),
-                          ),
-                          const Align(
-                            alignment: Alignment.center,
-                            child: Icon(
-                              Icons.play_circle,
-                              color: Colors.white,
-                              size: 60,
-                            ),
-                          ),
-                        ],
+    return BlocProvider(
+      create: (context) => AttachmentsCubit(),
+      child: GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: min(videos.length, 3),
+            crossAxisSpacing: 5,
+            mainAxisSpacing: 5,
+          ),
+          itemCount: videos.length,
+          itemBuilder: (BuildContext context, index) {
+            return FutureBuilder(
+                future: context
+                    .read<AttachmentsCubit>()
+                    .getAttachment(chat, videos[index]),
+                builder:
+                    (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                  if (snapshot.hasData) {
+                    return ClipRRect(
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(10),
                       ),
-                    ),
-                  );
-                } else {
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  );
-                }
-              });
-        });
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            '/chat/video',
+                            arguments: MediaPageArguments(
+                              chat,
+                              videos[index],
+                            ),
+                          );
+                        },
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Image.file(
+                              snapshot.data!,
+                              fit: BoxFit.cover,
+                              frameBuilder: (
+                                BuildContext context,
+                                Widget child,
+                                int? frame,
+                                bool wasSynchronouslyLoaded,
+                              ) {
+                                if (wasSynchronouslyLoaded) {
+                                  return child;
+                                }
+                                return AnimatedOpacity(
+                                  child: child,
+                                  opacity: frame == null ? 0 : 1,
+                                  duration: const Duration(seconds: 1),
+                                  curve: Curves.easeOut,
+                                );
+                              },
+                            ),
+                            const DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: Colors.black26,
+                              ),
+                            ),
+                            const Align(
+                              alignment: Alignment.center,
+                              child: Icon(
+                                Icons.play_circle,
+                                color: Colors.white,
+                                size: 60,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  } else {
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    );
+                  }
+                });
+          }),
+    );
   }
 }
 

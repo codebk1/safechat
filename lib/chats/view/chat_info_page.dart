@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/contacts/contacts.dart';
+
 import 'package:safechat/contacts/contacts.dart';
 
 class ChatInfoPage extends StatelessWidget {

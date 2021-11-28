@@ -1,17 +1,14 @@
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
-import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/chats/models/chat.dart';
-import 'package:safechat/chats/models/message.dart';
-import 'package:safechat/contacts/contacts.dart';
 
-import 'package:safechat/home/view/panels/side_panels.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:safechat/router.dart';
 import 'package:safechat/user/user.dart';
+import 'package:safechat/home/view/panels/side_panels.dart';
+import 'package:safechat/contacts/contacts.dart';
+import 'package:safechat/chats/chats.dart';
 
 class MainPanel extends StatelessWidget {
   const MainPanel({

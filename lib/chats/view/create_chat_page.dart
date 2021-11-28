@@ -3,11 +3,11 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
-import 'package:safechat/chats/models/chat.dart';
-import 'package:safechat/contacts/contacts.dart';
-import 'package:safechat/user/user.dart';
+
 import 'package:safechat/utils/utils.dart';
+import 'package:safechat/user/user.dart';
+import 'package:safechat/contacts/contacts.dart';
+import 'package:safechat/chats/chats.dart';
 
 class CreateChatPage extends StatelessWidget {
   const CreateChatPage({Key? key}) : super(key: key);

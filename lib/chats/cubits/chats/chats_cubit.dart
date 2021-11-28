@@ -1,28 +1,26 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:collection/collection.dart';
-import 'package:bloc/bloc.dart';
+
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:image/image.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:safechat/chats/models/attachment.dart';
-import 'package:safechat/chats/models/chat.dart';
-import 'package:safechat/chats/models/message.dart';
-import 'package:safechat/chats/models/name.dart';
-import 'package:safechat/chats/models/new_chat.dart';
-import 'package:safechat/chats/repository/chats_repository.dart';
-import 'package:safechat/contacts/contacts.dart';
-import 'package:safechat/common/models/notification.dart';
-import 'package:safechat/user/user.dart';
-import 'package:safechat/utils/notification_service.dart';
+
 import 'package:safechat/utils/utils.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
+import 'package:safechat/common/common.dart';
+import 'package:safechat/user/user.dart';
+import 'package:safechat/contacts/contacts.dart';
+import 'package:safechat/chats/chats.dart';
+
+import 'package:video_thumbnail/video_thumbnail.dart' as vt;
 
 part 'chats_state.dart';
 
@@ -249,29 +247,29 @@ class ChatsCubit extends Cubit<ChatsState> {
   //   ));
   // }
 
-  Future<File> getAttachment(Chat chat, Attachment attachment,
-      {bool thumbnail = true}) async {
-    final cacheManager = DefaultCacheManager();
-    var attachmentName = attachment.name;
+  // Future<File> getAttachment(Chat chat, Attachment attachment,
+  //     {bool thumbnail = true}) async {
+  //   final cacheManager = DefaultCacheManager();
+  //   var attachmentName = attachment.name;
 
-    if (attachment.type != AttachmentType.file && thumbnail) {
-      attachmentName = '${attachment.name.split('.').first}_thumb.jpg';
-    }
+  //   if (attachment.type != AttachmentType.file && thumbnail) {
+  //     attachmentName = '${attachment.name.split('.').first}_thumb.jpg';
+  //   }
 
-    var cachedFile = await cacheManager.getFileFromCache(attachmentName);
+  //   var cachedFile = await cacheManager.getFileFromCache(attachmentName);
 
-    if (cachedFile != null) {
-      return cachedFile.file;
-    }
+  //   if (cachedFile != null) {
+  //     return cachedFile.file;
+  //   }
 
-    final attachmentFile = await _chatsRepository.getAttachment(
-      chat.id,
-      attachmentName,
-      chat.sharedKey,
-    );
+  //   final attachmentFile = await _chatsRepository.getAttachment(
+  //     chat.id,
+  //     attachmentName,
+  //     chat.sharedKey,
+  //   );
 
-    return await cacheManager.putFile(attachmentName, attachmentFile);
-  }
+  //   return await cacheManager.putFile(attachmentName, attachmentFile);
+  // }
 
   checkIfChatExist(List<String> participantsIDs) {}
 
@@ -300,9 +298,9 @@ class ChatsCubit extends Cubit<ChatsState> {
         Uint8List? thumb;
 
         if (attachments[i].type == AttachmentType.video) {
-          thumb = await VideoThumbnail.thumbnailData(
+          thumb = await vt.VideoThumbnail.thumbnailData(
             video: attachments[i].name,
-            imageFormat: ImageFormat.JPEG,
+            imageFormat: vt.ImageFormat.JPEG,
             maxWidth: 1024,
             quality: 50,
           );
@@ -533,7 +531,7 @@ class ChatsCubit extends Cubit<ChatsState> {
 
   Future<void> editChatNameSubmit(String chatId) async {
     try {
-      emit(state.copyWith(form: FormStatus.loading));
+      emit(state.copyWith(formStatus: FormStatus.loading));
 
       await _chatsRepository.updateChatName(
         state.chats.firstWhere((chat) => chat.id == chatId),
@@ -546,11 +544,11 @@ class ChatsCubit extends Cubit<ChatsState> {
                 ? chat.copyWith(name: state.name.value)
                 : chat)
             .toList(),
-        form: FormStatus.success,
+        formStatus: FormStatus.success,
       ));
     } on DioError catch (e) {
       emit(state.copyWith(
-        form: FormStatus.failure(e.response!.data['message']),
+        formStatus: FormStatus.failure(e.response!.data['message']),
       ));
     }
   }
@@ -568,9 +566,12 @@ class ChatsCubit extends Cubit<ChatsState> {
       var data = await pickedPhoto.readAsBytes();
       var processedAvatar = await computeCropAvatar(data) as Uint8List;
 
+      await _cacheManager.removeFile('$chatId.jpg');
       final avatar = await _cacheManager.putFile(
         '$chatId.jpg',
         processedAvatar,
+        eTag: '$chatId-${Random(10)}',
+        maxAge: const Duration(days: 14),
       );
 
       await _chatsRepository.updateAvatar(chat, avatar);
@@ -602,7 +603,6 @@ class ChatsCubit extends Cubit<ChatsState> {
   void nameChanged(String value) {
     emit(state.copyWith(
       name: Name(value),
-      form: FormStatus.init,
     ));
   }
 

@@ -1,8 +1,10 @@
 import 'dart:typed_data';
 
-import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
-import 'package:safechat/contacts/models/contact.dart';
+
+import 'package:equatable/equatable.dart';
+
+import 'package:safechat/contacts/contacts.dart';
 
 import 'message.dart';
 

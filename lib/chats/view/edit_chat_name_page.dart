@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
-import 'package:safechat/utils/form_helper.dart';
 
-class EditChatNamePage extends StatefulWidget {
+import 'package:safechat/utils/utils.dart';
+import 'package:safechat/chats/chats.dart';
+
+class EditChatNamePage extends StatelessWidget {
   const EditChatNamePage({
     Key? key,
     required this.chatId,
@@ -13,21 +14,14 @@ class EditChatNamePage extends StatefulWidget {
   final String chatId;
 
   @override
-  _EditChatNamePageState createState() => _EditChatNamePageState();
-}
-
-class _EditChatNamePageState extends State<EditChatNamePage> {
-  final _formKey = GlobalKey<FormState>();
-
-  @override
   Widget build(BuildContext context) {
     return BlocConsumer<ChatsCubit, ChatsState>(
       listener: (context, state) {
-        if (state.form.isSuccess) {
+        if (state.formStatus.isSuccess) {
           Navigator.of(context).pop();
         }
 
-        if (state.form.isFailure) {
+        if (state.formStatus.isFailure) {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
@@ -46,7 +40,7 @@ class _EditChatNamePageState extends State<EditChatNamePage> {
                     const SizedBox(
                       width: 10.0,
                     ),
-                    Text(state.form.error!),
+                    Text(state.formStatus.error!),
                   ],
                 ),
               ),
@@ -83,9 +77,9 @@ class _EditChatNamePageState extends State<EditChatNamePage> {
                       children: [
                         Column(
                           children: [
-                            _NameTextFormField(
+                            NameInput(
                               initialValue: state.chats
-                                  .firstWhere((c) => c.id == widget.chatId)
+                                  .firstWhere((c) => c.id == chatId)
                                   .name,
                             ),
                             const SizedBox(
@@ -101,18 +95,14 @@ class _EditChatNamePageState extends State<EditChatNamePage> {
                                   return InkWell(
                                     borderRadius: BorderRadius.circular(5.0),
                                     onTap: () {
-                                      if (_formKey.currentState!.validate()) {
-                                        context
-                                            .read<ChatsCubit>()
-                                            .editChatNameSubmit(
-                                              widget.chatId,
-                                            );
-                                      }
+                                      context
+                                          .read<ChatsCubit>()
+                                          .editChatNameSubmit(chatId);
                                     },
                                     child: SizedBox(
                                       height: 60.0,
                                       child: Center(
-                                        child: state.form.isLoading
+                                        child: state.formStatus.isLoading
                                             ? const CircularProgressIndicator(
                                                 color: Colors.white,
                                                 strokeWidth: 2.0,
@@ -141,35 +131,6 @@ class _EditChatNamePageState extends State<EditChatNamePage> {
               ],
             ),
           ),
-        );
-      },
-    );
-  }
-}
-
-class _NameTextFormField extends StatelessWidget {
-  const _NameTextFormField({
-    required this.initialValue,
-  });
-
-  final String? initialValue;
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<ChatsCubit, ChatsState>(
-      builder: (context, state) {
-        return TextFormField(
-          initialValue: initialValue,
-          onChanged: (value) => context.read<ChatsCubit>().nameChanged(value),
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          decoration: const InputDecoration(
-            labelText: 'Nazwa',
-          ),
-          validator: (String? value) {
-            if (value!.isEmpty) {
-              return 'Nazwa jest wymagane.';
-            }
-          },
         );
       },
     );

@@ -1,13 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:open_file/open_file.dart';
-import 'package:safechat/chats/cubits/attachments/attachments_cubit.dart';
-import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
-import 'package:safechat/chats/models/attachment.dart';
-import 'package:safechat/chats/models/chat.dart';
 import 'package:video_player/video_player.dart';
+import 'package:open_file/open_file.dart';
+
+import 'package:safechat/chats/chats.dart';
 
 class MediaPage extends StatelessWidget {
   const MediaPage({Key? key, required this.chat}) : super(key: key);
@@ -82,7 +81,7 @@ class MediaPage extends StatelessWidget {
             ),
           ),
           body: FutureBuilder(
-              future: context.read<ChatsCubit>().getAttachment(
+              future: context.read<AttachmentsCubit>().getAttachment(
                     chat,
                     state.attachments.first,
                     thumbnail: false,

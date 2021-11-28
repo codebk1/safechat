@@ -1,16 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/chats/cubits/attachments/attachments_cubit.dart';
-import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
-import 'package:safechat/chats/models/attachment.dart';
-import 'package:safechat/chats/models/chat.dart';
-import 'package:safechat/chats/view/widgets/files_list.dart';
-import 'package:safechat/chats/view/widgets/photos_grid.dart';
-import 'package:safechat/chats/view/widgets/video_thumbnail.dart';
-import 'package:safechat/chats/view/widgets/videos_grid.dart';
-import 'package:safechat/user/cubit/user_cubit.dart';
+
+import 'package:safechat/user/user.dart';
+import 'package:safechat/chats/chats.dart';
 
 class MessageTextField extends StatefulWidget {
   const MessageTextField({

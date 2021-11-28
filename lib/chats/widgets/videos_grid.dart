@@ -1,12 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/chats/cubits/attachments/attachments_cubit.dart';
-import 'package:safechat/chats/models/attachment.dart';
 
-class PhotosGrid extends StatelessWidget {
-  const PhotosGrid({
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:safechat/chats/chats.dart';
+
+class VideosGrid extends StatelessWidget {
+  const VideosGrid({
     Key? key,
     required this.attachments,
   }) : super(key: key);
@@ -20,16 +21,18 @@ class PhotosGrid extends StatelessWidget {
           maxCrossAxisExtent: 150,
         ),
         itemCount: attachments.length,
-        itemBuilder: (BuildContext _, index) {
+        itemBuilder: (BuildContext ctx, index) {
           return GestureDetector(
             onTap: () => context
                 .read<AttachmentsCubit>()
                 .toggleAttachment(attachments[index]),
             child: BlocBuilder<AttachmentsCubit, AttachmentsState>(
               builder: (context, state) {
-                //print(state.selectedAttachments);
                 return Container(
                   margin: const EdgeInsets.all(5.0),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
@@ -38,14 +41,8 @@ class PhotosGrid extends StatelessWidget {
                                 .contains(attachments[index])
                             ? 0.9
                             : 1,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Image.file(
-                            File(attachments[index].name),
-                            fit: BoxFit.cover,
-                            cacheWidth: 150,
-                            filterQuality: FilterQuality.medium,
-                          ),
+                        child: VideoThumbnail(
+                          video: File(attachments[index].name),
                         ),
                       ),
                       if (state.selectedAttachments
@@ -60,7 +57,7 @@ class PhotosGrid extends StatelessWidget {
                               color: Colors.white,
                             ),
                           ),
-                        )
+                        ),
                     ],
                   ),
                 );

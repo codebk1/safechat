@@ -74,7 +74,7 @@ class AddContactPage extends StatelessWidget {
                       ),
                       Column(
                         children: [
-                          const EmailTextFormField(),
+                          const EmailInput(),
                           const SizedBox(
                             height: 15.0,
                           ),

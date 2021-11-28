@@ -1,51 +1,55 @@
 part of 'chats_cubit.dart';
 
-class ChatsState extends Equatable {
+class ChatsState extends Equatable with ValidationMixin {
   const ChatsState({
     this.chats = const [],
-    this.name = const Name(''),
-    this.form = FormStatus.init,
-    this.listStatus = ListStatus.unknow,
     this.newChat = const NewChat(),
     this.nextChat,
+    this.name = const Name(''),
+    this.formStatus = FormStatus.init,
+    this.listStatus = ListStatus.unknow,
     this.loadingAvatar = false,
   });
 
   final List<Chat> chats;
-  final Name name;
-  final FormStatus form;
-  final ListStatus listStatus;
   final NewChat newChat;
   final Chat? nextChat;
+  final Name name;
+  final FormStatus formStatus;
   final bool loadingAvatar;
+  final ListStatus listStatus;
 
   @override
   List<Object?> get props => [
         chats,
-        name,
-        form,
-        listStatus,
         newChat,
         nextChat,
+        name,
+        formStatus,
         loadingAvatar,
+        listStatus,
       ];
 
-  ChatsState copyWith(
-      {List<Chat>? chats,
-      Name? name,
-      FormStatus? form,
-      ListStatus? listStatus,
-      NewChat? newChat,
-      Chat? nextChat,
-      bool? loadingAvatar}) {
+  @override
+  List<FormItem> get inputs => [name];
+
+  ChatsState copyWith({
+    List<Chat>? chats,
+    NewChat? newChat,
+    Chat? nextChat,
+    Name? name,
+    FormStatus? formStatus,
+    bool? loadingAvatar,
+    ListStatus? listStatus,
+  }) {
     return ChatsState(
       chats: chats ?? this.chats,
-      name: name ?? this.name,
-      form: form ?? this.form,
-      listStatus: listStatus ?? this.listStatus,
       newChat: newChat ?? this.newChat,
       nextChat: nextChat,
+      name: name ?? this.name,
+      formStatus: formStatus ?? this.formStatus,
       loadingAvatar: loadingAvatar ?? this.loadingAvatar,
+      listStatus: listStatus ?? this.listStatus,
     );
   }
 }

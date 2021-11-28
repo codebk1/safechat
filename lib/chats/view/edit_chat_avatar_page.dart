@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
-import 'package:safechat/utils/form_helper.dart';
+
+import 'package:safechat/utils/utils.dart';
+import 'package:safechat/chats/chats.dart';
 
 class EditChatAvatarPage extends StatelessWidget {
   const EditChatAvatarPage({
@@ -16,11 +17,11 @@ class EditChatAvatarPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocConsumer<ChatsCubit, ChatsState>(
       listener: (context, state) {
-        if (state.form.isSuccess) {
+        if (state.formStatus.isSuccess) {
           Navigator.of(context).pop();
         }
 
-        if (state.form.isFailure) {
+        if (state.formStatus.isFailure) {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
@@ -39,7 +40,7 @@ class EditChatAvatarPage extends StatelessWidget {
                     const SizedBox(
                       width: 10.0,
                     ),
-                    Text(state.form.error!),
+                    Text(state.formStatus.error!),
                   ],
                 ),
               ),

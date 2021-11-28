@@ -1,5 +1,6 @@
-import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
+
+import 'package:equatable/equatable.dart';
 
 enum MessageType { text, photo, video, file }
 enum MessageStatus { sending, sent, deleting, failure, unknow }

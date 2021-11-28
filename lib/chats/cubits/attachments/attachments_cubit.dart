@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:bloc/bloc.dart';
-import 'package:equatable/equatable.dart';
 import 'package:mime/mime.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:safechat/chats/models/attachment.dart';
-import 'package:safechat/chats/models/chat.dart';
-import 'package:safechat/chats/repository/chats_repository.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+
+import 'package:safechat/chats/chats.dart';
 
 part 'attachments_state.dart';
 
@@ -17,8 +17,31 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
 
   final _chatsRepository = ChatsRepository();
 
+  Future<File> getAttachment(Chat chat, Attachment attachment,
+      {bool thumbnail = true}) async {
+    final cacheManager = DefaultCacheManager();
+    var attachmentName = attachment.name;
+
+    if (attachment.type != AttachmentType.file && thumbnail) {
+      attachmentName = '${attachment.name.split('.').first}_thumb.jpg';
+    }
+
+    var cachedFile = await cacheManager.getFileFromCache(attachmentName);
+
+    if (cachedFile != null) {
+      return cachedFile.file;
+    }
+
+    final attachmentFile = await _chatsRepository.getAttachment(
+      chat.id,
+      attachmentName,
+      chat.sharedKey,
+    );
+
+    return await cacheManager.putFile(attachmentName, attachmentFile);
+  }
+
   Future loadAttachments() async {
-    print('GET photoTSSSSSS');
     if (await Permission.storage.request().isGranted) {
       emit(state.copyWith(loading: true));
 
@@ -54,12 +77,10 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
         }
       }
 
-      // _attachments.sort((a, b) => b.file
-      //     .lastModifiedSync()
-      //     .toLocal()
-      //     .compareTo(a.file.lastModifiedSync().toLocal()));
-
-      emit(state.copyWith(loading: false, attachments: _attachments));
+      emit(state.copyWith(
+        loading: false,
+        attachments: _attachments,
+      ));
     }
   }
 

@@ -3,15 +3,15 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+
+import 'package:dio/dio.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:safechat/chats/models/chat.dart';
-import 'package:safechat/chats/models/message.dart';
-import 'package:safechat/contacts/contacts.dart';
-import 'package:safechat/user/user.dart';
 
 import 'package:safechat/utils/utils.dart';
+import 'package:safechat/user/user.dart';
+import 'package:safechat/contacts/contacts.dart';
+import 'package:safechat/chats/chats.dart';
 
 class ChatsRepository {
   final _apiService = ApiService().init();

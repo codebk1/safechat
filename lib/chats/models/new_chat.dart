@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
-import 'package:safechat/contacts/contacts.dart';
+
 import 'package:safechat/utils/utils.dart';
+import 'package:safechat/contacts/contacts.dart';
 
 class NewChat extends Equatable {
   const NewChat({

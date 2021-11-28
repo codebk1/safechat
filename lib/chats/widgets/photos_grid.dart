@@ -1,13 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safechat/chats/cubits/attachments/attachments_cubit.dart';
-import 'package:safechat/chats/models/attachment.dart';
-import 'package:safechat/chats/view/widgets/video_thumbnail.dart';
 
-class VideosGrid extends StatelessWidget {
-  const VideosGrid({
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:safechat/chats/chats.dart';
+
+class PhotosGrid extends StatelessWidget {
+  const PhotosGrid({
     Key? key,
     required this.attachments,
   }) : super(key: key);
@@ -21,18 +21,16 @@ class VideosGrid extends StatelessWidget {
           maxCrossAxisExtent: 150,
         ),
         itemCount: attachments.length,
-        itemBuilder: (BuildContext ctx, index) {
+        itemBuilder: (BuildContext _, index) {
           return GestureDetector(
             onTap: () => context
                 .read<AttachmentsCubit>()
                 .toggleAttachment(attachments[index]),
             child: BlocBuilder<AttachmentsCubit, AttachmentsState>(
               builder: (context, state) {
+                //print(state.selectedAttachments);
                 return Container(
                   margin: const EdgeInsets.all(5.0),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
@@ -41,8 +39,14 @@ class VideosGrid extends StatelessWidget {
                                 .contains(attachments[index])
                             ? 0.9
                             : 1,
-                        child: VideoThumbnail(
-                          video: File(attachments[index].name),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.file(
+                            File(attachments[index].name),
+                            fit: BoxFit.cover,
+                            cacheWidth: 150,
+                            filterQuality: FilterQuality.medium,
+                          ),
                         ),
                       ),
                       if (state.selectedAttachments
@@ -57,7 +61,7 @@ class VideosGrid extends StatelessWidget {
                               color: Colors.white,
                             ),
                           ),
-                        ),
+                        )
                     ],
                   ),
                 );
