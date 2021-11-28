@@ -23,10 +23,6 @@ class ChatPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () {
-        // chatCubit.emit(chatCubit.state.copyWith(
-        //   opened: false,
-        // ));
-
         context.read<ChatsCubit>().closeChat(chatId);
 
         return Future.value(true);

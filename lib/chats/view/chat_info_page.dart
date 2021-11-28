@@ -16,14 +16,8 @@ class ChatInfoPage extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: IconThemeData(
-          color: Colors.grey.shade800, //change your color here
+          color: Colors.grey.shade800,
         ),
-        // title: Text(
-        //   'Informacje',
-        //   style: TextStyle(
-        //     color: Colors.grey.shade800,
-        //   ),
-        // ),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,6 +1,12 @@
 export 'files_list.dart';
+export 'files_message.dart';
+export 'message_bubble.dart';
 export 'message_text_field.dart';
+export 'messages_section.dart';
 export 'name_input.dart';
+export 'photo_message.dart';
 export 'photos_grid.dart';
+export 'text_message.dart';
 export 'video_thumbnail.dart';
 export 'videos_grid.dart';
+export 'videos_message.dart';
