@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:safechat/utils/utils.dart';
+import 'package:safechat/common/common.dart';
 import 'package:safechat/chats/chats.dart';
 
 class EditChatAvatarPage extends StatelessWidget {
@@ -25,24 +26,9 @@ class EditChatAvatarPage extends StatelessWidget {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(
-                action: SnackBarAction(
-                  onPressed: () =>
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar(),
-                  label: 'Zamknij',
-                ),
-                content: Row(
-                  children: <Widget>[
-                    const Icon(
-                      Icons.error,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(
-                      width: 10.0,
-                    ),
-                    Text(state.formStatus.error!),
-                  ],
-                ),
+              getErrorSnackBar(
+                context,
+                errorText: state.formStatus.error!,
               ),
             );
         }
@@ -53,7 +39,7 @@ class EditChatAvatarPage extends StatelessWidget {
             backgroundColor: Colors.white,
             elevation: 0,
             iconTheme: IconThemeData(
-              color: Colors.grey.shade800, //change your color here
+              color: Colors.grey.shade800,
             ),
             title: Text(
               'Edytuj avatar czatu',

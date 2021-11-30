@@ -142,29 +142,13 @@ class _MessageTextFieldState extends State<MessageTextField> {
           ),
           Row(
             children: [
-              IconButton(
-                onPressed: () {
-                  _openAttachmentsPicker(context);
-                },
-                icon: Icon(
-                  Icons.attach_file,
-                  color: Colors.grey.shade500,
-                ),
-              ),
-              const SizedBox(width: 15.0),
               Expanded(
                 child: Focus(
                   onFocusChange: (hasFocus) {
                     if (hasFocus) {
-                      context.read<ChatsCubit>().startTyping(
-                            widget.chat.id,
-                            context.read<UserCubit>().state.user.id,
-                          );
+                      context.read<ChatsCubit>().startTyping(widget.chat.id);
                     } else {
-                      context.read<ChatsCubit>().stopTyping(
-                            widget.chat.id,
-                            context.read<UserCubit>().state.user.id,
-                          );
+                      context.read<ChatsCubit>().stopTyping(widget.chat.id);
                     }
                   },
                   child: TextFormField(
@@ -178,38 +162,47 @@ class _MessageTextFieldState extends State<MessageTextField> {
                     keyboardType: TextInputType.multiline,
                     minLines: 1,
                     maxLines: 15,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: "Napisz wiadomość...",
                       border: InputBorder.none,
                       focusedBorder: InputBorder.none,
+                      prefixIcon: IconButton(
+                        onPressed: () {
+                          _openAttachmentsPicker(context);
+                        },
+                        icon: Icon(
+                          Icons.attach_file,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                      suffixIcon: IconButton(
+                        onPressed: () {
+                          if (_messageController.value.text.isNotEmpty ||
+                              _attachmentsCubit
+                                  .state.selectedAttachments.isNotEmpty) {
+                            context.read<ChatsCubit>().sendMessage(
+                                  widget.chat,
+                                  context.read<UserCubit>().state.user.id,
+                                  _attachmentsCubit.state.selectedAttachments,
+                                );
+
+                            // TODO: zrobić to lepiej
+                            _attachmentsCubit
+                                .emit(_attachmentsCubit.state.copyWith(
+                              selectedAttachments: [],
+                            ));
+
+                            _messageController.clear();
+                          }
+                        },
+                        color: Colors.white,
+                        icon: Icon(
+                          Icons.send_rounded,
+                          color: Colors.blue.shade800,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  context.read<ChatsCubit>().sendMessage(
-                        widget.chat,
-                        context.read<UserCubit>().state.user.id,
-                        _attachmentsCubit.state.selectedAttachments,
-                      );
-
-                  // TODO: zrobić to lepiej
-                  _attachmentsCubit.emit(_attachmentsCubit.state.copyWith(
-                    selectedAttachments: [],
-                  ));
-
-                  _messageController.clear();
-                },
-                child: const Icon(
-                  Icons.send_outlined,
-                  color: Colors.white,
-                ),
-                style: ElevatedButton.styleFrom(
-                  shape: const CircleBorder(),
-                  padding: const EdgeInsets.all(10),
-                  primary: Colors.blue.shade800,
-                  elevation: 0,
                 ),
               ),
             ],

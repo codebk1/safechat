@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
 
@@ -34,12 +35,20 @@ class HomePage extends StatelessWidget {
           );
         }
       },
-      child: SafeArea(
-        child: SidePanels(
-          key: _sidePanelsKey,
-          leftPanel: const LeftPanel(),
-          rightPanel: const ContactsPanel(),
-          mainPanel: MainPanel(sidePanelsKey: _sidePanelsKey),
+      child: AnnotatedRegion(
+        value: SystemUiOverlayStyle(
+          statusBarColor: Colors.grey.shade300,
+          statusBarIconBrightness: Brightness.dark,
+          systemNavigationBarColor: Colors.white,
+          systemNavigationBarIconBrightness: Brightness.dark,
+        ),
+        child: SafeArea(
+          child: SidePanels(
+            key: _sidePanelsKey,
+            leftPanel: const LeftPanel(),
+            rightPanel: const ContactsPanel(),
+            mainPanel: MainPanel(sidePanelsKey: _sidePanelsKey),
+          ),
         ),
       ),
     );

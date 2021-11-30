@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:video_player/video_player.dart';
@@ -9,7 +10,10 @@ import 'package:open_file/open_file.dart';
 import 'package:safechat/chats/chats.dart';
 
 class MediaPage extends StatelessWidget {
-  const MediaPage({Key? key, required this.chat}) : super(key: key);
+  const MediaPage({
+    Key? key,
+    required this.chat,
+  }) : super(key: key);
 
   final Chat chat;
 
@@ -17,89 +21,87 @@ class MediaPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AttachmentsCubit, AttachmentsState>(
       builder: (context, state) {
-        return Scaffold(
-          backgroundColor: Colors.black,
-          appBar: AppBar(
-            actions: [
-              state.attachments.first.downloading
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: Transform.scale(
-                          scale: 0.6,
-                          child: const CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 1,
-                          ),
-                        ),
-                      ),
-                    )
-                  : IconButton(
-                      onPressed: () async {
-                        final file = await context
-                            .read<AttachmentsCubit>()
-                            .downloadAttachment(
-                              state.attachments.first.name,
-                              chat,
-                            );
-
-                        if (file.existsSync()) {
-                          ScaffoldMessenger.of(context)
-                            ..hideCurrentSnackBar()
-                            ..showSnackBar(
-                              SnackBar(
-                                action: SnackBarAction(
-                                  onPressed: () => OpenFile.open(
-                                    file.path,
-                                  ),
-                                  label: 'Wyświetl',
-                                ),
-                                content: Row(
-                                  children: const <Widget>[
-                                    Icon(
-                                      Icons.error,
-                                      color: Colors.white,
-                                    ),
-                                    SizedBox(
-                                      width: 10.0,
-                                    ),
-                                    Text('Pobrano załącznik'),
-                                  ],
-                                ),
-                              ),
-                            );
-                        }
-                      },
-                      icon: const Icon(Icons.download),
-                    ),
-            ],
-            backgroundColor: Colors.black,
-            titleSpacing: 0,
-            elevation: 0,
-            iconTheme: const IconThemeData(
-              color: Colors.white,
-            ),
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: const SystemUiOverlayStyle(
+            systemNavigationBarColor: Colors.black,
+            systemNavigationBarIconBrightness: Brightness.light,
           ),
-          body: FutureBuilder(
-              future: context.read<AttachmentsCubit>().getAttachment(
-                    chat,
-                    state.attachments.first,
-                    thumbnail: false,
+          child: Scaffold(
+            backgroundColor: Colors.black,
+            appBar: AppBar(
+              systemOverlayStyle: const SystemUiOverlayStyle(
+                statusBarColor: Colors.black,
+                statusBarIconBrightness: Brightness.light,
+              ),
+              actions: [
+                if (state.downloadedAttachment != null)
+                  IconButton(
+                    onPressed: () async {
+                      if (state.downloadedAttachment!.existsSync()) {
+                        final attachment = await File(
+                          '/storage/emulated/0/Download/${state.downloadedAttachment!.uri.pathSegments.last}.jpg',
+                        ).writeAsBytes(
+                          state.downloadedAttachment!.readAsBytesSync(),
+                        );
+
+                        ScaffoldMessenger.of(context)
+                          ..hideCurrentSnackBar()
+                          ..showSnackBar(
+                            SnackBar(
+                              action: SnackBarAction(
+                                onPressed: () => OpenFile.open(
+                                  attachment.path,
+                                ),
+                                label: 'Wyświetl',
+                              ),
+                              content: Row(
+                                children: const <Widget>[
+                                  Icon(
+                                    Icons.error,
+                                    color: Colors.white,
+                                  ),
+                                  SizedBox(
+                                    width: 10.0,
+                                  ),
+                                  Text('Pobrano załącznik'),
+                                ],
+                              ),
+                            ),
+                          );
+                      }
+                    },
+                    icon: const Icon(Icons.download),
                   ),
-              builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-                if (snapshot.hasData) {
-                  return state.attachments.first.type == AttachmentType.photo
-                      ? Photo(photo: snapshot.data)
-                      : Video(video: snapshot.data);
-                } else {
-                  return const Center(
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
+              ],
+              backgroundColor: Colors.black,
+              titleSpacing: 0,
+              elevation: 0,
+              iconTheme: const IconThemeData(
+                color: Colors.white,
+              ),
+            ),
+            body: FutureBuilder(
+                future: context.read<AttachmentsCubit>().getAttachment(
+                      chat,
+                      state.attachments.first,
+                      thumbnail: false,
                     ),
-                  );
-                }
-              }),
+                builder:
+                    (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                  if (snapshot.hasData) {
+                    return state.attachments.first.type == AttachmentType.photo
+                        ? Photo(photo: snapshot.data)
+                        : Video(video: snapshot.data);
+                  } else {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    );
+                  }
+                }),
+          ),
         );
       },
     );

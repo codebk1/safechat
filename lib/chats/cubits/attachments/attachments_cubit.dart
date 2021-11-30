@@ -29,6 +29,7 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
     var cachedFile = await cacheManager.getFileFromCache(attachmentName);
 
     if (cachedFile != null) {
+      emit(state.copyWith(downloadedAttachment: cachedFile.file));
       return cachedFile.file;
     }
 
@@ -38,7 +39,13 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
       chat.sharedKey,
     );
 
-    return await cacheManager.putFile(attachmentName, attachmentFile);
+    final file = await cacheManager.putFile(attachmentName, attachmentFile);
+
+    if (thumbnail == false) {
+      emit(state.copyWith(downloadedAttachment: file));
+    }
+
+    return file;
   }
 
   Future loadAttachments() async {

@@ -75,10 +75,7 @@ class ContactActions extends StatelessWidget {
                 children: [
                   IconButton(
                     onPressed: () {
-                      context.read<ContactsCubit>().deleteContact(
-                            contact.id,
-                            context.read<UserCubit>().state.user.id,
-                          );
+                      context.read<ContactsCubit>().deleteContact(contact.id);
                     },
                     icon: Icon(
                       Icons.delete,

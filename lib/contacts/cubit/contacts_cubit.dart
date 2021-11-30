@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:safechat/utils/utils.dart';
 import 'package:safechat/common/common.dart';
-import 'package:safechat/user/user.dart';
 import 'package:safechat/contacts/contacts.dart';
 
 part 'contacts_state.dart';
@@ -15,7 +14,6 @@ class ContactsCubit extends Cubit<ContactsState> {
   ContactsCubit({List<Contact> contacts = const []})
       : super(ContactsState(contacts: contacts)) {
     _wsService.socket.on('activity', (data) {
-      print(data);
       print('ONLINE/OFFLINE');
 
       if (state.contacts.isNotEmpty) {
@@ -56,12 +54,14 @@ class ContactsCubit extends Cubit<ContactsState> {
       }
     });
 
-    _wsService.socket.on('contact-deleted', (id) {
-      print({'deleted', id});
-      emit(state.copyWith(
-        contacts: List.of(state.contacts)..removeWhere((c) => c.id == id),
-      ));
-    });
+    // _wsService.socket.on('contact.delete', (data) {
+    //   print('DELETE CONTACT');
+    //   print(data['userId']);
+    //   emit(state.copyWith(
+    //     contacts: List.of(state.contacts)
+    //       ..removeWhere((c) => c.id == data['userId']),
+    //   ));
+    // });
   }
 
   final _wsService = SocketService();
@@ -154,7 +154,7 @@ class ContactsCubit extends Cubit<ContactsState> {
     }
   }
 
-  Future<void> deleteContact(String contactId, String userId) async {
+  Future<void> deleteContact(String contactId) async {
     try {
       startLoading(contactId);
 
@@ -166,7 +166,7 @@ class ContactsCubit extends Cubit<ContactsState> {
       ));
 
       // _wsService.socket.emit('contact-delete', {
-      //   'id': userId,
+      //   'contactId': contactId,
       // });
     } on DioError catch (e) {
       emit(state.copyWith(

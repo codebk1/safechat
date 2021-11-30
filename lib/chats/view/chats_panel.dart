@@ -1,14 +1,17 @@
 import 'dart:io';
 
+import 'package:collection/src/iterable_extensions.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:safechat/common/common.dart';
 
 import 'package:safechat/router.dart';
 import 'package:safechat/user/user.dart';
 import 'package:safechat/home/view/panels/side_panels.dart';
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/chats/chats.dart';
+import 'package:safechat/utils/form_helper.dart';
 
 class MainPanel extends StatelessWidget {
   const MainPanel({
@@ -65,7 +68,24 @@ class MainPanel extends StatelessWidget {
           const Divider(
             height: 1,
           ),
-          BlocBuilder<ChatsCubit, ChatsState>(
+          BlocConsumer<ChatsCubit, ChatsState>(
+            listenWhen: (prev, curr) => prev.formStatus != curr.formStatus,
+            listener: (context, state) {
+              if (state.formStatus.isSuccess) {
+                Navigator.of(
+                  context,
+                ).pop();
+
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    getSuccessSnackBar(
+                      context,
+                      successText: 'Usunięto czat.',
+                    ),
+                  );
+              }
+            },
             builder: (context, state) {
               return state.listStatus == ListStatus.loading
                   ? Padding(
@@ -109,7 +129,19 @@ class MainPanel extends StatelessWidget {
                                     ),
                                     child: BlocBuilder<ContactsCubit,
                                         ContactsState>(
-                                      builder: (context, state) {
+                                      builder: (context, contactsState) {
+                                        final contactsTitle = contacts.isEmpty
+                                            ? 'Brak członków w grupie'
+                                            : contacts.length > 1
+                                                ? contacts
+                                                    .map((e) => e.firstName)
+                                                    .join(', ')
+                                                : '${contacts.first.firstName} ${contacts.first.lastName}';
+
+                                        final chatTitle = chat.name != null
+                                            ? chat.name!
+                                            : contactsTitle;
+
                                         return ListTile(
                                           onLongPress: () {
                                             showModalBottomSheet(
@@ -124,61 +156,112 @@ class MainPanel extends StatelessWidget {
                                                   ),
                                                 ),
                                                 builder: (BuildContext _) {
-                                                  return SizedBox(
-                                                    height:
-                                                        MediaQuery.of(context)
-                                                                .size
-                                                                .height *
-                                                            0.4,
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .all(15.0),
-                                                          child: Text(
-                                                            'Opcje czatu',
-                                                            style: Theme.of(
-                                                                    context)
-                                                                .textTheme
-                                                                .headline5,
+                                                  return BlocProvider.value(
+                                                    value: context
+                                                        .read<ChatsCubit>(),
+                                                    child: BlocBuilder<
+                                                        ChatsCubit, ChatsState>(
+                                                      builder:
+                                                          (context, state) {
+                                                        return SizedBox(
+                                                          height: MediaQuery.of(
+                                                                      context)
+                                                                  .size
+                                                                  .height *
+                                                              0.4,
+                                                          child: Column(
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              Padding(
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                            .all(
+                                                                        15.0),
+                                                                child: Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .spaceBetween,
+                                                                  children: [
+                                                                    Text(
+                                                                      'Opcje czatu',
+                                                                      style: Theme.of(
+                                                                              context)
+                                                                          .textTheme
+                                                                          .headline5,
+                                                                    ),
+                                                                    if (state
+                                                                        .formStatus
+                                                                        .isLoading)
+                                                                      Transform
+                                                                          .scale(
+                                                                        scale:
+                                                                            0.5,
+                                                                        child:
+                                                                            CircularProgressIndicator(
+                                                                          strokeWidth:
+                                                                              2,
+                                                                          color: Colors
+                                                                              .grey
+                                                                              .shade800,
+                                                                        ),
+                                                                      ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                              if (chat.type ==
+                                                                  ChatType
+                                                                      .group)
+                                                                ListTile(
+                                                                  onTap: () {
+                                                                    if (!state
+                                                                        .formStatus
+                                                                        .isLoading) {
+                                                                      context
+                                                                          .read<
+                                                                              ChatsCubit>()
+                                                                          .leaveChat(
+                                                                            chat.id,
+                                                                          );
+                                                                    }
+                                                                  },
+                                                                  leading:
+                                                                      const Icon(
+                                                                    Icons
+                                                                        .logout,
+                                                                  ),
+                                                                  title:
+                                                                      const Text(
+                                                                    'Opuść grupe',
+                                                                  ),
+                                                                ),
+                                                              ListTile(
+                                                                onTap: () {
+                                                                  if (!state
+                                                                      .formStatus
+                                                                      .isLoading) {
+                                                                    context
+                                                                        .read<
+                                                                            ChatsCubit>()
+                                                                        .deleteChat(
+                                                                          chat.id,
+                                                                        );
+                                                                  }
+                                                                },
+                                                                leading:
+                                                                    const Icon(
+                                                                  Icons.delete,
+                                                                ),
+                                                                title:
+                                                                    const Text(
+                                                                  'Usuń czat',
+                                                                ),
+                                                              ),
+                                                            ],
                                                           ),
-                                                        ),
-                                                        if (chat.type ==
-                                                            ChatType.group)
-                                                          ListTile(
-                                                            onTap: () {},
-                                                            leading: const Icon(
-                                                              Icons.logout,
-                                                            ),
-                                                            title: const Text(
-                                                              'Opuść grupe',
-                                                            ),
-                                                          ),
-                                                        ListTile(
-                                                          onTap: () {
-                                                            context
-                                                                .read<
-                                                                    ChatsCubit>()
-                                                                .deleteMessages(
-                                                                  chat.id,
-                                                                );
-
-                                                            Navigator.of(
-                                                                    context)
-                                                                .pop();
-                                                          },
-                                                          leading: const Icon(
-                                                            Icons.delete,
-                                                          ),
-                                                          title: const Text(
-                                                            'Usuń czat',
-                                                          ),
-                                                        ),
-                                                      ],
+                                                        );
+                                                      },
                                                     ),
                                                   );
                                                 });
@@ -188,21 +271,29 @@ class MainPanel extends StatelessWidget {
                                               '/chat',
                                               arguments: ChatPageArguments(
                                                 chat,
-                                                state.contacts,
+                                                contactsState.contacts,
                                               ),
                                             );
                                           },
-                                          leading: ChatAvatar(
-                                            avatar: chat.avatar,
-                                          ),
+                                          leading: contactsState
+                                                  .contacts.isEmpty
+                                              ? ClipOval(
+                                                  child: Container(
+                                                    width: 45,
+                                                    height: 45,
+                                                    color: Colors.grey.shade100,
+                                                    child: Icon(
+                                                      Icons.person,
+                                                      color:
+                                                          Colors.grey.shade300,
+                                                    ),
+                                                  ),
+                                                )
+                                              : ChatAvatar(
+                                                  avatar: chat.avatar,
+                                                ),
                                           title: Text(
-                                            chat.name != null
-                                                ? chat.name!
-                                                : contacts.length > 1
-                                                    ? contacts
-                                                        .map((e) => e.firstName)
-                                                        .join(', ')
-                                                    : '${contacts.first.firstName} ${contacts.first.lastName}',
+                                            chatTitle,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
                                               fontWeight: isUnreadMsg
@@ -255,6 +346,7 @@ class ChatAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ContactsCubit, ContactsState>(
       builder: (context, state) {
+        final firstOnline = state.contacts.firstWhereOrNull((c) => c.isOnline);
         return Stack(
           children: [
             ClipOval(
@@ -336,10 +428,9 @@ class ChatAvatar extends StatelessWidget {
               right: 0,
               bottom: 0,
               child: StatusIndicator(
-                isOnline: state.contacts.any(
-                  (contact) => contact.isOnline,
-                ),
-                status: state.contacts.first.status,
+                isOnline: firstOnline != null,
+                status:
+                    firstOnline != null ? firstOnline.status : Status.visible,
               ),
             ),
           ],

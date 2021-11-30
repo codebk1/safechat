@@ -5,24 +5,32 @@ class AttachmentsState extends Equatable {
     this.loading = false,
     this.attachments = const [],
     this.selectedAttachments = const [],
+    this.downloadedAttachment,
   });
 
   final bool loading;
   final List<Attachment> attachments;
   final List<Attachment> selectedAttachments;
+  final File? downloadedAttachment;
 
   @override
-  List<Object> get props => [loading, attachments, selectedAttachments];
+  List<Object?> get props => [
+        loading,
+        attachments,
+        selectedAttachments,
+      ];
 
   AttachmentsState copyWith({
     bool? loading,
     List<Attachment>? attachments,
     List<Attachment>? selectedAttachments,
+    File? downloadedAttachment,
   }) {
     return AttachmentsState(
       loading: loading ?? this.loading,
       attachments: attachments ?? this.attachments,
       selectedAttachments: selectedAttachments ?? this.selectedAttachments,
+      downloadedAttachment: downloadedAttachment ?? this.downloadedAttachment,
     );
   }
 }

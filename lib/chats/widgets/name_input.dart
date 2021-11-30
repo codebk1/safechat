@@ -19,8 +19,9 @@ class NameInput extends StatelessWidget {
       builder: (context, state) {
         return TextFormField(
           onChanged: (value) => context.read<ChatsCubit>().nameChanged(value),
+          initialValue: initialValue,
           decoration: InputDecoration(
-            labelText: 'Imię',
+            labelText: 'Nazwa konwersacji',
             errorText: state.formStatus.isSubmiting ? state.name.error : null,
           ),
           autovalidateMode: AutovalidateMode.onUserInteraction,

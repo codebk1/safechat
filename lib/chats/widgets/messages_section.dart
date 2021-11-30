@@ -23,7 +23,6 @@ class MessagesSection extends StatelessWidget {
             current.chats.firstWhere((c) => c.id == chatId);
       },
       builder: (context, state) {
-        print('DUPA BLADA');
         final currentUser = context.read<UserCubit>().state.user;
         final chat = state.chats.firstWhere((c) => c.id == chatId);
 

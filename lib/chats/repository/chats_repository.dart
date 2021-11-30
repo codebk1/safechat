@@ -51,10 +51,13 @@ class ChatsRepository {
       if (cachedFile != null) {
         chat = chat.copyWith(avatar: () => cachedFile.file);
       } else {
-        final avatar = await _getAvatar(chat.id, chat.sharedKey);
+        final file = await _cacheManager.putFile(
+          chat.avatar,
+          await _getAvatar(chat.id, chat.sharedKey),
+        );
 
         chat = chat.copyWith(
-          avatar: await _cacheManager.putFile(chat.avatar, avatar),
+          avatar: () => file,
         );
       }
     }
@@ -118,10 +121,13 @@ class ChatsRepository {
         if (cachedFile != null) {
           chat = chat.copyWith(avatar: () => cachedFile.file);
         } else {
-          final avatar = await _getAvatar(chat.id, chat.sharedKey);
+          final file = await _cacheManager.putFile(
+            chat.avatar,
+            await _getAvatar(chat.id, chat.sharedKey),
+          );
 
           chat = chat.copyWith(
-            avatar: await _cacheManager.putFile(chat.avatar, avatar),
+            avatar: () => file,
           );
         }
       }
@@ -305,7 +311,7 @@ class ChatsRepository {
       '/chat/messages',
       data: formData,
       onSendProgress: (int sent, int total) {
-        //print('${(sent / total) * 100} %');
+        print('${(sent / total) * 100} %');
       },
     );
 
@@ -352,10 +358,14 @@ class ChatsRepository {
     await _apiService.post('/chat/avatar', data: formData);
   }
 
-  Future<void> deleteMessages(String chatId) async {
-    await _apiService.post('/chat/delete/messages', data: {
+  Future<void> leaveChat(String chatId) async {
+    await _apiService.patch('/chat/leave', data: {
       'chatId': chatId,
     });
+  }
+
+  Future<void> deleteChat(String id) async {
+    await _apiService.delete('/chat/$id');
   }
 
   Future<void> deleteMessage(String chatId, String messageId) async {

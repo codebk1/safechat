@@ -29,7 +29,7 @@ class MessageBubble extends StatelessWidget {
         final isSender = message.senderId == currentUser.id;
 
         // TODO: refactor to use Contact object in Message model instead of just senderId
-        print(chat);
+
         final sender = chat.participants.firstWhere(
           (e) => e.id == message.senderId,
         );
@@ -146,6 +146,8 @@ class MessageBubble extends StatelessWidget {
                   if (isSender) ...[
                     if (chat.participants.length == 2)
                       const SizedBox(width: 2.0),
+                    if (chat.participants.length > 2)
+                      const SizedBox(height: 2.0),
                     isLastSentMsg
                         ? readBy.isNotEmpty
                             ? chat.participants.length > 2

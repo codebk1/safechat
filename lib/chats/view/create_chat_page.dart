@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:safechat/utils/utils.dart';
+import 'package:safechat/common/common.dart';
 import 'package:safechat/user/user.dart';
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/chats/chats.dart';
@@ -16,58 +17,17 @@ class CreateChatPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocConsumer<ChatsCubit, ChatsState>(
       listener: (context, state) {
-        if (state.newChat.form.isSuccess) {
-          // context.read<ChatsCubit>().emit(state.copyWith(
-          //       newChat: state.newChat.copyWith(
-          //         status: const FormStatus.init(),
-          //       ),
-          //     ));
-
+        if (state.formStatus.isSuccess) {
           Navigator.of(context).pop();
-
-          // ScaffoldMessenger.of(context)
-          //   ..hideCurrentSnackBar()
-          //   ..showSnackBar(
-          //     SnackBar(
-          //       duration: const Duration(seconds: 1),
-          //       content: Row(
-          //         children: const <Widget>[
-          //           Icon(
-          //             Icons.check_circle,
-          //             color: Colors.white,
-          //           ),
-          //           SizedBox(
-          //             width: 10.0,
-          //           ),
-          //           Text('Utworzono czat.'),
-          //         ],
-          //       ),
-          //     ),
-          //   );
         }
 
-        if (state.newChat.form.isFailure) {
+        if (state.formStatus.isFailure) {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(
-                action: SnackBarAction(
-                  onPressed: () =>
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar(),
-                  label: 'Zamknij',
-                ),
-                content: Row(
-                  children: <Widget>[
-                    const Icon(
-                      Icons.error,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(
-                      width: 10.0,
-                    ),
-                    Text(state.newChat.form.error!),
-                  ],
-                ),
+              getErrorSnackBar(
+                context,
+                errorText: state.formStatus.error!,
               ),
             );
         }
@@ -75,13 +35,11 @@ class CreateChatPage extends StatelessWidget {
       builder: (context, state) {
         return WillPopScope(
           onWillPop: () {
-            print('POPOPOPO');
-            context.read<ChatsCubit>().emit(state.copyWith(
-                  newChat: state.newChat.copyWith(
-                    selectedParticipants: [],
-                    //status: const FormStatus.init(),
+            context.read<ChatsCubit>().emit(
+                  state.copyWith(
+                    selectedContacts: [],
                   ),
-                ));
+                );
 
             return Future.value(true);
           },
@@ -90,7 +48,7 @@ class CreateChatPage extends StatelessWidget {
               backgroundColor: Colors.white,
               elevation: 0,
               iconTheme: IconThemeData(
-                color: Colors.grey.shade800, //change your color here
+                color: Colors.grey.shade800,
               ),
             ),
             body: Column(
@@ -106,9 +64,9 @@ class CreateChatPage extends StatelessWidget {
                     runSpacing: 5.0,
                     spacing: 5.0,
                     children: [
-                      if (state.newChat.selectedParticipants.isEmpty)
+                      if (state.selectedContacts.isEmpty)
                         const Text('Wybierz znajomych:'),
-                      ...state.newChat.selectedParticipants.map(
+                      ...state.selectedContacts.map(
                         (p) => UnconstrainedBox(
                           child: Container(
                             padding: const EdgeInsets.only(
@@ -195,8 +153,7 @@ class CreateChatPage extends StatelessWidget {
                                                   acceptedContacts[index];
 
                                               return CheckboxListTile(
-                                                value: state.newChat
-                                                    .selectedParticipants
+                                                value: state.selectedContacts
                                                     .contains(contact),
                                                 onChanged: (_) {
                                                   context
@@ -241,53 +198,22 @@ class CreateChatPage extends StatelessWidget {
                                             }),
                                   ),
                                 ),
-                                if (state
-                                    .newChat.selectedParticipants.isNotEmpty)
+                                if (state.selectedContacts.isNotEmpty)
                                   Padding(
                                     padding: const EdgeInsets.all(15.0),
-                                    child: Ink(
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).primaryColor,
-                                        borderRadius: BorderRadius.circular(5),
-                                      ),
-                                      child: InkWell(
-                                        borderRadius:
-                                            BorderRadius.circular(5.0),
-                                        onTap: () {
-                                          context.read<ChatsCubit>().createChat(
-                                                ChatType.group,
-                                                context
-                                                    .read<UserCubit>()
-                                                    .state
-                                                    .user,
-                                                state.newChat
-                                                    .selectedParticipants,
-                                              );
-                                        },
-                                        child: SizedBox(
-                                          height: 60.0,
-                                          child: Center(
-                                            child: state.newChat.form.isLoading
-                                                ? Transform.scale(
-                                                    scale: 0.6,
-                                                    child:
-                                                        const CircularProgressIndicator(
-                                                      color: Colors.white,
-                                                      strokeWidth: 2.0,
-                                                    ),
-                                                  )
-                                                : Text(
-                                                    'Utwórz czat',
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .headline6!
-                                                        .copyWith(
-                                                          color: Colors.white,
-                                                        ),
-                                                  ),
-                                          ),
-                                        ),
-                                      ),
+                                    child: PrimaryButton(
+                                      label: 'Utwórz czat',
+                                      onTap: () {
+                                        context.read<ChatsCubit>().createChat(
+                                              ChatType.group,
+                                              context
+                                                  .read<UserCubit>()
+                                                  .state
+                                                  .user,
+                                              state.selectedContacts,
+                                            );
+                                      },
+                                      isLoading: state.formStatus.isLoading,
                                     ),
                                   ),
                               ],

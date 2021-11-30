@@ -98,7 +98,7 @@ class AppRouter {
               ),
               BlocProvider.value(
                 value: _chatsCubit
-                  ..readAllMessages(
+                  ..readChat(
                     args.chat,
                     context.read<UserCubit>().state.user.id,
                   )

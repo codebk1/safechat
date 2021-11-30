@@ -89,3 +89,8 @@ class Chat extends Equatable {
         opened = false,
         typing = [];
 }
+
+extension ChatTypeExtension on ChatType {
+  bool get isDirect => this == ChatType.direct;
+  bool get isGroup => this == ChatType.group;
+}
