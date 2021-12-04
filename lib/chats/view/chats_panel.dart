@@ -1,7 +1,8 @@
 import 'dart:io';
 
-import 'package:collection/src/iterable_extensions.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/common/common.dart';
@@ -81,7 +82,7 @@ class MainPanel extends StatelessWidget {
                   ..showSnackBar(
                     getSuccessSnackBar(
                       context,
-                      successText: 'Usunięto czat.',
+                      successText: state.formStatus.message!,
                     ),
                   );
               }
@@ -144,6 +145,13 @@ class MainPanel extends StatelessWidget {
 
                                         return ListTile(
                                           onLongPress: () {
+                                            SystemChrome
+                                                .setSystemUIOverlayStyle(
+                                              SystemUiOverlayStyle(
+                                                statusBarColor:
+                                                    Colors.grey.shade700,
+                                              ),
+                                            );
                                             showModalBottomSheet(
                                                 context: context,
                                                 shape:
@@ -264,7 +272,13 @@ class MainPanel extends StatelessWidget {
                                                       },
                                                     ),
                                                   );
-                                                });
+                                                }).whenComplete(() => SystemChrome
+                                                    .setSystemUIOverlayStyle(
+                                                  SystemUiOverlayStyle(
+                                                    statusBarColor:
+                                                        Colors.grey.shade300,
+                                                  ),
+                                                ));
                                           },
                                           onTap: () {
                                             Navigator.of(context).pushNamed(

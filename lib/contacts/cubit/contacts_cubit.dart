@@ -103,7 +103,7 @@ class ContactsCubit extends Cubit<ContactsState> {
 
         emit(state.copyWith(
           email: const Email(''),
-          formStatus: FormStatus.success,
+          formStatus: const FormStatus.success(),
           contacts: contacts,
         ));
       } on DioError catch (e) {

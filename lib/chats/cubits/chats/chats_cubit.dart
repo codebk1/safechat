@@ -6,11 +6,13 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:collection/collection.dart';
+import 'package:base32/base32.dart';
 
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image/image.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -87,6 +89,20 @@ class ChatsCubit extends Cubit<ChatsState> {
       ));
     });
 
+    _wsService.socket.on('message.delete', (data) {
+      print('deleteeee');
+      emit(state.copyWith(
+        chats: List.of(state.chats)
+            .map((chat) => chat.id == data['chatId']
+                ? chat.copyWith(
+                    messages: List.of(chat.messages)
+                      ..removeWhere((m) => m.id == data['messageId']),
+                  )
+                : chat)
+            .toList(),
+      ));
+    });
+
     _wsService.socket.on('chat.leave', (data) {
       print('CHAT LEAVE');
 
@@ -102,7 +118,6 @@ class ChatsCubit extends Cubit<ChatsState> {
     });
 
     _wsService.socket.on('typing.start', (data) async {
-      print('ON TYPING START');
       final chat = await _findOrFetchChat(data['chatId']);
 
       emit(state.copyWith(
@@ -176,8 +191,28 @@ class ChatsCubit extends Cubit<ChatsState> {
     );
 
     if (chat == null) {
-      chat = await _chatsRepository.getChat(chatId);
-      emit(state.copyWith(chats: List.of(state.chats)..insert(0, chat)));
+      chat = await _chatsRepository.getChat(chatId: chatId);
+
+      emit(state.copyWith(
+        chats: List.of(state.chats)..insert(0, chat),
+      ));
+    }
+
+    return chat;
+  }
+
+  Future<Chat?> findChatByParticipants(List<String> participants) async {
+    Chat? chat = state.chats.firstWhereOrNull((c) =>
+        c.participants.every((p) => participants.contains(p.id)) &&
+        c.participants.length == participants.length &&
+        c.type == ChatType.direct);
+
+    if (chat == null) {
+      chat = await _chatsRepository.getChatByParticipants(participants);
+
+      emit(state.copyWith(
+        chats: List.of(state.chats)..insert(0, chat!),
+      ));
     }
 
     return chat;
@@ -220,7 +255,7 @@ class ChatsCubit extends Cubit<ChatsState> {
       emit(state.copyWith(
         chats: [...state.chats, chat],
         selectedContacts: [],
-        formStatus: FormStatus.success,
+        formStatus: const FormStatus.success(),
       ));
 
       return chat;
@@ -234,71 +269,66 @@ class ChatsCubit extends Cubit<ChatsState> {
   sendMessage(Chat chat, String senderId, List<Attachment> attachments) async {
     DefaultCacheManager cacheManager = DefaultCacheManager();
     List<MultipartFile> encryptedAttachments = [];
-    List<MessageItem> items = [];
+    List<MessageItem> encryptedItems = [];
 
     for (var i = 0; i < attachments.length; i++) {
-      final attachmentName =
-          '${DateTime.now().millisecondsSinceEpoch}_$i.${attachments[i].name.split('.').last}';
+      var attachmentName = attachments[i].name.split('/').last;
 
-      items.add(MessageItem(
-        type: MessageType.values.firstWhere(
-          (e) => describeEnum(e) == describeEnum(attachments[i].type),
-        ),
-        data: attachmentName,
+      final encryptedName = _encryptionService.chachaEncrypt(
+        Uint8List.fromList(utf8.encode(attachmentName)),
+        chat.sharedKey,
+      );
+
+      final messageType = MessageType.values.firstWhere(
+        (e) => describeEnum(e) == describeEnum(attachments[i].type),
+      );
+
+      encryptedItems.add(MessageItem(
+        type: messageType,
+        data: base32.encode(encryptedName),
       ));
 
-      final file = File(attachments[i].name).readAsBytesSync();
+      final file = File(attachments[i].name);
 
       // generate thumbnail for video or photo
-      if (attachments[i].type != AttachmentType.file) {
-        final thumbName = '${attachmentName.split('.').first}_thumb.jpg';
+      if (!attachments[i].type.isFile) {
+        // Uint8List? thumb = await computeGenerateThumbnail(
+        //   file,
+        //   attachments[i].type.isVideo,
+        // );
 
-        Uint8List? thumb;
+        Uint8List? thumb = await _generateThumbnail(
+          file,
+          attachments[i].type.isVideo,
+        );
 
-        if (attachments[i].type == AttachmentType.video) {
-          thumb = await vt.VideoThumbnail.thumbnailData(
-            video: attachments[i].name,
-            imageFormat: vt.ImageFormat.JPEG,
-            maxWidth: 1024,
-            quality: 50,
-          );
-        } else {
-          var image = copyResize(
-            decodeImage(file)!,
-            width: 512,
-            interpolation: Interpolation.nearest,
-          );
-          thumb = encodeJpg(image) as Uint8List;
-        }
+        print(file.lengthSync());
+        print(thumb!.length);
 
         encryptedAttachments.add(MultipartFile.fromBytes(
           _encryptionService.chachaEncrypt(
-            thumb!,
+            (await cacheManager.putFile('thumb_$attachmentName', thumb))
+                .readAsBytesSync(),
             chat.sharedKey,
           ),
-          filename: thumbName,
+          filename: 'thumb_${base32.encode(encryptedName)}',
         ));
-
-        await cacheManager.putFile(thumbName, thumb);
       }
 
       encryptedAttachments.add(MultipartFile.fromBytes(
         _encryptionService.chachaEncrypt(
-          file,
+          (await cacheManager.putFile(attachmentName, file.readAsBytesSync()))
+              .readAsBytesSync(),
           chat.sharedKey,
         ),
-        filename: attachmentName,
+        filename: base32.encode(encryptedName),
       ));
-
-      //await cacheManager.putFile(attachmentName, file);
     }
 
-    print('GENEROWANIE THUMB END');
-
-    final newMessage = chat.message.copyWith(
+    var newMessage = chat.message.copyWith(
       senderId: senderId,
       status: MessageStatus.sending,
-      content: [...chat.message.content, ...items],
+      content: [...chat.message.content, ...encryptedItems],
       unreadBy: chat.participants
           .map((e) => e.id)
           .where((id) => id != senderId)
@@ -315,40 +345,38 @@ class ChatsCubit extends Cubit<ChatsState> {
           .toList(),
     ));
 
-    // szyfrowanie wiadomości tekstowej
-    final encryptedMessage = newMessage.copyWith(
-      content: newMessage.content.map((e) {
-        if (e.type == MessageType.text) {
-          return e.copyWith(
-              data: base64.encode(_encryptionService.chachaEncrypt(
-            utf8.encode(e.data) as Uint8List,
-            chat.sharedKey,
-          )));
-        }
+    if (newMessage.content.first.type == MessageType.text) {
+      final encryptedItem = newMessage.content.first.copyWith(
+          data: base64.encode(_encryptionService.chachaEncrypt(
+        utf8.encode(newMessage.content.first.data) as Uint8List,
+        chat.sharedKey,
+      )));
 
-        return e;
-      }).toList(),
-    );
+      newMessage = newMessage.copyWith(
+        content: List.of(newMessage.content)
+          ..replaceRange(0, 1, [encryptedItem]),
+      );
+    }
 
-    final messageId = await _chatsRepository.addMessage(
+    print({'ddddd', newMessage.content});
+
+    final message = await _chatsRepository.addMessage(
       chat.id,
-      encryptedMessage,
+      newMessage,
       encryptedAttachments,
     );
 
-    //stopTyping(chat.id);
-
-    _wsService.socket.emit('message.new', {
-      'chatId': chat.id,
-      'message': encryptedMessage.copyWith(id: messageId).toJson(),
-    });
+    // _wsService.socket.emit('message.new', {
+    //   'chatId': chat.id,
+    //   'message': newMessage.copyWith(id: messageId).toJson(),
+    // });
 
     emit(state.copyWith(
       chats: List.of(state.chats)
           .map((c) => c.id == chat.id
               ? c.copyWith(messages: [
                   c.messages[0].copyWith(
-                    id: messageId,
+                    id: message['_id'],
                     status: MessageStatus.sent,
                   ),
                   ...c.messages.sublist(1)
@@ -400,7 +428,7 @@ class ChatsCubit extends Cubit<ChatsState> {
 
       emit(state.copyWith(
         chats: List.of(state.chats)..removeWhere((chat) => chat.id == id),
-        formStatus: FormStatus.success,
+        formStatus: const FormStatus.success('Usunięto czat.'),
       ));
     } on DioError catch (e) {
       emit(state.copyWith(
@@ -410,23 +438,30 @@ class ChatsCubit extends Cubit<ChatsState> {
   }
 
   deleteMessage(String chatId, String messageId) async {
-    emit(state.copyWith(
-      chats: List.of(state.chats)
-          .map((chat) => chat.id == chatId
-              ? chat.copyWith(
-                  messages: List.of(chat.messages)
-                      .map((m) => m.id == messageId
-                          ? m.copyWith(status: MessageStatus.deleting)
-                          : m)
-                      .toList(),
-                )
-              : chat)
-          .toList(),
-    ));
+    emit(state.copyWith(formStatus: FormStatus.loading));
 
     await _chatsRepository.deleteMessage(chatId, messageId);
 
     emit(state.copyWith(
+      formStatus: const FormStatus.success('Usunięto wiadomość.'),
+      chats: List.of(state.chats)
+          .map((chat) => chat.id == chatId
+              ? chat.copyWith(
+                  messages: List.of(chat.messages)
+                    ..removeWhere((m) => m.id == messageId),
+                )
+              : chat)
+          .toList(),
+    ));
+  }
+
+  updateMessageDeletedBy(String chatId, String messageId) async {
+    emit(state.copyWith(formStatus: FormStatus.loading));
+
+    await _chatsRepository.updateMessageDeletedBy(chatId, messageId);
+
+    emit(state.copyWith(
+      formStatus: const FormStatus.success('Usunięto wiadomość.'),
       chats: List.of(state.chats)
           .map((chat) => chat.id == chatId
               ? chat.copyWith(
@@ -439,14 +474,12 @@ class ChatsCubit extends Cubit<ChatsState> {
   }
 
   startTyping(String chatId) {
-    print('Start typing');
     _wsService.socket.emit('typing.start', {
       'chatId': chatId,
     });
   }
 
   stopTyping(String chatId) {
-    print('Stop typing');
     _wsService.socket.emit('typing.stop', {
       'chatId': chatId,
     });
@@ -515,7 +548,7 @@ class ChatsCubit extends Cubit<ChatsState> {
                 ? chat.copyWith(name: state.name.value)
                 : chat)
             .toList(),
-        formStatus: FormStatus.success,
+        formStatus: const FormStatus.success(),
       ));
     } on DioError catch (e) {
       emit(state.copyWith(
@@ -577,6 +610,34 @@ class ChatsCubit extends Cubit<ChatsState> {
     ));
   }
 
+  Future<Uint8List?> _generateThumbnail(File file,
+      [bool isVideo = false]) async {
+    if (isVideo) {
+      return await vt.VideoThumbnail.thumbnailData(
+        video: file.path,
+        imageFormat: vt.ImageFormat.JPEG,
+        maxWidth: 1024,
+        quality: 50,
+      );
+    } else {
+      return await FlutterImageCompress.compressWithFile(
+        file.absolute.path,
+        //minWidth: 500,
+        quality: 60,
+      );
+    }
+  }
+
+  // Future<Uint8List?> computeGenerateThumbnail(File file,
+  //     [bool isVideo = false]) async {
+  //   print('GENERATED THUMBNAIL!!!!');
+
+  //   return await compute(
+  //     generateThumbnail,
+  //     GenerateThumbnailProperties(file, isVideo),
+  //   );
+  // }
+
   Future<List<int>> computeCropAvatar(Uint8List photo) async {
     return await compute(cropAvatar, photo);
   }
@@ -587,6 +648,65 @@ class ChatsCubit extends Cubit<ChatsState> {
     return super.close();
   }
 }
+
+// class GenerateThumbnailProperties {
+//   GenerateThumbnailProperties(this.file, this.isVideo);
+
+//   final File file;
+//   final bool isVideo;
+// }
+
+// Future<Uint8List?> generateThumbnail(GenerateThumbnailProperties data) async {
+//   if (data.isVideo) {
+//     return await vt.VideoThumbnail.thumbnailData(
+//       video: data.file.path,
+//       imageFormat: vt.ImageFormat.JPEG,
+//       maxWidth: 1024,
+//       quality: 50,
+//     );
+//   } else {
+//     // var image = copyResize(
+//     //   decodeImage(data.file.readAsBytesSync())!,
+//     //   width: 512,
+//     //   interpolation: Interpolation.nearest,
+//     // );
+
+//     // return encodeJpg(image) as Uint8List;
+//     // ImageProperties properties =
+//     //     await FlutterNativeImage.getImageProperties(data.file.path);
+
+//     // print(properties);
+
+//     // File compressedFile = await FlutterNativeImage.compressImage(data.file.path,
+//     //     quality: 80,
+//     //     targetWidth: 512,
+//     //     targetHeight: (properties.height! * 512 / properties.width!).round());
+
+//     // return compressedFile.readAsBytesSync();
+//     // print(data.file);
+//     // var result = await FlutterImageCompress.compressWithFile(
+//     //   data.file.absolute.path,
+//     //   minWidth: 500,
+//     //   quality: 60,
+//     // );
+//     // print(data.file.lengthSync());
+//     // print(result!.length);
+//     // return result;
+
+//     CompressObject compressObject = CompressObject(
+//       imageFile: data.file, //image
+//       //path: tempDir.path, //compress to path
+//       quality: 60, //first compress quality, default 80
+//       step:
+//           9, //compress quality step, The bigger the fast, Smaller is more accurate, default 6
+//       mode: CompressMode.LARGE2SMALL,
+//       //default AUTO
+//     );
+
+//     var path = await Luban.compressImage(compressObject);
+//     return File(path!).readAsBytesSync();
+//   }
+// }
 
 List<int> cropAvatar(Uint8List data) {
   Image croppedPhoto = copyResizeCropSquare(

@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:equatable/equatable.dart';
 
 enum MessageType { text, photo, video, file }
-enum MessageStatus { sending, sent, deleting, failure, unknow }
+enum MessageStatus { sending, sent, failure, unknow }
 
 class MessageItem extends Equatable {
   const MessageItem({
@@ -93,4 +93,11 @@ class Message extends Equatable {
       'unreadBy': unreadBy
     };
   }
+}
+
+extension MessageTypeExtension on MessageType {
+  bool get isText => this == MessageType.text;
+  bool get isFile => this == MessageType.file;
+  bool get isPhoto => this == MessageType.photo;
+  bool get isVideo => this == MessageType.video;
 }

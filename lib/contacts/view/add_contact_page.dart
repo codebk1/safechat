@@ -28,7 +28,7 @@ class AddContactPage extends StatelessWidget {
             ..showSnackBar(
               getErrorSnackBar(
                 context,
-                errorText: state.formStatus.error!,
+                errorText: state.formStatus.message!,
               ),
             );
         }

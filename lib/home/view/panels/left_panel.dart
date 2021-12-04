@@ -87,40 +87,45 @@ class LeftPanel extends StatelessWidget {
                     ),
                     leading: const Icon(Icons.online_prediction_sharp),
                     onTap: () {
-                      SystemChrome.setEnabledSystemUIMode(
-                        SystemUiMode.immersive,
-                      );
-                      showModalBottomSheet(
-                          context: context,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(
-                                10.0,
-                              ),
-                            ),
-                          ),
-                          builder: (BuildContext _) {
-                            return Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(15.0),
-                                  child: Text(
-                                    'Ustaw status',
-                                    style:
-                                        Theme.of(context).textTheme.headline5,
-                                  ),
-                                ),
-                                for (Status value in Status.values)
-                                  StatusListTile(status: value),
-                              ],
-                            );
-                          }).whenComplete(
-                        () => SystemChrome.setEnabledSystemUIMode(
-                          SystemUiMode.edgeToEdge,
+                      SystemChrome.setSystemUIOverlayStyle(
+                        SystemUiOverlayStyle(
+                          statusBarColor: Colors.grey.shade700,
                         ),
                       );
+                      showModalBottomSheet(
+                              context: context,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(
+                                    10.0,
+                                  ),
+                                ),
+                              ),
+                              builder: (BuildContext _) {
+                                return Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(15.0),
+                                      child: Text(
+                                        'Ustaw status',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .headline5,
+                                      ),
+                                    ),
+                                    for (Status value in Status.values)
+                                      StatusListTile(status: value),
+                                  ],
+                                );
+                              })
+                          .whenComplete(
+                              () => SystemChrome.setSystemUIOverlayStyle(
+                                    SystemUiOverlayStyle(
+                                      statusBarColor: Colors.grey.shade300,
+                                    ),
+                                  ));
                     },
                   ),
                   ListTile(

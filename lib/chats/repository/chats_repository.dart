@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:base32/base32.dart';
 import 'package:flutter/foundation.dart';
-
 import 'package:dio/dio.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
@@ -19,8 +19,12 @@ class ChatsRepository {
   final _cacheManager = DefaultCacheManager();
   final _contactsRepository = ContactsRepository();
 
-  Future<Chat> getChat(String chatId) async {
-    final res = await _apiService.get('/chat/$chatId');
+  Future<Chat> getChat({String? chatId, List<String>? participants}) async {
+    final res = await _apiService.get(
+      chatId != null
+          ? '/chat/$chatId'
+          : '/chat/participants/${participants!.join(',')}',
+    );
 
     res.data['sharedKey'] = _encryptionService.rsaDecrypt(
       res.data['sharedKey'],
@@ -136,15 +140,18 @@ class ChatsRepository {
         messages: chat.messages
             .map((message) => message.copyWith(
                   content: message.content.map((item) {
+                    print(item);
                     if (item.type == MessageType.text) {
                       return item.copyWith(
                           data: utf8.decode(_encryptionService.chachaDecrypt(
                         item.data,
                         chat.sharedKey,
                       )));
+                    } else {
+                      return item.copyWith(
+                        data: item.data,
+                      );
                     }
-
-                    return item;
                   }).toList(),
                 ))
             .toList()
@@ -157,6 +164,8 @@ class ChatsRepository {
 
     return chats.toList();
   }
+
+  getChatByParticipants(participants) {}
 
   Future<Chat> createChat(
     ChatType type,
@@ -299,20 +308,15 @@ class ChatsRepository {
     Message encryptedMessage,
     List<MultipartFile> encryptedAttachments,
   ) async {
-    final formData = FormData.fromMap(
-      {
-        'id': chatId,
-        'message': encryptedMessage.toJson(),
-        'attachments': encryptedAttachments,
-      },
-    );
+    final formData = FormData.fromMap({
+      'id': chatId,
+      'message': encryptedMessage.toJson(),
+      'attachments': encryptedAttachments,
+    });
 
     final res = await _apiService.post(
       '/chat/messages',
       data: formData,
-      onSendProgress: (int sent, int total) {
-        print('${(sent / total) * 100} %');
-      },
     );
 
     return res.data;
@@ -369,7 +373,14 @@ class ChatsRepository {
   }
 
   Future<void> deleteMessage(String chatId, String messageId) async {
-    await _apiService.post('/chat/delete/message', data: {
+    await _apiService.delete('/chat/message', data: {
+      'chatId': chatId,
+      'messageId': messageId,
+    });
+  }
+
+  Future<void> updateMessageDeletedBy(String chatId, String messageId) async {
+    await _apiService.patch('/chat/message/deletedby', data: {
       'chatId': chatId,
       'messageId': messageId,
     });

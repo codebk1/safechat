@@ -12,40 +12,40 @@ class VideosMessage extends StatelessWidget {
     Key? key,
     required this.chat,
     required this.videos,
+    required this.borderRadius,
   }) : super(key: key);
 
   final Chat chat;
   final List<Attachment> videos;
+  final BorderRadius borderRadius;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => AttachmentsCubit(),
-      child: GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: min(videos.length, 3),
-            crossAxisSpacing: 5,
-            mainAxisSpacing: 5,
-          ),
-          itemCount: videos.length,
-          itemBuilder: (BuildContext context, index) {
-            return FutureBuilder(
-                future: context
-                    .read<AttachmentsCubit>()
-                    .getAttachment(chat, videos[index]),
-                builder:
-                    (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-                  if (snapshot.hasData) {
-                    return ClipRRect(
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(10),
-                      ),
-                      child: GestureDetector(
+      child: ClipRRect(
+        borderRadius: borderRadius,
+        child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: min(videos.length, 3),
+              crossAxisSpacing: 2,
+              mainAxisSpacing: 2,
+            ),
+            itemCount: videos.length,
+            itemBuilder: (BuildContext context, index) {
+              return FutureBuilder(
+                  future: context
+                      .read<AttachmentsCubit>()
+                      .getAttachment(chat, videos[index]),
+                  builder:
+                      (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                    if (snapshot.hasData) {
+                      return GestureDetector(
                         onTap: () {
                           Navigator.of(context).pushNamed(
-                            '/chat/video',
+                            '/chat/media',
                             arguments: MediaPageArguments(
                               chat,
                               videos[index],
@@ -80,28 +80,28 @@ class VideosMessage extends StatelessWidget {
                                 color: Colors.black26,
                               ),
                             ),
-                            const Align(
+                            Align(
                               alignment: Alignment.center,
                               child: Icon(
                                 Icons.play_circle,
                                 color: Colors.white,
-                                size: 60,
+                                size: 60 / min(videos.length, 3) + 5,
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    );
-                  } else {
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    );
-                  }
-                });
-          }),
+                      );
+                    } else {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      );
+                    }
+                  });
+            }),
+      ),
     );
   }
 }

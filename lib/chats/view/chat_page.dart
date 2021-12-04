@@ -7,7 +7,7 @@ import 'package:safechat/router.dart';
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/chats/chats.dart';
 
-class ChatPage extends StatelessWidget {
+class ChatPage extends StatefulWidget {
   const ChatPage({
     Key? key,
     required this.chatId,
@@ -16,10 +16,15 @@ class ChatPage extends StatelessWidget {
   final String chatId;
 
   @override
+  State<ChatPage> createState() => _ChatPageState();
+}
+
+class _ChatPageState extends State<ChatPage> {
+  @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () {
-        context.read<ChatsCubit>().closeChat(chatId);
+        context.read<ChatsCubit>().closeChat(widget.chatId);
 
         return Future.value(true);
       },
@@ -30,8 +35,8 @@ class ChatPage extends StatelessWidget {
         ),
         child: Scaffold(
           appBar: AppBar(
-            systemOverlayStyle: SystemUiOverlayStyle(
-              statusBarColor: Colors.grey.shade300,
+            systemOverlayStyle: const SystemUiOverlayStyle(
+              //statusBarColor: Colors.grey.shade300,
               statusBarIconBrightness: Brightness.dark,
             ),
             actions: [
@@ -44,7 +49,7 @@ class ChatPage extends StatelessWidget {
                           .read<ChatsCubit>()
                           .state
                           .chats
-                          .firstWhere((c) => c.id == chatId),
+                          .firstWhere((c) => c.id == widget.chatId),
                       context.read<ContactsCubit>().state.contacts,
                     ),
                   );
@@ -69,7 +74,7 @@ class ChatPage extends StatelessWidget {
                   builder: (context, chatsState) {
                     final chat =
                         context.read<ChatsCubit>().state.chats.firstWhere(
-                              (c) => c.id == chatId,
+                              (c) => c.id == widget.chatId,
                             );
 
                     final contactsTitle = state.contacts.isEmpty
@@ -151,7 +156,7 @@ class ChatPage extends StatelessWidget {
                 FocusManager.instance.primaryFocus!.unfocus();
               }
             },
-            child: MessagesSection(chatId: chatId),
+            child: MessagesSection(chatId: widget.chatId),
           ),
         ),
       ),

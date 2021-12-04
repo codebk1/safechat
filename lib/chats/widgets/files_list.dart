@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -54,7 +55,7 @@ class FilesList extends StatelessWidget {
                 ),
           ),
           subtitle: Text(
-            '${(_file.lengthSync() / (1024 * 1024)).toStringAsFixed(2)} MB',
+            _formatBytes(_file.lengthSync()),
             style: Theme.of(context).textTheme.subtitle2!.copyWith(
                   color: Colors.grey.shade500,
                 ),
@@ -63,4 +64,14 @@ class FilesList extends StatelessWidget {
       },
     );
   }
+}
+
+String _formatBytes(int bytes) {
+  if (bytes == 0) return '0 B';
+
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+  final i = (log(bytes) / log(1024)).floor();
+
+  return '${(bytes / pow(1024, i)).toStringAsFixed(2)}  ${sizes[i]}';
 }

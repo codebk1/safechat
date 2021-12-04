@@ -27,7 +27,7 @@ class LoginCubit extends Cubit<LoginState> {
         await _authRepository.login(state.email.value, state.password.value);
         await _userCubit.authenticate();
 
-        emit(state.copyWith(formStatus: FormStatus.success));
+        emit(state.copyWith(formStatus: const FormStatus.success()));
       } on DioError catch (e) {
         emit(state.copyWith(
           formStatus: FormStatus.failure(e.response!.data['message']),

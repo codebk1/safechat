@@ -43,7 +43,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     const SizedBox(
                       width: 10.0,
                     ),
-                    Text(state.formStatus.error!),
+                    Text(state.formStatus.message!),
                   ],
                 ),
               ),

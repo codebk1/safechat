@@ -10,32 +10,31 @@ class TextMessage extends StatelessWidget {
     Key? key,
     required this.text,
     required this.sender,
+    required this.isGroupChat,
+    required this.borderRadius,
   }) : super(key: key);
 
   final String text;
   final Contact sender;
+  final bool isGroupChat;
+  final BorderRadius borderRadius;
 
   @override
   Widget build(BuildContext context) {
     final isOwnMsg = sender.id == context.read<UserCubit>().state.user.id;
 
     return Container(
-      padding: isOwnMsg
+      padding: isOwnMsg || !isGroupChat
           ? const EdgeInsets.all(10.0)
           : const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
       decoration: BoxDecoration(
         color: Colors.blue.shade800.withOpacity(isOwnMsg ? 1 : 0.1),
-        borderRadius: BorderRadius.circular(10),
-        // borderRadius: BorderRadius.only(
-        //     topLeft: Radius.circular(10),
-        //     bottomLeft: Radius.circular(10),
-        //     topRight: Radius.circular(10),
-        //     bottomRight: Radius.circular(20))
+        borderRadius: borderRadius,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!isOwnMsg)
+          if (!isOwnMsg && isGroupChat)
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [

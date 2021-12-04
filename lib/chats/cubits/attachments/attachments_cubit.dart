@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:base32/base32.dart';
 import 'package:mime/mime.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:equatable/equatable.dart';
@@ -8,6 +11,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 import 'package:safechat/chats/chats.dart';
+import 'package:safechat/utils/encryption_service.dart';
 
 part 'attachments_state.dart';
 
@@ -16,17 +20,20 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
       : super(AttachmentsState(attachments: attachments));
 
   final _chatsRepository = ChatsRepository();
+  final _encryptionService = EncryptionService();
 
   Future<File> getAttachment(Chat chat, Attachment attachment,
       {bool thumbnail = true}) async {
     final cacheManager = DefaultCacheManager();
-    var attachmentName = attachment.name;
+    var name = attachment.name;
+    var decryptedName = getDecryptedName(attachment.name, chat.sharedKey);
 
     if (attachment.type != AttachmentType.file && thumbnail) {
-      attachmentName = '${attachment.name.split('.').first}_thumb.jpg';
+      name = 'thumb_$name';
+      decryptedName = 'thumb_$decryptedName';
     }
 
-    var cachedFile = await cacheManager.getFileFromCache(attachmentName);
+    final cachedFile = await cacheManager.getFileFromCache(decryptedName);
 
     if (cachedFile != null) {
       emit(state.copyWith(downloadedAttachment: cachedFile.file));
@@ -35,11 +42,11 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
 
     final attachmentFile = await _chatsRepository.getAttachment(
       chat.id,
-      attachmentName,
+      name,
       chat.sharedKey,
     );
 
-    final file = await cacheManager.putFile(attachmentName, attachmentFile);
+    final file = await cacheManager.putFile(decryptedName, attachmentFile);
 
     if (thumbnail == false) {
       emit(state.copyWith(downloadedAttachment: file));
@@ -84,6 +91,12 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
         }
       }
 
+      _attachments.sort(
+        (a, b) => FileStat.statSync(b.name)
+            .changed
+            .compareTo(FileStat.statSync(a.name).changed),
+      );
+
       emit(state.copyWith(
         loading: false,
         attachments: _attachments,
@@ -107,8 +120,10 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
     );
 
     final attachment = await File(
-      '/storage/emulated/0/Download/$attachmentName',
+      '/storage/emulated/0/Download/${getDecryptedName(attachmentName, chat.sharedKey)}',
     ).writeAsBytes(attachmentData);
+
+    print(attachment);
 
     emit(state.copyWith(
       attachments: List.of(state.attachments)
@@ -119,6 +134,15 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
     ));
 
     return attachment;
+  }
+
+  String getDecryptedName(String name, Uint8List sharedKey) {
+    final decryptedName = _encryptionService.chachaDecrypt(
+      base64.encode(base32.decode(name)),
+      sharedKey,
+    );
+
+    return utf8.decode(decryptedName);
   }
 
   toggleAttachment(Attachment attachment) {

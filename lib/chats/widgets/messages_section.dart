@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rive/rive.dart';
@@ -6,6 +7,7 @@ import 'package:rive/rive.dart';
 import 'package:safechat/user/user.dart';
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/chats/chats.dart';
+import 'package:safechat/utils/form_helper.dart';
 
 class MessagesSection extends StatelessWidget {
   const MessagesSection({
@@ -62,6 +64,25 @@ class MessagesSection extends StatelessWidget {
                             int index,
                           ) {
                             final message = chat.messages[index];
+
+                            final isNextText = chat.messages.length - 1 == index
+                                ? false
+                                : chat.messages[index + 1].content.first.type
+                                        .isText &&
+                                    chat.messages[index + 1].content.length ==
+                                        1 &&
+                                    message.senderId ==
+                                        chat.messages[index + 1].senderId;
+
+                            final isPrevText = index == 0
+                                ? false
+                                : chat.messages[index - 1].content.first.type
+                                        .isText &&
+                                    chat.messages[index - 1].content.length ==
+                                        1 &&
+                                    message.senderId ==
+                                        chat.messages[index - 1].senderId;
+
                             final isLastInSet =
                                 chat.messages[index == 0 ? index : index - 1]
                                             .senderId !=
@@ -69,11 +90,20 @@ class MessagesSection extends StatelessWidget {
                                     index == 0;
 
                             return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 15.0,
+                              padding: EdgeInsets.only(
+                                top: isNextText && message.content.length == 1
+                                    ? 2
+                                    : 10,
+                                left: 15.0,
+                                right: 15.0,
                               ),
                               child: GestureDetector(
                                 onLongPress: () {
+                                  SystemChrome.setSystemUIOverlayStyle(
+                                    SystemUiOverlayStyle(
+                                      statusBarColor: Colors.grey.shade700,
+                                    ),
+                                  );
                                   showModalBottomSheet(
                                       context: context,
                                       shape: const RoundedRectangleBorder(
@@ -84,64 +114,111 @@ class MessagesSection extends StatelessWidget {
                                         ),
                                       ),
                                       builder: (BuildContext _) {
-                                        return SizedBox(
-                                          height: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.4,
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.all(15.0),
-                                                child: Text(
-                                                  'Opcje wiadomości',
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .headline5,
+                                        return BlocProvider.value(
+                                          value: context.read<ChatsCubit>(),
+                                          child: BlocBuilder<ChatsCubit,
+                                              ChatsState>(
+                                            builder: (context, state) {
+                                              return SizedBox(
+                                                height: MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                    0.4,
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              15.0),
+                                                      child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceBetween,
+                                                        children: [
+                                                          Text(
+                                                            'Opcje wiadomości',
+                                                            style: Theme.of(
+                                                                    context)
+                                                                .textTheme
+                                                                .headline5,
+                                                          ),
+                                                          if (state.formStatus
+                                                              .isLoading)
+                                                            Transform.scale(
+                                                              scale: 0.5,
+                                                              child:
+                                                                  CircularProgressIndicator(
+                                                                strokeWidth: 2,
+                                                                color: Colors
+                                                                    .grey
+                                                                    .shade800,
+                                                              ),
+                                                            ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    ListTile(
+                                                      onTap: () {
+                                                        if (!state.formStatus
+                                                            .isLoading) {
+                                                          context
+                                                              .read<
+                                                                  ChatsCubit>()
+                                                              .updateMessageDeletedBy(
+                                                                chat.id,
+                                                                message.id,
+                                                              );
+                                                        }
+                                                      },
+                                                      leading: const Icon(
+                                                        Icons.delete,
+                                                      ),
+                                                      title: const Text(
+                                                        'Usuń dla siebie',
+                                                      ),
+                                                    ),
+                                                    if (message.senderId ==
+                                                        currentUser.id)
+                                                      ListTile(
+                                                        onTap: () {
+                                                          if (!state.formStatus
+                                                              .isLoading) {
+                                                            context
+                                                                .read<
+                                                                    ChatsCubit>()
+                                                                .deleteMessage(
+                                                                  chat.id,
+                                                                  message.id,
+                                                                );
+                                                          }
+                                                        },
+                                                        leading: const Icon(
+                                                          Icons.delete_forever,
+                                                        ),
+                                                        title: const Text(
+                                                          'Usuń dla wszystkich',
+                                                        ),
+                                                      ),
+                                                  ],
                                                 ),
-                                              ),
-                                              ListTile(
-                                                onTap: () {
-                                                  Navigator.of(context).pop();
-                                                },
-                                                leading: const Icon(
-                                                  Icons.delete,
-                                                ),
-                                                title: const Text(
-                                                  'Usuń dla siebie',
-                                                ),
-                                              ),
-                                              if (message.senderId ==
-                                                  currentUser.id)
-                                                ListTile(
-                                                  onTap: () {
-                                                    context
-                                                        .read<ChatsCubit>()
-                                                        .deleteMessage(
-                                                          chat.id,
-                                                          message.id,
-                                                        );
-
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                  leading: const Icon(
-                                                    Icons.delete_forever,
-                                                  ),
-                                                  title: const Text(
-                                                    'Usuń dla wszystkich',
-                                                  ),
-                                                ),
-                                            ],
+                                              );
+                                            },
                                           ),
                                         );
-                                      });
+                                      }).whenComplete(() => SystemChrome
+                                          .setSystemUIOverlayStyle(
+                                        SystemUiOverlayStyle(
+                                          statusBarColor: Colors.grey.shade300,
+                                        ),
+                                      ));
                                 },
                                 child: MessageBubble(
                                   chat: chat,
                                   message: message,
+                                  isNextText: isNextText,
+                                  isPrevText: isPrevText,
                                   isLastInSet: isLastInSet,
                                   isLastSentMsg: lastSenderMsg.isNotEmpty
                                       ? lastSenderMsg.first == message

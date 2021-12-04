@@ -28,3 +28,9 @@ class Attachment extends Equatable {
     );
   }
 }
+
+extension AttachmentTypeExtension on AttachmentType {
+  bool get isPhoto => this == AttachmentType.photo;
+  bool get isVideo => this == AttachmentType.video;
+  bool get isFile => this == AttachmentType.file;
+}

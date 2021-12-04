@@ -21,19 +21,21 @@ abstract class FormItem<T> {
 class FormStatus {
   const FormStatus({
     required this.status,
-    this.error,
+    this.message,
   });
 
   static const FormStatus init = FormStatus(status: FStatus.init);
   static const FormStatus submiting = FormStatus(status: FStatus.submiting);
   static const FormStatus loading = FormStatus(status: FStatus.loading);
-  static const FormStatus success = FormStatus(status: FStatus.success);
 
-  const FormStatus.failure(String error)
-      : this(status: FStatus.failure, error: error);
+  const FormStatus.success([String message = ''])
+      : this(status: FStatus.success, message: message);
+
+  const FormStatus.failure([String message = ''])
+      : this(status: FStatus.failure, message: message);
 
   final FStatus status;
-  final String? error;
+  final String? message;
 }
 
 mixin ValidationMixin {

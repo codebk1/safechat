@@ -11,12 +11,16 @@ class MessageBubble extends StatelessWidget {
     Key? key,
     required this.chat,
     required this.message,
+    required this.isNextText,
+    required this.isPrevText,
     required this.isLastInSet,
     required this.isLastSentMsg,
   }) : super(key: key);
 
   final Chat chat;
   final Message message;
+  final bool isNextText;
+  final bool isPrevText;
   final bool isLastInSet;
   final bool isLastSentMsg;
 
@@ -37,6 +41,9 @@ class MessageBubble extends StatelessWidget {
         final readBy = chat.participants.where(
           (e) => !message.unreadBy.contains(e.id) && e.id != currentUser.id,
         );
+
+        final isGroup = message.content.length > 1 &&
+            message.content.any((item) => item.type.isText);
 
         String textMessage = '';
         List<Attachment> photos = [];
@@ -68,152 +75,200 @@ class MessageBubble extends StatelessWidget {
               break;
           }
         }
-        return Padding(
-          padding: const EdgeInsets.only(top: 5.0),
-          child: Row(
-            mainAxisAlignment:
-                isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Row(
-                children: [
-                  if (!isSender) ...[
-                    isLastInSet
-                        ? BlocBuilder<ContactsCubit, ContactsState>(
-                            builder: (context, state) {
-                              final contact = state.contacts.firstWhere(
-                                (p) => p.id == message.senderId,
-                              );
+        return Row(
+          mainAxisAlignment:
+              isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Row(
+              children: [
+                if (!isSender) ...[
+                  isLastInSet
+                      ? BlocBuilder<ContactsCubit, ContactsState>(
+                          builder: (context, state) {
+                            final contact = state.contacts.firstWhere(
+                              (p) => p.id == message.senderId,
+                            );
 
-                              return Stack(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 14,
-                                    child: contact.avatar != null
-                                        ? ClipOval(
-                                            child: Image.file(
-                                              contact.avatar,
-                                            ),
-                                          )
-                                        : Icon(
-                                            Icons.person,
-                                            color: Colors.grey.shade50,
+                            return Stack(
+                              children: [
+                                CircleAvatar(
+                                  radius: 14,
+                                  child: contact.avatar != null
+                                      ? ClipOval(
+                                          child: Image.file(
+                                            contact.avatar,
                                           ),
-                                    backgroundColor: Colors.grey.shade300,
+                                        )
+                                      : Icon(
+                                          Icons.person,
+                                          color: Colors.grey.shade50,
+                                        ),
+                                  backgroundColor: Colors.grey.shade300,
+                                ),
+                                Positioned(
+                                  right: 0,
+                                  bottom: 0,
+                                  child: StatusIndicator(
+                                    isOnline: contact.isOnline,
+                                    status: contact.status,
+                                    size: 10,
                                   ),
-                                  Positioned(
-                                    right: 0,
-                                    bottom: 0,
-                                    child: StatusIndicator(
-                                      isOnline: contact.isOnline,
-                                      status: contact.status,
-                                      size: 10,
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
-                          )
-                        : const SizedBox(width: 28),
-                    const SizedBox(width: 10.0),
-                  ],
+                                ),
+                              ],
+                            );
+                          },
+                        )
+                      : const SizedBox(width: 28),
+                  const SizedBox(width: 10.0),
                 ],
-              ),
-              Flex(
-                direction: chat.participants.length > 2
-                    ? Axis.vertical
-                    : Axis.horizontal,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width * 0.7,
-                    ),
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          if (photos.isNotEmpty)
-                            PhotoMessage(chat: chat, photos: photos),
-                          if (videos.isNotEmpty)
-                            VideosMessage(chat: chat, videos: videos),
-                          if (files.isNotEmpty)
-                            FilesMessage(chat: chat, files: files),
-                          const SizedBox(height: 5),
-                          if (textMessage.isNotEmpty)
-                            TextMessage(text: textMessage, sender: sender)
-                        ]),
+              ],
+            ),
+            Flex(
+              direction: chat.participants.length > 2
+                  ? Axis.vertical
+                  : Axis.horizontal,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.7,
                   ),
-                  if (isSender) ...[
-                    if (chat.participants.length == 2)
-                      const SizedBox(width: 2.0),
-                    if (chat.participants.length > 2)
-                      const SizedBox(height: 2.0),
-                    isLastSentMsg
-                        ? readBy.isNotEmpty
-                            ? chat.participants.length > 2
-                                ? Row(
-                                    children: readBy
-                                        .map((e) => Padding(
-                                              padding: const EdgeInsets.all(
-                                                2.0,
-                                              ),
-                                              child: CircleAvatar(
-                                                radius: 8,
-                                                child: e.avatar != null
-                                                    ? ClipOval(
-                                                        child: Image.file(
-                                                            e.avatar!),
-                                                      )
-                                                    : Icon(
-                                                        Icons.person,
-                                                        size: 12,
-                                                        color:
-                                                            Colors.grey.shade50,
-                                                      ),
-                                                backgroundColor:
-                                                    Colors.grey.shade300,
-                                              ),
-                                            ))
-                                        .toList(),
-                                  )
-                                : CircleAvatar(
-                                    radius: 8,
-                                    child: readBy.first.avatar != null
-                                        ? ClipOval(
-                                            child: Image.file(
-                                                readBy.first.avatar!),
-                                          )
-                                        : Icon(
-                                            Icons.person,
-                                            size: 12,
-                                            color: Colors.grey.shade50,
-                                          ),
-                                    backgroundColor: Colors.grey.shade300,
-                                  )
-                            : message.status == MessageStatus.deleting
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: Padding(
-                                      padding: EdgeInsets.all(2.0),
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 1,
-                                      ),
-                                    ),
-                                  )
-                                : Icon(
-                                    message.status == MessageStatus.sending
-                                        ? Icons.check_circle_outline
-                                        : Icons.check_circle,
-                                    size: 16,
-                                    color: Colors.blue.shade800,
-                                  )
-                        : const SizedBox(width: 16)
-                  ],
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (photos.isNotEmpty)
+                          PhotoMessage(
+                            chat: chat,
+                            photos: photos,
+                            borderRadius: BorderRadius.only(
+                              topLeft: const Radius.circular(
+                                10,
+                              ),
+                              topRight: const Radius.circular(
+                                10,
+                              ),
+                              bottomLeft: Radius.circular(
+                                videos.isNotEmpty || files.isNotEmpty ? 5 : 10,
+                              ),
+                              bottomRight: Radius.circular(
+                                videos.isNotEmpty ||
+                                        files.isNotEmpty ||
+                                        textMessage.isNotEmpty
+                                    ? 5
+                                    : 10,
+                              ),
+                            ),
+                          ),
+                        SizedBox(height: videos.isNotEmpty ? 2 : 0),
+                        if (videos.isNotEmpty)
+                          VideosMessage(
+                            chat: chat,
+                            videos: videos,
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(
+                                photos.isNotEmpty ? 5 : 10,
+                              ),
+                              topRight: Radius.circular(
+                                photos.isNotEmpty ? 5 : 10,
+                              ),
+                              bottomLeft: const Radius.circular(10),
+                              bottomRight: Radius.circular(isGroup ? 5 : 10),
+                            ),
+                          ),
+                        SizedBox(height: files.isNotEmpty ? 2 : 0),
+                        if (files.isNotEmpty)
+                          FilesMessage(
+                            chat: chat,
+                            files: files,
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(
+                                videos.isNotEmpty || photos.isNotEmpty ? 5 : 10,
+                              ),
+                              topRight: Radius.circular(
+                                videos.isNotEmpty || photos.isNotEmpty ? 5 : 10,
+                              ),
+                              bottomLeft: const Radius.circular(10),
+                              bottomRight: Radius.circular(isGroup ? 5 : 10),
+                            ),
+                          ),
+                        SizedBox(height: message.content.length > 1 ? 2 : 0),
+                        if (textMessage.isNotEmpty)
+                          TextMessage(
+                            text: textMessage,
+                            sender: sender,
+                            isGroupChat: chat.type.isGroup,
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(isGroup ? 5 : 10),
+                              topRight: Radius.circular(
+                                  isGroup || isNextText ? 5 : 10),
+                              bottomLeft: const Radius.circular(10),
+                              bottomRight: Radius.circular(isGroup
+                                  ? 20
+                                  : isPrevText
+                                      ? 5
+                                      : 10),
+                            ),
+                          )
+                      ]),
+                ),
+                if (isSender) ...[
+                  if (chat.participants.length == 2) const SizedBox(width: 2.0),
+                  if (chat.participants.length > 2) const SizedBox(height: 2.0),
+                  isLastSentMsg
+                      ? readBy.isNotEmpty
+                          ? chat.participants.length > 2
+                              ? Row(
+                                  children: readBy
+                                      .map((e) => Padding(
+                                            padding: const EdgeInsets.all(
+                                              2.0,
+                                            ),
+                                            child: CircleAvatar(
+                                              radius: 8,
+                                              child: e.avatar != null
+                                                  ? ClipOval(
+                                                      child:
+                                                          Image.file(e.avatar!),
+                                                    )
+                                                  : Icon(
+                                                      Icons.person,
+                                                      size: 12,
+                                                      color:
+                                                          Colors.grey.shade50,
+                                                    ),
+                                              backgroundColor:
+                                                  Colors.grey.shade300,
+                                            ),
+                                          ))
+                                      .toList(),
+                                )
+                              : CircleAvatar(
+                                  radius: 8,
+                                  child: readBy.first.avatar != null
+                                      ? ClipOval(
+                                          child:
+                                              Image.file(readBy.first.avatar!),
+                                        )
+                                      : Icon(
+                                          Icons.person,
+                                          size: 12,
+                                          color: Colors.grey.shade50,
+                                        ),
+                                  backgroundColor: Colors.grey.shade300,
+                                )
+                          : Icon(
+                              message.status == MessageStatus.sending
+                                  ? Icons.check_circle_outline
+                                  : Icons.check_circle,
+                              size: 16,
+                              color: Colors.blue.shade800,
+                            )
+                      : const SizedBox(width: 16)
                 ],
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         );
       },
     );

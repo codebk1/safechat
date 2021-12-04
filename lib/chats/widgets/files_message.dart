@@ -10,19 +10,19 @@ class FilesMessage extends StatelessWidget {
     Key? key,
     required this.chat,
     required this.files,
+    required this.borderRadius,
   }) : super(key: key);
 
   final Chat chat;
   final List<Attachment> files;
+  final BorderRadius borderRadius;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(10),
-        ),
+        borderRadius: borderRadius,
       ),
       child: BlocProvider(
         create: (context) => AttachmentsCubit(attachments: files),
@@ -41,9 +41,12 @@ class FilesMessage extends StatelessWidget {
                               ? SizedBox(
                                   width: 24,
                                   height: 24,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.blue.shade800,
-                                    strokeWidth: 1,
+                                  child: Transform.scale(
+                                    scale: 0.5,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.grey.shade800,
+                                    ),
                                   ),
                                 )
                               : GestureDetector(
@@ -85,7 +88,13 @@ class FilesMessage extends StatelessWidget {
                                   child: const Icon(Icons.download),
                                 ),
                           const SizedBox(width: 15.0),
-                          Text(state.attachments[index].name),
+                          Text(
+                            context.read<AttachmentsCubit>().getDecryptedName(
+                                  state.attachments[index].name,
+                                  chat.sharedKey,
+                                ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ],
                       ),
                     ),

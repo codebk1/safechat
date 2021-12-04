@@ -21,16 +21,16 @@ class MediaPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AttachmentsCubit, AttachmentsState>(
       builder: (context, state) {
-        return AnnotatedRegion<SystemUiOverlayStyle>(
-          value: const SystemUiOverlayStyle(
+        return AnnotatedRegion(
+          value: const SystemUiOverlayStyle().copyWith(
             systemNavigationBarColor: Colors.black,
             systemNavigationBarIconBrightness: Brightness.light,
           ),
           child: Scaffold(
             backgroundColor: Colors.black,
             appBar: AppBar(
-              systemOverlayStyle: const SystemUiOverlayStyle(
-                statusBarColor: Colors.black,
+              systemOverlayStyle: const SystemUiOverlayStyle().copyWith(
+                statusBarColor: Colors.transparent,
                 statusBarIconBrightness: Brightness.light,
               ),
               actions: [

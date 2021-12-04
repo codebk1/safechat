@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -71,14 +72,21 @@ class _MessageTextFieldState extends State<MessageTextField> {
                                 case AttachmentType.file:
                                   return Container(
                                     padding: const EdgeInsets.all(5),
-                                    color: Colors.grey.shade300,
+                                    color: Colors.grey.shade200,
                                     child: Column(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        const Icon(
-                                          Icons.text_snippet,
+                                        const Align(
+                                          alignment: Alignment.topLeft,
+                                          child: Icon(
+                                            Icons.text_snippet,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        const Divider(
                                           color: Colors.white,
+                                          height: 10,
                                         ),
                                         Expanded(
                                           child: Align(
@@ -213,6 +221,11 @@ class _MessageTextFieldState extends State<MessageTextField> {
   }
 
   Future<dynamic> _openAttachmentsPicker(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: Colors.grey.shade700,
+      ),
+    );
     return showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -308,6 +321,10 @@ class _MessageTextFieldState extends State<MessageTextField> {
           ),
         );
       },
-    );
+    ).whenComplete(() => SystemChrome.setSystemUIOverlayStyle(
+          SystemUiOverlayStyle(
+            statusBarColor: Colors.grey.shade300,
+          ),
+        ));
   }
 }
