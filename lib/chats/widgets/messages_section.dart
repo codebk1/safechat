@@ -146,14 +146,20 @@ class MessagesSection extends StatelessWidget {
                                                           ),
                                                           if (state.formStatus
                                                               .isLoading)
-                                                            Transform.scale(
-                                                              scale: 0.5,
-                                                              child:
-                                                                  CircularProgressIndicator(
-                                                                strokeWidth: 2,
-                                                                color: Colors
-                                                                    .grey
-                                                                    .shade800,
+                                                            SizedBox(
+                                                              width: 25,
+                                                              height: 25,
+                                                              child: Transform
+                                                                  .scale(
+                                                                scale: 0.5,
+                                                                child:
+                                                                    CircularProgressIndicator(
+                                                                  strokeWidth:
+                                                                      2,
+                                                                  color: Colors
+                                                                      .grey
+                                                                      .shade800,
+                                                                ),
                                                               ),
                                                             ),
                                                         ],

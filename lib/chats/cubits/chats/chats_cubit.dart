@@ -33,7 +33,6 @@ class ChatsCubit extends Cubit<ChatsState> {
       var msg = Message.fromJson(data['message']);
 
       if (chat.opened) {
-        print('chatOpened');
         msg = msg.copyWith(
           unreadBy: List.of(msg.unreadBy)..remove(_userRepository.user.id),
         );
@@ -194,7 +193,7 @@ class ChatsCubit extends Cubit<ChatsState> {
       chat = await _chatsRepository.getChat(chatId: chatId);
 
       emit(state.copyWith(
-        chats: List.of(state.chats)..insert(0, chat),
+        chats: List.of(state.chats)..insert(0, chat!),
       ));
     }
 
@@ -207,11 +206,13 @@ class ChatsCubit extends Cubit<ChatsState> {
         c.participants.length == participants.length &&
         c.type == ChatType.direct);
 
-    if (chat == null) {
-      chat = await _chatsRepository.getChatByParticipants(participants);
+    if (chat != null) return chat;
 
+    chat ??= await _chatsRepository.getChat(participants: participants);
+
+    if (chat != null) {
       emit(state.copyWith(
-        chats: List.of(state.chats)..insert(0, chat!),
+        chats: List.of(state.chats)..add(chat),
       ));
     }
 

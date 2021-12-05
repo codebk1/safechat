@@ -96,32 +96,21 @@ class ContactActions extends StatelessWidget {
               )
             : IconButton(
                 onPressed: () async {
-                  final newParticipants = [
+                  context.read<ContactsCubit>().startLoading(contact.id);
+
+                  var chat =
+                      await context.read<ChatsCubit>().findChatByParticipants([
                     contact.id,
                     context.read<UserCubit>().state.user.id,
-                  ];
+                  ]);
 
-                  Chat? chat = context
-                      .read<ChatsCubit>()
-                      .state
-                      .chats
-                      .firstWhereOrNull((c) =>
-                          c.participants
-                              .every((p) => newParticipants.contains(p.id)) &&
-                          c.participants.length == newParticipants.length &&
-                          c.type == ChatType.direct);
+                  chat ??= await context.read<ChatsCubit>().createChat(
+                    ChatType.direct,
+                    context.read<UserCubit>().state.user,
+                    [contact],
+                  );
 
-                  if (chat == null) {
-                    context.read<ContactsCubit>().startLoading(contact.id);
-
-                    chat = await context.read<ChatsCubit>().createChat(
-                      ChatType.direct,
-                      context.read<UserCubit>().state.user,
-                      [contact],
-                    );
-
-                    context.read<ContactsCubit>().stopLoading(contact.id);
-                  }
+                  context.read<ContactsCubit>().stopLoading(contact.id);
 
                   Navigator.of(context).pushNamed(
                     '/chat',

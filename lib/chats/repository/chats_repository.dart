@@ -19,24 +19,31 @@ class ChatsRepository {
   final _cacheManager = DefaultCacheManager();
   final _contactsRepository = ContactsRepository();
 
-  Future<Chat> getChat({String? chatId, List<String>? participants}) async {
+  Future<dynamic> getChat({String? chatId, List<String>? participants}) async {
     final res = await _apiService.get(
       chatId != null
           ? '/chat/$chatId'
           : '/chat/participants/${participants!.join(',')}',
     );
 
-    res.data['sharedKey'] = _encryptionService.rsaDecrypt(
-      res.data['sharedKey'],
+    print({'hjghgj', res, res.data?.isEmpty});
+
+    if (res.data?.isEmpty) return null;
+
+    return await _decryptChat(res.data);
+  }
+
+  Future<Chat?> _decryptChat(dynamic data) async {
+    data['sharedKey'] = _encryptionService.rsaDecrypt(
+      data['sharedKey'],
     );
 
-    res.data['participants'] =
-        await _contactsRepository.getDecryptedContactsList(
-      res.data['participants'],
-      res.data['sharedKey'],
+    data['participants'] = await _contactsRepository.getDecryptedContactsList(
+      data['participants'],
+      data['sharedKey'],
     );
 
-    var chat = Chat.fromJson(res.data);
+    var chat = Chat.fromJson(data);
 
     if (chat.name != null) {
       chat = chat.copyWith(
@@ -164,8 +171,6 @@ class ChatsRepository {
 
     return chats.toList();
   }
-
-  getChatByParticipants(participants) {}
 
   Future<Chat> createChat(
     ChatType type,
@@ -315,7 +320,7 @@ class ChatsRepository {
     });
 
     final res = await _apiService.post(
-      '/chat/messages',
+      '/chat/message',
       data: formData,
     );
 
@@ -359,7 +364,7 @@ class ChatsRepository {
       },
     );
 
-    await _apiService.post('/chat/avatar', data: formData);
+    await _apiService.patch('/chat/avatar', data: formData);
   }
 
   Future<void> leaveChat(String chatId) async {
