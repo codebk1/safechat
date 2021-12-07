@@ -65,7 +65,7 @@ class User extends Equatable {
       email: email ?? this.email,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
-      avatar: avatar ?? this.avatar,
+      avatar: avatar != null ? avatar() : this.avatar,
       status: status ?? this.status,
       fcmToken: fcmToken ?? this.fcmToken,
     );

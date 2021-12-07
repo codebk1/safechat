@@ -88,7 +88,7 @@ class ContactsCubit extends Cubit<ContactsState> {
   Future<void> addContact() async {
     emit(state.copyWith(formStatus: FormStatus.submiting));
 
-    if (state.validate.isValid) {
+    if (state.validate().isValid) {
       try {
         emit(state.copyWith(formStatus: FormStatus.loading));
 

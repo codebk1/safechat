@@ -13,7 +13,7 @@ class ProfilePage extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: IconThemeData(
-          color: Colors.grey.shade800, //change your color here
+          color: Colors.grey.shade800,
         ),
         title: Text(
           'Moje konto',
@@ -71,7 +71,6 @@ class ProfilePage extends StatelessWidget {
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              //SizedBox(height: 15.0),
                               Row(
                                 children: [
                                   Column(
@@ -109,20 +108,21 @@ class ProfilePage extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              // SizedBox(height: 15.0),
-                              // Column(
-                              //   crossAxisAlignment: CrossAxisAlignment.start,
-                              //   children: [
-                              //     Text(
-                              //       'Email',
-                              //       style: Theme.of(context).textTheme.subtitle2,
-                              //     ),
-                              //     Text(
-                              //       state.user.email,
-                              //       style: TextStyle(fontSize: 18.0),
-                              //     ),
-                              //   ],
-                              // ),
+                              const SizedBox(height: 15.0),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Email',
+                                    style:
+                                        Theme.of(context).textTheme.subtitle2,
+                                  ),
+                                  Text(
+                                    state.user.email,
+                                    style: const TextStyle(fontSize: 18.0),
+                                  ),
+                                ],
+                              ),
                             ],
                           );
                         },
@@ -137,7 +137,7 @@ class ProfilePage extends StatelessWidget {
                     ),
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(15.0),
+                      padding: const EdgeInsets.all(5.0),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade50,
                         borderRadius: const BorderRadius.all(
@@ -147,6 +147,25 @@ class ProfilePage extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          TextButton.icon(
+                            style: ButtonStyle(
+                              overlayColor: MaterialStateColor.resolveWith(
+                                  (states) => Colors.red.shade50),
+                            ),
+                            onPressed: () {
+                              Navigator.of(context).pushNamed('/password/edit');
+                            },
+                            icon: Icon(
+                              Icons.lock_rounded,
+                              color: Colors.grey.shade800,
+                            ),
+                            label: Text(
+                              'Zmień hasło',
+                              style: TextStyle(
+                                color: Colors.grey.shade800,
+                              ),
+                            ),
+                          ),
                           TextButton.icon(
                             style: ButtonStyle(
                               overlayColor: MaterialStateColor.resolveWith(
@@ -184,92 +203,93 @@ class _AvatarPicker extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  __AvatarPickerState createState() => __AvatarPickerState();
+  _AvatarPickerState createState() => _AvatarPickerState();
 }
 
-class __AvatarPickerState extends State<_AvatarPicker> {
+class _AvatarPickerState extends State<_AvatarPicker> {
   @override
   Widget build(BuildContext context) {
     return Row(
-      //mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        GestureDetector(
-          onTap: context.read<ProfileCubit>().setAvatar,
-          child: Stack(
-            children: [
-              BlocBuilder<ProfileCubit, ProfileState>(
-                builder: (context, state) {
-                  return state.loadingAvatar
-                      ? const CircularProgressIndicator(
-                          strokeWidth: 2,
-                        )
-                      : BlocBuilder<UserCubit, UserState>(
-                          builder: (context, state) {
-                            return CircleAvatar(
-                              radius: 45.0,
-                              backgroundColor: Colors.grey.shade200,
-                              child: state.user.avatar != null
-                                  ? ClipOval(
-                                      child: Image.file(state.user.avatar!),
-                                    )
-                                  : const Icon(
-                                      Icons.person,
-                                      size: 45.0,
-                                      color: Colors.white,
-                                    ),
-                            );
-                          },
-                        );
-                },
-              ),
-              Positioned(
-                right: 0,
-                top: 0,
-                child: Container(
-                  width: 35.0,
-                  height: 35.0,
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade800,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      width: 2,
-                      color: Colors.white,
+        Column(
+          children: [
+            GestureDetector(
+              onTap: () => context.read<ProfileCubit>().setAvatar(),
+              child: Stack(
+                children: [
+                  BlocBuilder<ProfileCubit, ProfileState>(
+                    builder: (context, state) {
+                      return CircleAvatar(
+                          radius: 55.0,
+                          backgroundColor: Colors.grey.shade200,
+                          child: state.loadingAvatar
+                              ? CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.grey.shade900,
+                                )
+                              : BlocBuilder<UserCubit, UserState>(
+                                  builder: (context, state) {
+                                    return state.user.avatar != null
+                                        ? ClipOval(
+                                            child: Image.file(
+                                              state.user.avatar,
+                                            ),
+                                          )
+                                        : const Icon(
+                                            Icons.photo_library_outlined,
+                                            size: 45.0,
+                                            color: Colors.white,
+                                          );
+                                  },
+                                ));
+                    },
+                  ),
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      width: 35.0,
+                      height: 35.0,
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade800,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          width: 2,
+                          color: Colors.white,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.edit,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
                   ),
-                  child: const Icon(
-                    Icons.edit,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
+                ],
               ),
-            ],
-          ),
-        ),
-        const SizedBox(
-          width: 15.0,
-        ),
-        BlocBuilder<UserCubit, UserState>(
-          builder: (context, state) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  state.user.email,
-                  style: const TextStyle(fontSize: 18.0),
-                ),
-                TextButton(
-                  onPressed: context.read<ProfileCubit>().removeAvatar,
-                  child: Text(
-                    'Usuń avatar',
-                    style: TextStyle(
-                      color: Colors.grey.shade900,
+            ),
+            const SizedBox(
+              width: 15.0,
+            ),
+            BlocBuilder<UserCubit, UserState>(
+              builder: (context, state) {
+                if (state.user.avatar != null) {
+                  return TextButton(
+                    onPressed: () =>
+                        context.read<ProfileCubit>().removeAvatar(),
+                    child: Text(
+                      'Usuń avatar',
+                      style: TextStyle(
+                        color: Colors.grey.shade900,
+                      ),
                     ),
-                  ),
-                ),
-              ],
-            );
-          },
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ],
         ),
       ],
     );

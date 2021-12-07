@@ -26,10 +26,13 @@ class MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = context.read<UserCubit>().state.user;
+    return BlocBuilder<ChatsCubit, ChatsState>(
+      builder: (context, state) {
+        final currentUser = context.read<UserCubit>().state.user;
 
-    return Builder(
-      builder: (context) {
+        final participants = List.of(chat.participants)
+          ..removeWhere((p) => p.id == currentUser.id);
+
         final isSender = message.senderId == currentUser.id;
 
         // TODO: refactor to use Contact object in Message model instead of just senderId
@@ -84,40 +87,32 @@ class MessageBubble extends StatelessWidget {
               children: [
                 if (!isSender) ...[
                   isLastInSet
-                      ? BlocBuilder<ContactsCubit, ContactsState>(
-                          builder: (context, state) {
-                            final contact = state.contacts.firstWhere(
-                              (p) => p.id == message.senderId,
-                            );
-
-                            return Stack(
-                              children: [
-                                CircleAvatar(
-                                  radius: 14,
-                                  child: contact.avatar != null
-                                      ? ClipOval(
-                                          child: Image.file(
-                                            contact.avatar,
-                                          ),
-                                        )
-                                      : Icon(
-                                          Icons.person,
-                                          color: Colors.grey.shade50,
-                                        ),
-                                  backgroundColor: Colors.grey.shade300,
-                                ),
-                                Positioned(
-                                  right: 0,
-                                  bottom: 0,
-                                  child: StatusIndicator(
-                                    isOnline: contact.isOnline,
-                                    status: contact.status,
-                                    size: 10,
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
+                      ? Stack(
+                          children: [
+                            CircleAvatar(
+                              radius: 14,
+                              child: sender.avatar != null
+                                  ? ClipOval(
+                                      child: Image.file(
+                                        sender.avatar,
+                                      ),
+                                    )
+                                  : Icon(
+                                      Icons.person,
+                                      color: Colors.grey.shade50,
+                                    ),
+                              backgroundColor: Colors.grey.shade300,
+                            ),
+                            Positioned(
+                              right: 0,
+                              bottom: 0,
+                              child: StatusIndicator(
+                                isOnline: sender.isOnline,
+                                status: sender.status,
+                                size: 10,
+                              ),
+                            ),
+                          ],
                         )
                       : const SizedBox(width: 28),
                   const SizedBox(width: 10.0),

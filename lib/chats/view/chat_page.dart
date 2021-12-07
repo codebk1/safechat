@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:safechat/common/methods/get_chat_title.dart';
 
-import 'package:safechat/router.dart';
-import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/chats/chats.dart';
+import 'package:safechat/user/user.dart';
 
-class ChatPage extends StatefulWidget {
+class ChatPage extends StatelessWidget {
   const ChatPage({
     Key? key,
     required this.chatId,
@@ -16,15 +16,10 @@ class ChatPage extends StatefulWidget {
   final String chatId;
 
   @override
-  State<ChatPage> createState() => _ChatPageState();
-}
-
-class _ChatPageState extends State<ChatPage> {
-  @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () {
-        context.read<ChatsCubit>().closeChat(widget.chatId);
+        context.read<ChatsCubit>().closeChat(chatId);
 
         return Future.value(true);
       },
@@ -33,131 +28,106 @@ class _ChatPageState extends State<ChatPage> {
           systemNavigationBarColor: Colors.white,
           systemNavigationBarIconBrightness: Brightness.dark,
         ),
-        child: Scaffold(
-          appBar: AppBar(
-            systemOverlayStyle: const SystemUiOverlayStyle(
-              //statusBarColor: Colors.grey.shade300,
-              statusBarIconBrightness: Brightness.dark,
-            ),
-            actions: [
-              IconButton(
-                onPressed: () {
-                  Navigator.of(context).pushNamed(
-                    '/chat/info',
-                    arguments: ChatPageArguments(
-                      context
-                          .read<ChatsCubit>()
-                          .state
-                          .chats
-                          .firstWhere((c) => c.id == widget.chatId),
-                      context.read<ContactsCubit>().state.contacts,
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.info),
-              ),
-            ],
-            backgroundColor: Colors.white,
-            titleSpacing: 0,
-            elevation: 0,
-            iconTheme: IconThemeData(
-              color: Colors.grey.shade800,
-            ),
-            title: BlocBuilder<ContactsCubit, ContactsState>(
-              builder: (context, state) {
-                // final contacts = state.contacts
-                //     .where((contact) =>
-                //         chat.participants.map((p) => p.id).contains(contact.id))
-                //     .toList();
+        child: BlocBuilder<ChatsCubit, ChatsState>(
+          builder: (context, state) {
+            final chat = state.chats.firstWhere((c) => c.id == chatId);
+            final participants = List.of(chat.participants)
+              ..removeWhere(
+                (p) => p.id == context.read<UserCubit>().state.user.id,
+              );
 
-                return BlocBuilder<ChatsCubit, ChatsState>(
-                  builder: (context, chatsState) {
-                    final chat =
-                        context.read<ChatsCubit>().state.chats.firstWhere(
-                              (c) => c.id == widget.chatId,
-                            );
+            final formatedLastSeen = _formatLastSeen(participants
+                .reduce(
+                    (a, b) => a.lastSeen!.compareTo(b.lastSeen!) < 0 ? b : a)
+                .lastSeen!);
 
-                    final contactsTitle = state.contacts.isEmpty
-                        ? 'Brak członków w grupie'
-                        : state.contacts.length > 1
-                            ? state.contacts.map((e) => e.firstName).join(', ')
-                            : '${state.contacts.first.firstName} ${state.contacts.first.lastName}';
+            final lastActivityText = participants.any((c) => c.isOnline)
+                ? chat.type.isGroup
+                    ? 'Aktywność teraz'
+                    : 'Aktywny(a) teraz'
+                : chat.type.isGroup
+                    ? 'Ostatnia aktywność $formatedLastSeen'
+                    : 'Aktywny(a) $formatedLastSeen';
 
-                    final chatTitle =
-                        chat.name != null ? chat.name! : contactsTitle;
-
-                    final formatedLastSeen = _formatLastSeen(state.contacts
-                        .reduce((a, b) =>
-                            a.lastSeen!.compareTo(b.lastSeen!) < 0 ? b : a)
-                        .lastSeen!);
-
-                    final lastActivityText =
-                        state.contacts.any((c) => c.isOnline)
-                            ? chat.type.isGroup
-                                ? 'Aktywność teraz'
-                                : 'Aktywny(a) teraz'
-                            : chat.type.isGroup
-                                ? 'Ostatnia aktywność $formatedLastSeen'
-                                : 'Aktywny(a) $formatedLastSeen';
-
-                    return Row(
-                      children: [
-                        state.contacts.isEmpty
-                            ? ClipOval(
-                                child: Container(
-                                  width: 45,
-                                  height: 45,
-                                  color: Colors.grey.shade100,
-                                  child: Icon(
-                                    Icons.person,
-                                    color: Colors.grey.shade300,
-                                  ),
-                                ),
-                              )
-                            : ChatAvatar(
-                                avatar: chat.avatar,
+            return Scaffold(
+              appBar: AppBar(
+                systemOverlayStyle: SystemUiOverlayStyle(
+                  statusBarColor: Colors.grey.shade300,
+                  statusBarIconBrightness: Brightness.dark,
+                ),
+                actions: [
+                  IconButton(
+                    onPressed: () {
+                      Navigator.of(context).pushNamed(
+                        '/chat/info',
+                        arguments: chat,
+                      );
+                    },
+                    icon: const Icon(Icons.info),
+                  ),
+                ],
+                backgroundColor: Colors.white,
+                titleSpacing: 0,
+                elevation: 0,
+                iconTheme: IconThemeData(
+                  color: Colors.grey.shade800,
+                ),
+                title: Row(
+                  children: [
+                    participants.isEmpty
+                        ? ClipOval(
+                            child: Container(
+                              width: 45,
+                              height: 45,
+                              color: Colors.grey.shade100,
+                              child: Icon(
+                                Icons.person,
+                                color: Colors.grey.shade300,
                               ),
-                        const SizedBox(
-                          width: 15.0,
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                chatTitle,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.headline6,
-                              ),
-                              if (state.contacts.isNotEmpty)
-                                Text(
-                                  lastActivityText,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .subtitle2!
-                                      .copyWith(fontSize: 12),
-                                ),
-                            ],
+                            ),
+                          )
+                        : ChatAvatar(
+                            chat: chat,
                           ),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-          body: GestureDetector(
-            onTap: () {
-              FocusScopeNode currentFocus = FocusScope.of(context);
-              if (!currentFocus.hasPrimaryFocus &&
-                  currentFocus.focusedChild != null) {
-                FocusManager.instance.primaryFocus!.unfocus();
-              }
-            },
-            child: MessagesSection(chatId: widget.chatId),
-          ),
+                    const SizedBox(
+                      width: 15.0,
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            getChatTitle(chat, context),
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.headline6,
+                          ),
+                          if (participants.isNotEmpty)
+                            Text(
+                              lastActivityText,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .subtitle2!
+                                  .copyWith(fontSize: 12),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              body: GestureDetector(
+                onTap: () {
+                  FocusScopeNode currentFocus = FocusScope.of(context);
+                  if (!currentFocus.hasPrimaryFocus &&
+                      currentFocus.focusedChild != null) {
+                    FocusManager.instance.primaryFocus!.unfocus();
+                  }
+                },
+                child: MessagesSection(chatId: chatId),
+              ),
+            );
+          },
         ),
       ),
     );

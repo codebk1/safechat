@@ -138,14 +138,6 @@ class LeftPanel extends StatelessWidget {
                       Navigator.of(context).pushNamed('/profile');
                     },
                   ),
-                  // ListTile(
-                  //   title: const Text(
-                  //     "Ustawienia",
-                  //     style: TextStyle(fontSize: 16),
-                  //   ),
-                  //   leading: const Icon(Icons.settings),
-                  //   onTap: () {},
-                  // ),
                   Expanded(
                     child: Align(
                       alignment: Alignment.bottomCenter,

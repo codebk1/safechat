@@ -86,11 +86,14 @@ class UserCubit extends Cubit<UserState> {
     return await _cacheManager.putFile(name, avatar);
   }
 
-  Future<void> updateProfile(String fN, String lN) async {
-    await _userRepository.updateProfile(fN, lN);
+  Future<void> updateProfile(String firstName, String lastName) async {
+    await _userRepository.updateProfile(firstName, lastName);
 
     emit(state.copyWith(
-      user: state.user.copyWith(firstName: fN, lastName: lN),
+      user: state.user.copyWith(
+        firstName: firstName,
+        lastName: lastName,
+      ),
     ));
   }
 
@@ -103,7 +106,7 @@ class UserCubit extends Cubit<UserState> {
     await _userRepository.updateAvatar(state.user.id, processedAvatar);
 
     emit(state.copyWith(
-      user: state.user.copyWith(avatar: avatar),
+      user: state.user.copyWith(avatar: () => avatar),
     ));
   }
 
@@ -122,8 +125,9 @@ class UserCubit extends Cubit<UserState> {
 
   removeAvatar() async {
     await _userRepository.removeAvatar();
+
     emit(state.copyWith(
-      user: state.user.copyWith(avatar: null),
+      user: state.user.copyWith(avatar: () => null),
     ));
   }
 }

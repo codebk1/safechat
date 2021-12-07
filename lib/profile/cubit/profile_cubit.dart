@@ -1,22 +1,26 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:bloc/bloc.dart';
-import 'package:dio/dio.dart';
-import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
+
+import 'package:dio/dio.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:equatable/equatable.dart';
 import 'package:image/image.dart';
 import 'package:image_picker/image_picker.dart';
+
+import 'package:safechat/utils/utils.dart';
 import 'package:safechat/common/common.dart';
 import 'package:safechat/user/user.dart';
-import 'package:safechat/utils/utils.dart';
 
 part 'profile_state.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {
-  ProfileCubit(this._userCubit) : super(const ProfileState());
+  ProfileCubit(this._userCubit, this._userRepository)
+      : super(const ProfileState());
 
   final UserCubit _userCubit;
+  final UserRepository _userRepository;
 
   initForm() {
     emit(state.copyWith(
@@ -51,33 +55,87 @@ class ProfileCubit extends Cubit<ProfileState> {
   }
 
   Future<void> editProfileSubmit() async {
-    try {
-      emit(state.copyWith(formStatus: FormStatus.loading));
+    emit(state.copyWith(formStatus: FormStatus.submiting));
 
-      await _userCubit.updateProfile(
-        state.firstName.value,
-        state.lastName.value,
-      );
+    if (state.validate([state.firstName, state.lastName]).isValid) {
+      try {
+        emit(state.copyWith(formStatus: FormStatus.loading));
 
-      emit(state.copyWith(formStatus: const FormStatus.success()));
-    } on DioError catch (e) {
-      emit(state.copyWith(
-        formStatus: FormStatus.failure(e.response!.data['message']),
-      ));
+        await _userCubit.updateProfile(
+          state.firstName.value,
+          state.lastName.value,
+        );
+
+        emit(state.copyWith(
+          formStatus: const FormStatus.success('Zaktualizowano dane.'),
+        ));
+      } on DioError catch (e) {
+        emit(state.copyWith(
+          formStatus: FormStatus.failure(e.response!.data['message']),
+        ));
+      }
+    }
+  }
+
+  Future<void> editPasswordSubmit() async {
+    emit(state.copyWith(formStatus: FormStatus.submiting));
+
+    if (state
+        .validate([state.currentPassword, state.confirmNewPassword]).isValid) {
+      try {
+        emit(state.copyWith(formStatus: FormStatus.loading));
+
+        await _userRepository.updatePassword(
+          _userCubit.state.user.email,
+          state.currentPassword.value,
+          state.confirmNewPassword.value,
+        );
+
+        emit(state.copyWith(
+          formStatus: const FormStatus.success('Zmieniono hasło.'),
+        ));
+      } on DioError catch (e) {
+        emit(state.copyWith(
+          formStatus: FormStatus.failure(e.response!.data['message']),
+        ));
+      } catch (e) {
+        emit(state.copyWith(
+          formStatus: const FormStatus.failure('Wystąpił błąd.'),
+        ));
+      }
     }
   }
 
   void firstNameChanged(String value) {
     emit(state.copyWith(
       firstName: FirstName(value),
-      formStatus: FormStatus.init,
     ));
   }
 
   void lastNameChanged(String value) {
     emit(state.copyWith(
       lastName: LastName(value),
-      formStatus: FormStatus.init,
+    ));
+  }
+
+  void currentPasswordChanged(String value) {
+    emit(state.copyWith(
+      currentPassword: Password(value),
+    ));
+  }
+
+  void newPasswordChanged(String value) {
+    emit(state.copyWith(
+      newPassword: Password(value, restrict: true),
+    ));
+  }
+
+  void confirmNewPasswordChanged(String value) {
+    emit(state.copyWith(
+      confirmNewPassword: ConfirmPassword(
+        value: value,
+        password: state.newPassword.value,
+      ),
     ));
   }
 

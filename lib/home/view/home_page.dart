@@ -19,19 +19,11 @@ class HomePage extends StatelessWidget {
     return BlocListener<ChatsCubit, ChatsState>(
       listener: (context, state) {
         if (state.nextChat != null) {
-          final currentUser = context.read<UserCubit>().state.user;
-
           context.read<ChatsCubit>().emit(state.copyWith(nextChat: null));
 
           Navigator.of(context).pushNamed(
             '/chat',
-            arguments: ChatPageArguments(
-              state.nextChat!,
-              List.of(state.nextChat!.participants)
-                ..removeWhere(
-                  (p) => p.id == currentUser.id,
-                ),
-            ),
+            arguments: state.nextChat!,
           );
         }
       },

@@ -145,6 +145,29 @@ class ChatsCubit extends Cubit<ChatsState> {
       ));
     });
 
+    _wsService.socket.on('activity', (data) {
+      print('activity chat');
+
+      emit(state.copyWith(
+        chats: state.chats
+            .map((c) => c.participants.map((p) => p.id).contains(data['id'])
+                ? c.copyWith(
+                    participants: List.of(c.participants)
+                        .map((p) => p.id == data['id']
+                            ? p.copyWith(
+                                isOnline: data['isOnline'],
+                                lastSeen: data['lastSeen'] != null
+                                    ? DateTime.parse(data['lastSeen'])
+                                    : p.lastSeen,
+                              )
+                            : p)
+                        .toList(),
+                  )
+                : c)
+            .toList(),
+      ));
+    });
+
     _notificationService.notification.listen((event) async {
       final chat = await _findOrFetchChat(event.data['chatId']);
 
@@ -226,7 +249,10 @@ class ChatsCubit extends Cubit<ChatsState> {
       final chats = await _chatsRepository.getChats();
 
       for (var chat in state.chats) {
-        _wsService.socket.emit('chat.join', chat.id);
+        _wsService.socket.emit('chat.join', {
+          'chatId': chat.id,
+          'isOnline': true,
+        });
       }
 
       emit(state.copyWith(chats: chats, listStatus: ListStatus.success));
@@ -256,7 +282,7 @@ class ChatsCubit extends Cubit<ChatsState> {
       emit(state.copyWith(
         chats: [...state.chats, chat],
         selectedContacts: [],
-        formStatus: const FormStatus.success(),
+        //formStatus: const FormStatus.success(),
       ));
 
       return chat;

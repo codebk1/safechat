@@ -2,27 +2,14 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
-import 'package:safechat/chats/view/chat_page.dart';
-import 'package:safechat/chats/view/create_chat_page.dart';
-import 'package:safechat/chats/view/edit_chat_avatar_page.dart';
-import 'package:safechat/chats/view/edit_chat_name_page.dart';
-import 'package:safechat/chats/view/media_page.dart';
-import 'package:safechat/profile/cubit/profile_cubit.dart';
-import 'package:safechat/profile/view/edit_profile_page.dart';
-
-import 'package:safechat/user/user.dart';
-import 'package:safechat/contacts/contacts.dart';
-import 'package:safechat/profile/view/profile_page.dart';
 import 'package:safechat/splash_screen.dart';
 import 'package:safechat/login/login.dart';
 import 'package:safechat/signup/signup.dart';
 import 'package:safechat/home/home.dart';
-
-import 'chats/cubits/attachments/attachments_cubit.dart';
-import 'chats/models/attachment.dart';
-import 'chats/models/chat.dart';
-import 'chats/view/chat_info_page.dart';
+import 'package:safechat/user/user.dart';
+import 'package:safechat/profile/profile.dart';
+import 'package:safechat/contacts/contacts.dart';
+import 'package:safechat/chats/chats.dart';
 
 class AppRouter {
   final _contactsCubit = ContactsCubit();
@@ -75,6 +62,7 @@ class AppRouter {
           pageBuilder: (_, __, ___) => BlocProvider(
             create: (context) => ProfileCubit(
               context.read<UserCubit>(),
+              context.read<UserRepository>(),
             ),
             child: const ProfilePage(),
           ),
@@ -84,43 +72,46 @@ class AppRouter {
           pageBuilder: (_, __, ___) => BlocProvider(
             create: (context) => ProfileCubit(
               context.read<UserCubit>(),
+              context.read<UserRepository>(),
             )..initForm(),
             child: const EditProfilePage(),
           ),
         );
+      case '/password/edit':
+        return PageRouteBuilder(
+          pageBuilder: (_, __, ___) => BlocProvider(
+            create: (context) => ProfileCubit(
+              context.read<UserCubit>(),
+              context.read<UserRepository>(),
+            )..initForm(),
+            child: const EditPasswordPage(),
+          ),
+        );
       case '/chat':
-        final args = routeSettings.arguments as ChatPageArguments;
+        final chat = routeSettings.arguments as Chat;
         return PageRouteBuilder(
           pageBuilder: (context, __, ___) => MultiBlocProvider(
             providers: [
-              BlocProvider(
-                create: (_) => ContactsCubit(contacts: args.contacts),
-              ),
               BlocProvider.value(
                 value: _chatsCubit
                   ..readChat(
-                    args.chat,
+                    chat,
                     context.read<UserCubit>().state.user.id,
                   )
-                  ..openChat(args.chat.id),
+                  ..openChat(chat.id),
               ),
             ],
             child: ChatPage(
-              chatId: args.chat.id,
+              chatId: chat.id,
             ),
           ),
         );
       case '/chat/info':
-        final args = routeSettings.arguments as ChatPageArguments;
+        final chat = routeSettings.arguments as Chat;
         return PageRouteBuilder(
-          pageBuilder: (context, __, ___) => MultiBlocProvider(
-            providers: [
-              BlocProvider(
-                create: (_) => ContactsCubit(contacts: args.contacts),
-              ),
-              BlocProvider.value(value: _chatsCubit),
-            ],
-            child: ChatInfoPage(chatId: args.chat.id),
+          pageBuilder: (context, __, ___) => BlocProvider.value(
+            value: _chatsCubit,
+            child: ChatInfoPage(chatId: chat.id),
           ),
         );
       case '/chat/edit/name':
@@ -183,11 +174,4 @@ class MediaPageArguments {
 
   final Chat chat;
   final Attachment attachment;
-}
-
-class ChatPageArguments {
-  ChatPageArguments(this.chat, this.contacts);
-
-  final Chat chat;
-  final List<Contact> contacts;
 }

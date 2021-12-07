@@ -21,7 +21,7 @@ class PrimaryButton extends StatelessWidget {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(5.0),
-        onTap: () => onTap.call(),
+        onTap: () => !isLoading ? onTap.call() : null,
         child: SizedBox(
           height: 60.0,
           child: Center(

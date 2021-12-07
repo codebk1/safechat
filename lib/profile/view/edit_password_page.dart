@@ -6,8 +6,8 @@ import 'package:safechat/utils/utils.dart';
 import 'package:safechat/common/common.dart';
 import 'package:safechat/profile/profile.dart';
 
-class EditProfilePage extends StatelessWidget {
-  const EditProfilePage({Key? key}) : super(key: key);
+class EditPasswordPage extends StatelessWidget {
+  const EditPasswordPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +43,7 @@ class EditProfilePage extends StatelessWidget {
               color: Colors.grey.shade800,
             ),
             title: Text(
-              'Edytuj dane konta',
+              'Zmień hasło',
               style: TextStyle(
                 color: Colors.grey.shade800,
               ),
@@ -64,11 +64,26 @@ class EditProfilePage extends StatelessWidget {
                       children: [
                         Column(
                           children: [
-                            const EditFirstNameInput(),
+                            const CurrentPasswordInput(),
                             const SizedBox(
                               height: 15.0,
                             ),
-                            const EditLastNameInput(),
+                            const Divider(),
+                            const SizedBox(
+                              height: 15.0,
+                            ),
+                            Text(
+                              'Zapamietaj nowe hasło, ponieważ bez niego Twoje dane zostaną bezpowrotnie utracone.',
+                              style: Theme.of(context).textTheme.subtitle2,
+                            ),
+                            const SizedBox(
+                              height: 15.0,
+                            ),
+                            const NewPasswordInput(),
+                            const SizedBox(
+                              height: 15.0,
+                            ),
+                            const ConfirmNewPasswordInput(),
                             const SizedBox(
                               height: 15.0,
                             ),
@@ -76,7 +91,7 @@ class EditProfilePage extends StatelessWidget {
                               label: 'Zapisz',
                               onTap: context
                                   .read<ProfileCubit>()
-                                  .editProfileSubmit,
+                                  .editPasswordSubmit,
                               isLoading: state.formStatus.isLoading,
                             )
                           ],

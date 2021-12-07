@@ -20,7 +20,7 @@ class SignupCubit extends Cubit<SignupState> {
   Future<void> submit() async {
     emit(state.copyWith(formStatus: FormStatus.submiting));
 
-    if (state.validate.isValid) {
+    if (state.validate().isValid) {
       try {
         emit(state.copyWith(formStatus: FormStatus.loading));
 

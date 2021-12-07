@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:safechat/chats/chats.dart';
 
 import 'package:safechat/contacts/contacts.dart';
 
@@ -56,20 +57,22 @@ class ChatInfoPage extends StatelessWidget {
               style: Theme.of(context).textTheme.headline6,
             ),
           ),
-          BlocBuilder<ContactsCubit, ContactsState>(
+          BlocBuilder<ChatsCubit, ChatsState>(
             builder: (context, state) {
+              final chat = state.chats.firstWhere((c) => c.id == chatId);
+
               return Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: ListView.builder(
-                          itemCount: state.contacts.length,
+                          itemCount: chat.participants.length,
                           itemBuilder: (
                             BuildContext context,
                             int index,
                           ) {
-                            var contact = state.contacts[index];
+                            var contact = chat.participants[index];
                             return ListTile(
                               leading: Stack(
                                 children: [

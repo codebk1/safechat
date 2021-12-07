@@ -3,31 +3,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:safechat/utils/utils.dart';
-import 'package:safechat/login/login.dart';
+import 'package:safechat/profile/profile.dart';
 
-class PasswordInput extends StatelessWidget {
-  const PasswordInput({
-    Key? key,
-  }) : super(key: key);
+class NewPasswordInput extends StatelessWidget {
+  const NewPasswordInput({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<LoginCubit, LoginState>(
+    return BlocBuilder<ProfileCubit, ProfileState>(
       builder: (context, state) {
         return TextFormField(
-          initialValue: 'Bartek123!',
-          onChanged: (value) {
-            context.read<LoginCubit>().passwordChanged(value);
-          },
+          onChanged: (value) =>
+              context.read<ProfileCubit>().newPasswordChanged(value),
           obscureText: true,
           decoration: InputDecoration(
-            labelText: 'Hasło',
+            labelText: 'Nowe hasło',
             errorText:
-                state.formStatus.isSubmiting ? state.password.error : null,
+                state.formStatus.isSubmiting ? state.newPassword.error : null,
           ),
           autovalidateMode: AutovalidateMode.onUserInteraction,
           validator: (String? value) {
-            return state.password.error;
+            return state.newPassword.error;
           },
         );
       },
