@@ -39,9 +39,6 @@ class FormStatus {
 }
 
 mixin ValidationMixin {
-  // VStatus get validate =>
-  //     inputs.every((item) => item.isValid) ? VStatus.valid : VStatus.invalid;
-
   VStatus validate([List<FormItem>? i]) =>
       (i ?? inputs).every((item) => item.isValid)
           ? VStatus.valid

@@ -5,7 +5,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 import 'package:safechat/utils/utils.dart';
-import 'package:safechat/user/user.dart';
 import 'package:safechat/contacts/contacts.dart';
 
 class ContactsRepository {

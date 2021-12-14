@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/common/common.dart';
 import 'package:safechat/common/methods/get_chat_title.dart';
 
-import 'package:safechat/router.dart';
 import 'package:safechat/user/user.dart';
 import 'package:safechat/home/view/panels/side_panels.dart';
 import 'package:safechat/contacts/contacts.dart';
@@ -283,7 +280,7 @@ class MainPanel extends StatelessWidget {
                                                   MessageType.text
                                               ? chat.messages.first.content
                                                   .first.data
-                                              : '${chat.messages.first.senderId == context.read<UserCubit>().state.user.id ? 'Wysłałeś(aś)' : chat.participants.first.firstName} załącznik(i).'
+                                              : '${chat.messages.first.senderId == context.read<UserCubit>().state.user.id ? 'Wysłałeś(aś)' : '${chat.participants.first.firstName} wysłał(a)'} załącznik(i).'
                                           : 'Wyślij pierwszą wiadomość',
                                       overflow: TextOverflow.ellipsis,
                                       maxLines: 1,

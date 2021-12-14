@@ -5,7 +5,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:pointycastle/pointycastle.dart';
 
 import 'package:safechat/utils/utils.dart';
 import 'package:safechat/user/user.dart';
@@ -21,8 +20,8 @@ class UserRepository {
   UserRepository._internal();
 
   final SRP _srpClient = SRP(
-    N: PrimeGroups.prime_1024,
-    g: PrimeGroups.g_1024,
+    N: PrimeGroups.prime_2048,
+    g: PrimeGroups.g_2048,
   );
 
   final _apiService = ApiService().init();
@@ -131,13 +130,21 @@ class UserRepository {
   }
 
   Future<dynamic> updatePassword(
-      String email, String currentPassword, String newPassword) async {
+    String email,
+    String currentPassword,
+    String newPassword,
+  ) async {
     final res = await _apiService.get('/user', queryParameters: {
       'privateKey': true,
       'salt': true,
     });
 
     final salt = base64.decode(res.data['salt']);
+
+    _encryptionService.chachaDecrypt(
+      res.data['privateKey'],
+      _encryptionService.argon2DeriveKey(currentPassword, salt),
+    );
 
     final x = await _srpClient.x(
       email,
@@ -147,15 +154,10 @@ class UserRepository {
 
     final v = _srpClient.v(x);
 
-    _encryptionService.chachaDecrypt(
-      res.data['privateKey'],
-      _encryptionService.argon2DeriveKey(currentPassword, salt),
-    );
-
     final currentPrivateKey = await _storage.read(key: 'privateKey');
 
     // if (base64.encode(decryptedPrivateKey) != currentPrivateKey) {
-    //   throw 'Błedne aktualne hasło.';
+    //   throw 'Aktualne hasło jest błędne.';
     // }
 
     final encryptedPrivateKey = _encryptionService.chachaEncrypt(
@@ -184,5 +186,9 @@ class UserRepository {
         }
       }
     });
+  }
+
+  Future<void> deleteAccount() async {
+    await _apiService.delete('/user');
   }
 }

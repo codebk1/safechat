@@ -24,7 +24,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   HttpOverrides.global = MyHttpOverrides(); // błąd z certyfikatem
-  Bloc.observer = AppBlocObserver();
 
   FlutterError.onError = (details) {
     log(details.exceptionAsString(), stackTrace: details.stack);
@@ -40,5 +39,8 @@ void main() async {
   await dotenv.load(fileName: ".env");
   await NotificationService().init();
 
-  runApp(const App());
+  BlocOverrides.runZoned(
+    () => runApp(const App()),
+    blocObserver: AppBlocObserver(),
+  );
 }

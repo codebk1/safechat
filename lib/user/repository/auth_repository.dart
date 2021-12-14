@@ -23,8 +23,8 @@ AsymmetricKeyPair<PublicKey, PrivateKey> getRsaKeyPair(
 
 class AuthRepository {
   final SRP _srpClient = SRP(
-    N: PrimeGroups.prime_1024,
-    g: PrimeGroups.g_1024,
+    N: PrimeGroups.prime_2048,
+    g: PrimeGroups.g_2048,
   );
 
   final _storage = const FlutterSecureStorage();

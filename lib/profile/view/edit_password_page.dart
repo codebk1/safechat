@@ -51,56 +51,50 @@ class EditPasswordPage extends StatelessWidget {
           ),
           body: NotificationListener<OverscrollIndicatorNotification>(
             onNotification: (overScroll) {
-              overScroll.disallowGlow();
+              overScroll.disallowIndicator();
               return true;
             },
-            child: CustomScrollView(
-              slivers: [
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: Column(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: Column(
+                  children: [
+                    Column(
                       children: [
-                        Column(
-                          children: [
-                            const CurrentPasswordInput(),
-                            const SizedBox(
-                              height: 15.0,
-                            ),
-                            const Divider(),
-                            const SizedBox(
-                              height: 15.0,
-                            ),
-                            Text(
-                              'Zapamietaj nowe hasło, ponieważ bez niego Twoje dane zostaną bezpowrotnie utracone.',
-                              style: Theme.of(context).textTheme.subtitle2,
-                            ),
-                            const SizedBox(
-                              height: 15.0,
-                            ),
-                            const NewPasswordInput(),
-                            const SizedBox(
-                              height: 15.0,
-                            ),
-                            const ConfirmNewPasswordInput(),
-                            const SizedBox(
-                              height: 15.0,
-                            ),
-                            PrimaryButton(
-                              label: 'Zapisz',
-                              onTap: context
-                                  .read<ProfileCubit>()
-                                  .editPasswordSubmit,
-                              isLoading: state.formStatus.isLoading,
-                            )
-                          ],
+                        const CurrentPasswordInput(),
+                        const SizedBox(
+                          height: 15.0,
                         ),
+                        const Divider(),
+                        const SizedBox(
+                          height: 15.0,
+                        ),
+                        Text(
+                          'Zapamietaj nowe hasło, ponieważ bez niego Twoje dane zostaną bezpowrotnie utracone.',
+                          style: Theme.of(context).textTheme.subtitle2,
+                        ),
+                        const SizedBox(
+                          height: 15.0,
+                        ),
+                        const NewPasswordInput(),
+                        const SizedBox(
+                          height: 15.0,
+                        ),
+                        const ConfirmNewPasswordInput(),
+                        const SizedBox(
+                          height: 15.0,
+                        ),
+                        PrimaryButton(
+                          label: 'Zapisz',
+                          onTap:
+                              context.read<ProfileCubit>().editPasswordSubmit,
+                          isLoading: state.formStatus.isLoading,
+                        )
                       ],
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         );

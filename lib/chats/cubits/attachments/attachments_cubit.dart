@@ -25,17 +25,22 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
   Future<File> getAttachment(Chat chat, Attachment attachment,
       {bool thumbnail = true}) async {
     final cacheManager = DefaultCacheManager();
+
     var name = attachment.name;
     var decryptedName = getDecryptedName(attachment.name, chat.sharedKey);
+    var cachedFile = await cacheManager.getFileFromCache(decryptedName);
 
     if (attachment.type != AttachmentType.file && thumbnail) {
+      cachedFile =
+          await cacheManager.getFileFromCache('thumb_$decryptedName') ??
+              await cacheManager.getFileFromCache(decryptedName);
+
       name = 'thumb_$name';
       decryptedName = 'thumb_$decryptedName';
     }
 
-    final cachedFile = await cacheManager.getFileFromCache(decryptedName);
-
     if (cachedFile != null) {
+      print('TEST');
       emit(state.copyWith(downloadedAttachment: cachedFile.file));
       return cachedFile.file;
     }
@@ -46,7 +51,12 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
       chat.sharedKey,
     );
 
-    final file = await cacheManager.putFile(decryptedName, attachmentFile);
+    final file = await cacheManager.putFile(
+      decryptedName,
+      attachmentFile,
+      key: decryptedName,
+      eTag: decryptedName,
+    );
 
     if (thumbnail == false) {
       emit(state.copyWith(downloadedAttachment: file));
@@ -165,5 +175,11 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
         onDone: () => completer.complete(files));
 
     return completer.future;
+  }
+
+  resetSelectedAttachments() {
+    emit(state.copyWith(
+      selectedAttachments: [],
+    ));
   }
 }

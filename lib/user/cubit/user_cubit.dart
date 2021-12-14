@@ -101,7 +101,8 @@ class UserCubit extends Cubit<UserState> {
     final avatarName = '${state.user.id}.jpg';
 
     await _cacheManager.removeFile(avatarName);
-    final avatar = await _cacheManager.putFile(avatarName, processedAvatar);
+    final avatar = await _cacheManager.putFile(avatarName, processedAvatar,
+        key: 'avatar', eTag: 'avatar');
 
     await _userRepository.updateAvatar(state.user.id, processedAvatar);
 

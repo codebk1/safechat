@@ -150,34 +150,24 @@ class EncryptionService {
   RSAPublicKey parsePublicKeyFromPem(pemString) {
     Uint8List publicKeyDER = base64.decode(pemString);
 
-    final parser = ASN1Parser(publicKeyDER);
-    final sequence = parser.nextObject() as ASN1Sequence;
-
-    final modulus = sequence.elements![0] as ASN1Integer;
-    final exponent = sequence.elements![1] as ASN1Integer;
+    final sequence = ASN1Parser(publicKeyDER).nextObject() as ASN1Sequence;
 
     return RSAPublicKey(
-      modulus.integer!,
-      exponent.integer!,
+      (sequence.elements![0] as ASN1Integer).integer!, // modulus
+      (sequence.elements![1] as ASN1Integer).integer!, // exponent
     );
   }
 
   RSAPrivateKey parsePrivateKeyFromPem(pemString) {
     Uint8List privateKeyDER = base64.decode(pemString);
 
-    final asn1Parser = ASN1Parser(privateKeyDER);
-    final topLevelSeq = asn1Parser.nextObject() as ASN1Sequence;
-
-    final modulus = topLevelSeq.elements![0] as ASN1Integer;
-    final privateExponent = topLevelSeq.elements![1] as ASN1Integer;
-    final p = topLevelSeq.elements![2] as ASN1Integer;
-    final q = topLevelSeq.elements![3] as ASN1Integer;
+    final topLevelSeq = ASN1Parser(privateKeyDER).nextObject() as ASN1Sequence;
 
     return RSAPrivateKey(
-      modulus.integer!,
-      privateExponent.integer!,
-      p.integer,
-      q.integer,
+      (topLevelSeq.elements![0] as ASN1Integer).integer!, // modulus
+      (topLevelSeq.elements![1] as ASN1Integer).integer!, // private exponent
+      (topLevelSeq.elements![2] as ASN1Integer).integer, // p
+      (topLevelSeq.elements![3] as ASN1Integer).integer, // q
     );
   }
 
@@ -186,12 +176,10 @@ class EncryptionService {
         ((input.length % engine.inputBlockSize != 0) ? 1 : 0);
 
     final output = Uint8List(numBlocks * engine.outputBlockSize);
-
-    var inputOffset = 0;
-    var outputOffset = 0;
+    var inputOffset = 0, outputOffset = 0;
 
     while (inputOffset < input.length) {
-      final chunkSize = (inputOffset + engine.inputBlockSize <= input.length)
+      final chunkSize = inputOffset + engine.inputBlockSize <= input.length
           ? engine.inputBlockSize
           : input.length - inputOffset;
 

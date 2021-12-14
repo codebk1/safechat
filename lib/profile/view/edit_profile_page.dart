@@ -51,41 +51,34 @@ class EditProfilePage extends StatelessWidget {
           ),
           body: NotificationListener<OverscrollIndicatorNotification>(
             onNotification: (overScroll) {
-              overScroll.disallowGlow();
+              overScroll.disallowIndicator();
               return true;
             },
-            child: CustomScrollView(
-              slivers: [
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: Column(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: Column(
+                  children: [
+                    Column(
                       children: [
-                        Column(
-                          children: [
-                            const EditFirstNameInput(),
-                            const SizedBox(
-                              height: 15.0,
-                            ),
-                            const EditLastNameInput(),
-                            const SizedBox(
-                              height: 15.0,
-                            ),
-                            PrimaryButton(
-                              label: 'Zapisz',
-                              onTap: context
-                                  .read<ProfileCubit>()
-                                  .editProfileSubmit,
-                              isLoading: state.formStatus.isLoading,
-                            )
-                          ],
+                        const EditFirstNameInput(),
+                        const SizedBox(
+                          height: 15.0,
                         ),
+                        const EditLastNameInput(),
+                        const SizedBox(
+                          height: 15.0,
+                        ),
+                        PrimaryButton(
+                          label: 'Zapisz',
+                          onTap: context.read<ProfileCubit>().editProfileSubmit,
+                          isLoading: state.formStatus.isLoading,
+                        )
                       ],
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         );

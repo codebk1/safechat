@@ -30,12 +30,10 @@ class MessageBubble extends StatelessWidget {
       builder: (context, state) {
         final currentUser = context.read<UserCubit>().state.user;
 
-        final participants = List.of(chat.participants)
-          ..removeWhere((p) => p.id == currentUser.id);
+        // final participants = List.of(chat.participants)
+        //   ..removeWhere((p) => p.id == currentUser.id);
 
         final isSender = message.senderId == currentUser.id;
-
-        // TODO: refactor to use Contact object in Message model instead of just senderId
 
         final sender = chat.participants.firstWhere(
           (e) => e.id == message.senderId,

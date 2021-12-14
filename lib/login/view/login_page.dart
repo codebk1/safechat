@@ -41,7 +41,7 @@ class LoginPage extends StatelessWidget {
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             body: NotificationListener<OverscrollIndicatorNotification>(
               onNotification: (overScroll) {
-                overScroll.disallowGlow();
+                overScroll.disallowIndicator();
                 return true;
               },
               child: CustomScrollView(

@@ -36,12 +36,13 @@ class PhotoMessage extends StatelessWidget {
             itemCount: photos.length,
             itemBuilder: (BuildContext context, index) {
               return FutureBuilder(
+                  key: Key(photos[index].name),
                   future: context
                       .read<AttachmentsCubit>()
                       .getAttachment(chat, photos[index]),
                   builder:
                       (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-                    if (snapshot.hasData) {
+                    if (snapshot.inState(ConnectionState.done).hasData) {
                       return GestureDetector(
                         onTap: () {
                           Navigator.of(context).pushNamed(
@@ -67,8 +68,7 @@ class PhotoMessage extends StatelessWidget {
                               curve: Curves.easeOut,
                             );
                           },
-                          cacheWidth:
-                              (MediaQuery.of(context).size.width).round(),
+                          cacheWidth: 500,
                           filterQuality: FilterQuality.medium,
                         ),
                       );

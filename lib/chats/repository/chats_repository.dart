@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:base32/base32.dart';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -147,7 +146,6 @@ class ChatsRepository {
         messages: chat.messages
             .map((message) => message.copyWith(
                   content: message.content.map((item) {
-                    print(item);
                     if (item.type == MessageType.text) {
                       return item.copyWith(
                           data: utf8.decode(_encryptionService.chachaDecrypt(

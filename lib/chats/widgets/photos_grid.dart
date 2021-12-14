@@ -43,7 +43,7 @@ class PhotosGrid extends StatelessWidget {
                           child: Image.file(
                             File(attachments[index].name),
                             fit: BoxFit.cover,
-                            cacheWidth: 400,
+                            cacheWidth: 200,
                             filterQuality: FilterQuality.medium,
                           ),
                         ),

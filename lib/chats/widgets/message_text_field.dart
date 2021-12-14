@@ -194,12 +194,7 @@ class _MessageTextFieldState extends State<MessageTextField> {
                                   _attachmentsCubit.state.selectedAttachments,
                                 );
 
-                            // TODO: zrobić to lepiej
-                            _attachmentsCubit
-                                .emit(_attachmentsCubit.state.copyWith(
-                              selectedAttachments: [],
-                            ));
-
+                            _attachmentsCubit.resetSelectedAttachments();
                             _messageController.clear();
                           }
                         },

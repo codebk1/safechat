@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -35,11 +33,7 @@ class CreateChatPage extends StatelessWidget {
       builder: (context, state) {
         return WillPopScope(
           onWillPop: () {
-            context.read<ChatsCubit>().emit(
-                  state.copyWith(
-                    selectedContacts: [],
-                  ),
-                );
+            context.read<ChatsCubit>().resetSelectedContacts();
 
             return Future.value(true);
           },

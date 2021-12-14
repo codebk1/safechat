@@ -17,7 +17,6 @@
   v    Password verifier
 */
 
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:pointycastle/export.dart';
@@ -36,9 +35,7 @@ class SRP {
   final _encryptionService = EncryptionService();
 
   BigInt s(int length) {
-    final secureRandom = _encryptionService.genereateSecureRandom();
-
-    return secureRandom.nextBigInteger(length);
+    return _encryptionService.genereateSecureRandom().nextBigInteger(length);
   }
 
   Future<BigInt> x(String I, String P, BigInt s) async {
@@ -50,7 +47,6 @@ class SRP {
     digest.doFinal(out, 0);
 
     final _s = bigIntToBytesArray(s);
-
     digest.update(_s, 0, _s.length);
     digest.update(out, 0, out.length);
     digest.doFinal(out, 0);
@@ -59,8 +55,7 @@ class SRP {
   }
 
   BigInt S(BigInt k, BigInt u, BigInt x, BigInt B, BigInt a) {
-    return (B - (k * g.modPow(x, N)))
-        .modPow(a + (u * x), N); // (B - (k * g^x)) ^ (a + (u * x)) % N
+    return (B - (k * g.modPow(x, N))).modPow(a + (u * x), N);
   }
 
   Future<BigInt> K(BigInt S) async {
@@ -107,11 +102,10 @@ class SRP {
   }
 
   BigInt a() {
-    final secureRandom = _encryptionService.genereateSecureRandom();
     BigInt a;
 
     do {
-      a = secureRandom.nextBigInteger(32) % N;
+      a = _encryptionService.genereateSecureRandom().nextBigInteger(32) % N;
     } while (a == BigInt.zero);
 
     return a;

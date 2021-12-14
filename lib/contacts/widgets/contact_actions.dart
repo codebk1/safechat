@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:safechat/router.dart';
 import 'package:safechat/user/user.dart';
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/chats/cubits/chats/chats_cubit.dart';

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
@@ -176,15 +177,19 @@ class ChatsCubit extends Cubit<ChatsState> {
           (p) => p.id == event.data['senderId'],
         );
 
+        print(event.data['type']);
+
         final notification = NotificationData(
           id: event.data['chatId'],
           title: '${sender.firstName} ${sender.lastName}',
-          body: utf8.decode(
-            _encryptionService.chachaDecrypt(
-              event.data['body'],
-              chat.sharedKey,
-            ),
-          ),
+          body: event.data['type'] == 'text'
+              ? utf8.decode(
+                  _encryptionService.chachaDecrypt(
+                    event.data['body'],
+                    chat.sharedKey,
+                  ),
+                )
+              : 'Wysłał(a) załącznik.',
           image: sender.avatar,
         );
 
@@ -295,7 +300,6 @@ class ChatsCubit extends Cubit<ChatsState> {
 
   sendMessage(Chat chat, String senderId, List<Attachment> attachments) async {
     DefaultCacheManager cacheManager = DefaultCacheManager();
-    List<MultipartFile> encryptedAttachments = [];
     List<MessageItem> encryptedItems = [];
 
     for (var i = 0; i < attachments.length; i++) {
@@ -310,45 +314,14 @@ class ChatsCubit extends Cubit<ChatsState> {
         (e) => describeEnum(e) == describeEnum(attachments[i].type),
       );
 
+      await cacheManager.putFile(
+        attachmentName,
+        File(attachments[i].name).readAsBytesSync(),
+      );
+
       encryptedItems.add(MessageItem(
         type: messageType,
         data: base32.encode(encryptedName),
-      ));
-
-      final file = File(attachments[i].name);
-
-      // generate thumbnail for video or photo
-      if (!attachments[i].type.isFile) {
-        // Uint8List? thumb = await computeGenerateThumbnail(
-        //   file,
-        //   attachments[i].type.isVideo,
-        // );
-
-        Uint8List? thumb = await _generateThumbnail(
-          file,
-          attachments[i].type.isVideo,
-        );
-
-        print(file.lengthSync());
-        print(thumb!.length);
-
-        encryptedAttachments.add(MultipartFile.fromBytes(
-          _encryptionService.chachaEncrypt(
-            (await cacheManager.putFile('thumb_$attachmentName', thumb))
-                .readAsBytesSync(),
-            chat.sharedKey,
-          ),
-          filename: 'thumb_${base32.encode(encryptedName)}',
-        ));
-      }
-
-      encryptedAttachments.add(MultipartFile.fromBytes(
-        _encryptionService.chachaEncrypt(
-          (await cacheManager.putFile(attachmentName, file.readAsBytesSync()))
-              .readAsBytesSync(),
-          chat.sharedKey,
-        ),
-        filename: base32.encode(encryptedName),
       ));
     }
 
@@ -366,11 +339,16 @@ class ChatsCubit extends Cubit<ChatsState> {
       chats: List.of(state.chats)
           .map((c) => c.id == chat.id
               ? c.copyWith(
-                  messages: List.of(c.messages)..insert(0, newMessage),
+                  messages: [
+                      newMessage,
+                      ...c.messages
+                    ], //List.of(c.messages)..insert(0, newMessage),
                   message: chat.message.copyWith(content: []))
               : c)
           .toList(),
     ));
+
+    print('WYSŁANOOO');
 
     if (newMessage.content.first.type == MessageType.text) {
       final encryptedItem = newMessage.content.first.copyWith(
@@ -385,18 +363,57 @@ class ChatsCubit extends Cubit<ChatsState> {
       );
     }
 
-    print({'ddddd', newMessage.content});
+    List<MultipartFile> encryptedAttachments = [];
+
+    for (var i = 0; i < attachments.length; i++) {
+      if (!attachments[i].type.isFile) {
+        final file = File(attachments[i].name);
+        var attachmentName = attachments[i].name.split('/').last;
+
+        final encryptedName = encryptedItems[i].data;
+
+        encryptedAttachments.add(MultipartFile.fromBytes(
+          await computeEncryptAttachment(
+            EncryptAttachmentProperties(
+              file.readAsBytesSync(),
+              chat.sharedKey,
+              _encryptionService,
+            ),
+          ),
+          filename: encryptedName,
+        ));
+
+        Uint8List? thumb = await computeGenerateThumbnail(
+          file,
+          attachments[i].type.isVideo,
+        );
+
+        print(file.lengthSync());
+        print(thumb!.length);
+
+        final cachedThumb = await cacheManager.putFile(
+          'thumb_$attachmentName',
+          thumb,
+        );
+
+        encryptedAttachments.add(MultipartFile.fromBytes(
+          await computeEncryptAttachment(
+            EncryptAttachmentProperties(
+              cachedThumb.readAsBytesSync(),
+              chat.sharedKey,
+              _encryptionService,
+            ),
+          ),
+          filename: 'thumb_$encryptedName',
+        ));
+      }
+    }
 
     final message = await _chatsRepository.addMessage(
       chat.id,
       newMessage,
       encryptedAttachments,
     );
-
-    // _wsService.socket.emit('message.new', {
-    //   'chatId': chat.id,
-    //   'message': newMessage.copyWith(id: messageId).toJson(),
-    // });
 
     emit(state.copyWith(
       chats: List.of(state.chats)
@@ -531,18 +548,22 @@ class ChatsCubit extends Cubit<ChatsState> {
   }
 
   textMessageChanged(String chatId, String value) {
-    emit(state.copyWith(
-      chats: List.of(state.chats)
-          .map((c) => c.id == chatId
-              ? c.copyWith(
-                  message: c.message.copyWith(
-                  content: List.of(c.message.content)
-                    ..removeWhere((e) => e.type == MessageType.text)
-                    ..add(MessageItem(type: MessageType.text, data: value)),
-                ))
-              : c)
-          .toList(),
-    ));
+    print(value);
+    print(value.trim().isNotEmpty);
+    if (value.trim().isNotEmpty) {
+      emit(state.copyWith(
+        chats: List.of(state.chats)
+            .map((c) => c.id == chatId
+                ? c.copyWith(
+                    message: c.message.copyWith(
+                    content: List.of(c.message.content)
+                      ..removeWhere((e) => e.type == MessageType.text)
+                      ..add(MessageItem(type: MessageType.text, data: value)),
+                  ))
+                : c)
+            .toList(),
+      ));
+    }
   }
 
   toggleParticipant(Contact participant) {
@@ -637,36 +658,36 @@ class ChatsCubit extends Cubit<ChatsState> {
     ));
   }
 
-  Future<Uint8List?> _generateThumbnail(File file,
-      [bool isVideo = false]) async {
-    if (isVideo) {
-      return await vt.VideoThumbnail.thumbnailData(
-        video: file.path,
-        imageFormat: vt.ImageFormat.JPEG,
-        maxWidth: 1024,
-        quality: 50,
-      );
-    } else {
-      return await FlutterImageCompress.compressWithFile(
-        file.absolute.path,
-        //minWidth: 500,
-        quality: 60,
-      );
-    }
+  resetSelectedContacts() {
+    emit(state.copyWith(
+      selectedContacts: [],
+    ));
   }
 
-  // Future<Uint8List?> computeGenerateThumbnail(File file,
-  //     [bool isVideo = false]) async {
-  //   print('GENERATED THUMBNAIL!!!!');
+  resetNextChat() {
+    emit(state.copyWith(
+      nextChat: null,
+    ));
+  }
 
-  //   return await compute(
-  //     generateThumbnail,
-  //     GenerateThumbnailProperties(file, isVideo),
-  //   );
-  // }
+  Future<Uint8List?> computeGenerateThumbnail(File file,
+      [bool isVideo = false]) async {
+    print('GENERATED THUMBNAIL!!!!');
+
+    return await compute(
+      generateThumbnail,
+      GenerateThumbnailProperties(file, isVideo),
+    );
+  }
 
   Future<List<int>> computeCropAvatar(Uint8List photo) async {
     return await compute(cropAvatar, photo);
+  }
+
+  Future<Uint8List> computeEncryptAttachment(
+    EncryptAttachmentProperties data,
+  ) async {
+    return await compute(encryptAttachment, data);
   }
 
   @override
@@ -676,64 +697,48 @@ class ChatsCubit extends Cubit<ChatsState> {
   }
 }
 
-// class GenerateThumbnailProperties {
-//   GenerateThumbnailProperties(this.file, this.isVideo);
+class GenerateThumbnailProperties {
+  GenerateThumbnailProperties(this.file, this.isVideo);
 
-//   final File file;
-//   final bool isVideo;
-// }
+  final File file;
+  final bool isVideo;
+}
 
-// Future<Uint8List?> generateThumbnail(GenerateThumbnailProperties data) async {
-//   if (data.isVideo) {
-//     return await vt.VideoThumbnail.thumbnailData(
-//       video: data.file.path,
-//       imageFormat: vt.ImageFormat.JPEG,
-//       maxWidth: 1024,
-//       quality: 50,
-//     );
-//   } else {
-//     // var image = copyResize(
-//     //   decodeImage(data.file.readAsBytesSync())!,
-//     //   width: 512,
-//     //   interpolation: Interpolation.nearest,
-//     // );
+class EncryptAttachmentProperties {
+  EncryptAttachmentProperties(
+    this.data,
+    this.sharedKey,
+    this.encryptionService,
+  );
 
-//     // return encodeJpg(image) as Uint8List;
-//     // ImageProperties properties =
-//     //     await FlutterNativeImage.getImageProperties(data.file.path);
+  final Uint8List data;
+  final Uint8List sharedKey;
+  final EncryptionService encryptionService;
+}
 
-//     // print(properties);
+Future<Uint8List?> generateThumbnail(GenerateThumbnailProperties data) async {
+  if (data.isVideo) {
+    return await vt.VideoThumbnail.thumbnailData(
+      video: data.file.path,
+      imageFormat: vt.ImageFormat.JPEG,
+      maxWidth: 1024,
+      quality: 50,
+    );
+  } else {
+    // return await FlutterImageCompress.compressWithFile(
+    //   data.file.absolute.path,
+    //   //minWidth: 500,
+    //   quality: 60,
+    // );
 
-//     // File compressedFile = await FlutterNativeImage.compressImage(data.file.path,
-//     //     quality: 80,
-//     //     targetWidth: 512,
-//     //     targetHeight: (properties.height! * 512 / properties.width!).round());
+    Image croppedPhoto = copyResizeCropSquare(
+      decodeImage(data.file.readAsBytesSync())!,
+      500,
+    );
 
-//     // return compressedFile.readAsBytesSync();
-//     // print(data.file);
-//     // var result = await FlutterImageCompress.compressWithFile(
-//     //   data.file.absolute.path,
-//     //   minWidth: 500,
-//     //   quality: 60,
-//     // );
-//     // print(data.file.lengthSync());
-//     // print(result!.length);
-//     // return result;
-
-//     CompressObject compressObject = CompressObject(
-//       imageFile: data.file, //image
-//       //path: tempDir.path, //compress to path
-//       quality: 60, //first compress quality, default 80
-//       step:
-//           9, //compress quality step, The bigger the fast, Smaller is more accurate, default 6
-//       mode: CompressMode.LARGE2SMALL,
-//       //default AUTO
-//     );
-
-//     var path = await Luban.compressImage(compressObject);
-//     return File(path!).readAsBytesSync();
-//   }
-// }
+    return encodeJpg(croppedPhoto) as Uint8List;
+  }
+}
 
 List<int> cropAvatar(Uint8List data) {
   Image croppedPhoto = copyResizeCropSquare(
@@ -742,4 +747,11 @@ List<int> cropAvatar(Uint8List data) {
   );
 
   return encodeJpg(croppedPhoto);
+}
+
+Uint8List encryptAttachment(EncryptAttachmentProperties properties) {
+  return properties.encryptionService.chachaEncrypt(
+    properties.data,
+    properties.sharedKey,
+  );
 }

@@ -51,43 +51,38 @@ class EditChatNamePage extends StatelessWidget {
           ),
           body: NotificationListener<OverscrollIndicatorNotification>(
             onNotification: (overScroll) {
-              overScroll.disallowGlow();
+              overScroll.disallowIndicator();
               return true;
             },
-            child: CustomScrollView(
-              slivers: [
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: Column(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: Column(
+                  children: [
+                    Column(
                       children: [
-                        Column(
-                          children: [
-                            NameInput(
-                              initialValue: state.chats
-                                  .firstWhere((c) => c.id == chatId)
-                                  .name,
-                            ),
-                            const SizedBox(
-                              height: 15.0,
-                            ),
-                            PrimaryButton(
-                              label: 'Zapisz',
-                              onTap: () {
-                                context
-                                    .read<ChatsCubit>()
-                                    .editChatNameSubmit(chatId);
-                              },
-                              isLoading: state.formStatus.isLoading,
-                            ),
-                          ],
+                        NameInput(
+                          initialValue: state.chats
+                              .firstWhere((c) => c.id == chatId)
+                              .name,
+                        ),
+                        const SizedBox(
+                          height: 15.0,
+                        ),
+                        PrimaryButton(
+                          label: 'Zapisz',
+                          onTap: () {
+                            context
+                                .read<ChatsCubit>()
+                                .editChatNameSubmit(chatId);
+                          },
+                          isLoading: state.formStatus.isLoading,
                         ),
                       ],
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         );

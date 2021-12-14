@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/profile/cubit/profile_cubit.dart';
 import 'package:safechat/user/user.dart';
@@ -8,189 +9,184 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: IconThemeData(
-          color: Colors.grey.shade800,
-        ),
-        title: Text(
-          'Moje konto',
-          style: TextStyle(
+    return AnnotatedRegion(
+      value: const SystemUiOverlayStyle(
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          iconTheme: IconThemeData(
             color: Colors.grey.shade800,
           ),
+          title: Text(
+            'Moje konto',
+            style: TextStyle(
+              color: Colors.grey.shade800,
+            ),
+          ),
         ),
-      ),
-      body: NotificationListener<OverscrollIndicatorNotification>(
-        onNotification: (overScroll) {
-          overScroll.disallowGlow();
-          return true;
-        },
-        child: CustomScrollView(
-          slivers: [
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const _AvatarPicker(),
-                    const SizedBox(
-                      height: 25.0,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Dane konta',
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              Navigator.of(context).pushNamed('/profile/edit');
-                            },
-                            icon: const Icon(Icons.edit),
-                            splashRadius: 20.0,
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(15.0),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(10.0),
+        body: NotificationListener<OverscrollIndicatorNotification>(
+          onNotification: (overScroll) {
+            overScroll.disallowIndicator();
+            return true;
+          },
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const _AvatarPicker(),
+                  const SizedBox(
+                    height: 25.0,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Dane konta',
                         ),
-                      ),
-                      child: BlocBuilder<UserCubit, UserState>(
-                        builder: (context, state) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Imię',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .subtitle2,
-                                      ),
-                                      Text(
-                                        state.user.firstName,
-                                        style: const TextStyle(fontSize: 18.0),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(width: 35.0),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Nazwisko',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .subtitle2,
-                                      ),
-                                      Text(
-                                        state.user.lastName,
-                                        style: const TextStyle(fontSize: 18.0),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 15.0),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Email',
-                                    style:
-                                        Theme.of(context).textTheme.subtitle2,
-                                  ),
-                                  Text(
-                                    state.user.email,
-                                    style: const TextStyle(fontSize: 18.0),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 25.0),
-                    const Padding(
-                      padding: EdgeInsets.all(15.0),
-                      child: Text(
-                        'Zarządzanie kontem',
-                      ),
-                    ),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(5.0),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(10.0),
+                        IconButton(
+                          onPressed: () {
+                            Navigator.of(context).pushNamed('/profile/edit');
+                          },
+                          icon: const Icon(Icons.edit),
+                          splashRadius: 20.0,
                         ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(15.0),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(10.0),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          TextButton.icon(
-                            style: ButtonStyle(
-                              overlayColor: MaterialStateColor.resolveWith(
-                                  (states) => Colors.red.shade50),
+                    ),
+                    child: BlocBuilder<UserCubit, UserState>(
+                      builder: (context, state) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Imię',
+                                      style:
+                                          Theme.of(context).textTheme.subtitle2,
+                                    ),
+                                    Text(
+                                      state.user.firstName,
+                                      style: const TextStyle(fontSize: 18.0),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(width: 35.0),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Nazwisko',
+                                      style:
+                                          Theme.of(context).textTheme.subtitle2,
+                                    ),
+                                    Text(
+                                      state.user.lastName,
+                                      style: const TextStyle(fontSize: 18.0),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                            onPressed: () {
-                              Navigator.of(context).pushNamed('/password/edit');
-                            },
-                            icon: Icon(
-                              Icons.lock_rounded,
+                            const SizedBox(height: 15.0),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Email',
+                                  style: Theme.of(context).textTheme.subtitle2,
+                                ),
+                                Text(
+                                  state.user.email,
+                                  style: const TextStyle(fontSize: 18.0),
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 25.0),
+                  const Padding(
+                    padding: EdgeInsets.all(15.0),
+                    child: Text(
+                      'Zarządzanie kontem',
+                    ),
+                  ),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(5.0),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(10.0),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TextButton.icon(
+                          style: ButtonStyle(
+                            overlayColor: MaterialStateColor.resolveWith(
+                                (states) => Colors.red.shade50),
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).pushNamed('/password/edit');
+                          },
+                          icon: Icon(
+                            Icons.lock_rounded,
+                            color: Colors.grey.shade800,
+                          ),
+                          label: Text(
+                            'Zmień hasło',
+                            style: TextStyle(
                               color: Colors.grey.shade800,
                             ),
-                            label: Text(
-                              'Zmień hasło',
-                              style: TextStyle(
-                                color: Colors.grey.shade800,
-                              ),
-                            ),
                           ),
-                          TextButton.icon(
-                            style: ButtonStyle(
-                              overlayColor: MaterialStateColor.resolveWith(
-                                  (states) => Colors.red.shade50),
-                            ),
-                            onPressed: () {},
-                            icon: Icon(
-                              Icons.delete_forever,
+                        ),
+                        TextButton.icon(
+                          style: ButtonStyle(
+                            overlayColor: MaterialStateColor.resolveWith(
+                                (states) => Colors.red.shade50),
+                          ),
+                          onPressed: () {},
+                          icon: Icon(
+                            Icons.delete_forever,
+                            color: Colors.red.shade800,
+                          ),
+                          label: Text(
+                            'Usuń konto',
+                            style: TextStyle(
                               color: Colors.red.shade800,
                             ),
-                            label: Text(
-                              'Usuń konto',
-                              style: TextStyle(
-                                color: Colors.red.shade800,
-                              ),
-                            ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

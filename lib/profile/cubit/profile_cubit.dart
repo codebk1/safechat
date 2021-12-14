@@ -144,16 +144,19 @@ class ProfileCubit extends Cubit<ProfileState> {
   }
 }
 
-List<int> cropAvatar(Uint8List data) {
-  //Image croppedPhoto = copyCropCircle(decodeImage(data)!);
-  //Image image = decodeImage(data)!;
+Future<List<int>> cropAvatar(Uint8List data) async {
+  final decodedImage = decodeImage(data);
 
-  Image croppedPhoto = copyResizeCropSquare(
-    decodeImage(data)!,
-    150,
+  Image resizedPhoto = copyResizeCropSquare(
+    decodedImage!,
+    300,
   );
 
-  List<int> avatar = encodeJpg(croppedPhoto);
+  Image croppedPhoto = copyCropCircle(
+    resizedPhoto,
+    radius: 150,
+    center: Point(150, 150),
+  );
 
-  return avatar;
+  return encodePng(croppedPhoto);
 }

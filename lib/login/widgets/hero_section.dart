@@ -28,9 +28,8 @@ class HeroSection extends StatelessWidget {
               ),
             ),
             SvgPicture.asset(
-              'assets/messages_animation.svg',
-              allowDrawingOutsideViewBox: true,
-              width: 200,
+              'assets/hero_messages.svg',
+              width: 150,
             ),
           ],
         ),

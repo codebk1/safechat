@@ -70,7 +70,6 @@ class NotificationService {
     final androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'messages',
       'Messages',
-      'New chat messages',
       importance: Importance.max,
       priority: Priority.high,
       largeIcon: notification.image != null
