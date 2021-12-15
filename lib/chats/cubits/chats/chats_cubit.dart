@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ffi';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
@@ -13,7 +12,6 @@ import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image/image.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -48,7 +46,7 @@ class ChatsCubit extends Cubit<ChatsState> {
       emit(state.copyWith(
         chats: List.of(state.chats)
             .map((c) => c.id == chat.id
-                ? c.copyWith(messages: [
+                ? c.copyWith(updatedAt: DateTime.now(), messages: [
                     msg.copyWith(
                         content: msg.content.map((item) {
                       if (item.type == MessageType.text) {
@@ -66,9 +64,11 @@ class ChatsCubit extends Cubit<ChatsState> {
                     }).toList()),
                     ...chat.messages,
                   ])
-                : c)
+                : c.copyWith(updatedAt: DateTime.now()))
             .toList(),
       ));
+
+      state.chats.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     });
 
     _wsService.socket.on('chat.read', (data) async {
@@ -260,6 +260,8 @@ class ChatsCubit extends Cubit<ChatsState> {
         });
       }
 
+      chats.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+
       emit(state.copyWith(chats: chats, listStatus: ListStatus.success));
     } on DioError catch (e) {
       emit(state.copyWith(
@@ -339,16 +341,17 @@ class ChatsCubit extends Cubit<ChatsState> {
       chats: List.of(state.chats)
           .map((c) => c.id == chat.id
               ? c.copyWith(
+                  updatedAt: DateTime.now(),
                   messages: [
-                      newMessage,
-                      ...c.messages
-                    ], //List.of(c.messages)..insert(0, newMessage),
+                    newMessage,
+                    ...c.messages
+                  ], //List.of(c.messages)..insert(0, newMessage),
                   message: chat.message.copyWith(content: []))
               : c)
           .toList(),
     ));
 
-    print('WYSŁANOOO');
+    state.chats.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
     if (newMessage.content.first.type == MessageType.text) {
       final encryptedItem = newMessage.content.first.copyWith(
@@ -672,8 +675,6 @@ class ChatsCubit extends Cubit<ChatsState> {
 
   Future<Uint8List?> computeGenerateThumbnail(File file,
       [bool isVideo = false]) async {
-    print('GENERATED THUMBNAIL!!!!');
-
     return await compute(
       generateThumbnail,
       GenerateThumbnailProperties(file, isVideo),
@@ -725,17 +726,10 @@ Future<Uint8List?> generateThumbnail(GenerateThumbnailProperties data) async {
       quality: 50,
     );
   } else {
-    // return await FlutterImageCompress.compressWithFile(
-    //   data.file.absolute.path,
-    //   //minWidth: 500,
-    //   quality: 60,
-    // );
-
     Image croppedPhoto = copyResizeCropSquare(
       decodeImage(data.file.readAsBytesSync())!,
       500,
     );
-
     return encodeJpg(croppedPhoto) as Uint8List;
   }
 }

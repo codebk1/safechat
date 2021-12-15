@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
-
 import 'package:equatable/equatable.dart';
 
 import 'package:safechat/contacts/contacts.dart';
@@ -15,6 +14,7 @@ class Chat extends Equatable {
     required this.id,
     required this.sharedKey,
     required this.type,
+    required this.updatedAt,
     this.name,
     this.avatar,
     this.participants = const [],
@@ -28,6 +28,7 @@ class Chat extends Equatable {
   final Uint8List sharedKey;
   final ChatType type;
   final String? name;
+  final DateTime updatedAt;
   final dynamic avatar;
   final List<Contact> participants;
   final List<Message> messages;
@@ -41,6 +42,7 @@ class Chat extends Equatable {
         avatar,
         participants,
         messages,
+        updatedAt,
         message,
         typing,
         opened,
@@ -51,6 +53,7 @@ class Chat extends Equatable {
     Uint8List? sharedKey,
     ChatType? type,
     String? name,
+    DateTime? updatedAt,
     dynamic avatar,
     List<Contact>? participants,
     List<Message>? messages,
@@ -64,6 +67,7 @@ class Chat extends Equatable {
       sharedKey: sharedKey ?? this.sharedKey,
       type: type ?? this.type,
       name: name ?? this.name,
+      updatedAt: updatedAt ?? this.updatedAt,
       avatar: avatar != null ? avatar() : this.avatar,
       participants: participants ?? this.participants,
       messages: messages ?? this.messages,
@@ -80,6 +84,7 @@ class Chat extends Equatable {
           (e) => describeEnum(e) == json['type'],
         ),
         name = json['name'],
+        updatedAt = DateTime.parse(json['updatedAt']),
         avatar = json['avatar'],
         participants = json['participants']!,
         messages = (json['messages']! as List)

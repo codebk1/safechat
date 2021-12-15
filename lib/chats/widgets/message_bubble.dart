@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -250,13 +252,15 @@ class MessageBubble extends StatelessWidget {
                                         ),
                                   backgroundColor: Colors.grey.shade300,
                                 )
-                          : Icon(
-                              message.status == MessageStatus.sending
-                                  ? Icons.check_circle_outline
-                                  : Icons.check_circle,
-                              size: 16,
-                              color: Colors.blue.shade800,
-                            )
+                          : message.status == MessageStatus.sending
+                              ? const _DelayedLoader(
+                                  delay: Duration(seconds: 3),
+                                )
+                              : Icon(
+                                  Icons.check_circle_rounded,
+                                  size: 16,
+                                  color: Colors.blue.shade800,
+                                )
                       : const SizedBox(width: 16)
                 ],
               ],
@@ -265,5 +269,61 @@ class MessageBubble extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+class _DelayedLoader extends StatefulWidget {
+  const _DelayedLoader({
+    Key? key,
+    this.delay = Duration.zero,
+  }) : super(key: key);
+
+  final Duration delay;
+
+  @override
+  _DelayedLoaderState createState() => _DelayedLoaderState();
+}
+
+class _DelayedLoaderState extends State<_DelayedLoader> {
+  Timer? _timer;
+  bool showLoader = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _timer = Timer(widget.delay, () {
+      setState(() {
+        showLoader = true;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    print(showLoader);
+    return showLoader
+        ? SizedBox(
+            width: 16,
+            height: 16,
+            child: Transform.scale(
+              scale: 0.5,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.blue.shade800,
+              ),
+            ),
+          )
+        : Icon(
+            Icons.check_circle_outline_rounded,
+            size: 16,
+            color: Colors.blue.shade800,
+          );
   }
 }
