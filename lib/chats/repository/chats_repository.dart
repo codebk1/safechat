@@ -236,7 +236,7 @@ class ChatsRepository {
       id: chat.data['id'],
       sharedKey: chatSharedKey,
       type: type,
-      updatedAt: chat.data['updatedAt'],
+      updatedAt: DateTime.parse(chat.data['updatedAt']),
       participants: [...participants, creatorContact],
       messages: List<Message>.empty(growable: true),
     );

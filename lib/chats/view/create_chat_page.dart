@@ -14,9 +14,22 @@ class CreateChatPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<ChatsCubit, ChatsState>(
+      listenWhen: (prev, curr) => prev.formStatus != curr.formStatus,
       listener: (context, state) {
         if (state.formStatus.isSuccess) {
-          Navigator.of(context).pop();
+          Navigator.of(context).pushNamed(
+            '/chat',
+            arguments: state.chats.first,
+          );
+
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              getSuccessSnackBar(
+                context,
+                successText: state.formStatus.message!,
+              ),
+            );
         }
 
         if (state.formStatus.isFailure) {

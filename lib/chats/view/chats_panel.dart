@@ -71,9 +71,7 @@ class MainPanel extends StatelessWidget {
             listenWhen: (prev, curr) => prev.formStatus != curr.formStatus,
             listener: (context, state) {
               if (state.formStatus.isSuccess) {
-                Navigator.of(
-                  context,
-                ).pop();
+                Navigator.of(context).pop();
 
                 ScaffoldMessenger.of(context)
                   ..hideCurrentSnackBar()
@@ -187,8 +185,7 @@ class MainPanel extends StatelessWidget {
                                                             ],
                                                           ),
                                                         ),
-                                                        if (chat.type ==
-                                                            ChatType.group)
+                                                        if (chat.type.isGroup)
                                                           ListTile(
                                                             onTap: () {
                                                               if (!state
@@ -198,8 +195,7 @@ class MainPanel extends StatelessWidget {
                                                                     .read<
                                                                         ChatsCubit>()
                                                                     .leaveChat(
-                                                                      chat.id,
-                                                                    );
+                                                                        chat.id);
                                                               }
                                                             },
                                                             leading: const Icon(
@@ -249,21 +245,9 @@ class MainPanel extends StatelessWidget {
                                         arguments: chat,
                                       );
                                     },
-                                    leading: chat.participants.isEmpty
-                                        ? ClipOval(
-                                            child: Container(
-                                              width: 45,
-                                              height: 45,
-                                              color: Colors.grey.shade100,
-                                              child: Icon(
-                                                Icons.person,
-                                                color: Colors.grey.shade300,
-                                              ),
-                                            ),
-                                          )
-                                        : ChatAvatar(
-                                            chat: chat,
-                                          ),
+                                    leading: ChatAvatar(
+                                      chat: chat,
+                                    ),
                                     title: Text(
                                       getChatTitle(chat, context),
                                       overflow: TextOverflow.ellipsis,
@@ -396,14 +380,15 @@ class ChatAvatar extends StatelessWidget {
                   ),
           ),
         ),
-        Positioned(
-          right: 0,
-          bottom: 0,
-          child: StatusIndicator(
-            isOnline: firstOnline != null,
-            status: firstOnline != null ? firstOnline.status : Status.visible,
+        if (participants.isNotEmpty)
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: StatusIndicator(
+              isOnline: firstOnline != null,
+              status: firstOnline != null ? firstOnline.status : Status.visible,
+            ),
           ),
-        ),
       ],
     );
   }

@@ -36,18 +36,22 @@ class ChatPage extends StatelessWidget {
                 (p) => p.id == context.read<UserCubit>().state.user.id,
               );
 
-            final formatedLastSeen = _formatLastSeen(participants
-                .reduce(
-                    (a, b) => a.lastSeen!.compareTo(b.lastSeen!) < 0 ? b : a)
-                .lastSeen!);
+            var lastActivityText = '';
 
-            final lastActivityText = participants.any((c) => c.isOnline)
-                ? chat.type.isGroup
-                    ? 'Aktywność teraz'
-                    : 'Aktywny(a) teraz'
-                : chat.type.isGroup
-                    ? 'Ostatnia aktywność $formatedLastSeen'
-                    : 'Aktywny(a) $formatedLastSeen';
+            if (participants.isNotEmpty) {
+              final formatedLastSeen = _formatLastSeen(participants
+                  .reduce(
+                      (a, b) => a.lastSeen!.compareTo(b.lastSeen!) < 0 ? b : a)
+                  .lastSeen!);
+
+              lastActivityText = participants.any((c) => c.isOnline)
+                  ? chat.type.isGroup
+                      ? 'Aktywność teraz'
+                      : 'Aktywny(a) teraz'
+                  : chat.type.isGroup
+                      ? 'Ostatnia aktywność $formatedLastSeen'
+                      : 'Aktywny(a) $formatedLastSeen';
+            }
 
             return Scaffold(
               appBar: AppBar(

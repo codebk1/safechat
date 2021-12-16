@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -37,7 +38,7 @@ class MessageBubble extends StatelessWidget {
 
         final isSender = message.senderId == currentUser.id;
 
-        final sender = chat.participants.firstWhere(
+        final sender = chat.participants.firstWhereOrNull(
           (e) => e.id == message.senderId,
         );
 
@@ -87,33 +88,38 @@ class MessageBubble extends StatelessWidget {
               children: [
                 if (!isSender) ...[
                   isLastInSet
-                      ? Stack(
-                          children: [
-                            CircleAvatar(
+                      ? sender == null
+                          ? CircleAvatar(
                               radius: 14,
-                              child: sender.avatar != null
-                                  ? ClipOval(
-                                      child: Image.file(
-                                        sender.avatar,
-                                      ),
-                                    )
-                                  : Icon(
-                                      Icons.person,
-                                      color: Colors.grey.shade50,
-                                    ),
-                              backgroundColor: Colors.grey.shade300,
-                            ),
-                            Positioned(
-                              right: 0,
-                              bottom: 0,
-                              child: StatusIndicator(
-                                isOnline: sender.isOnline,
-                                status: sender.status,
-                                size: 10,
-                              ),
-                            ),
-                          ],
-                        )
+                              backgroundColor: Colors.grey.shade100,
+                            )
+                          : Stack(
+                              children: [
+                                CircleAvatar(
+                                  radius: 14,
+                                  child: sender.avatar != null
+                                      ? ClipOval(
+                                          child: Image.file(
+                                            sender.avatar,
+                                          ),
+                                        )
+                                      : Icon(
+                                          Icons.person,
+                                          color: Colors.grey.shade50,
+                                        ),
+                                  backgroundColor: Colors.grey.shade300,
+                                ),
+                                Positioned(
+                                  right: 0,
+                                  bottom: 0,
+                                  child: StatusIndicator(
+                                    isOnline: sender.isOnline,
+                                    status: sender.status,
+                                    size: 10,
+                                  ),
+                                ),
+                              ],
+                            )
                       : const SizedBox(width: 28),
                   const SizedBox(width: 10.0),
                 ],

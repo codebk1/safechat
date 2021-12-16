@@ -28,7 +28,12 @@ part 'chats_state.dart';
 class ChatsCubit extends Cubit<ChatsState> {
   ChatsCubit() : super(const ChatsState()) {
     _wsService.socket.on('message.new', (data) async {
-      final chat = await _findOrFetchChat(data['chatId'], true);
+      final chat = await _findOrFetchChat(
+        id: data['chatId'],
+        insert: true,
+        sort: true,
+      );
+
       var msg = Message.fromJson(data['message']);
 
       if (chat.opened) {
@@ -46,7 +51,7 @@ class ChatsCubit extends Cubit<ChatsState> {
       emit(state.copyWith(
         chats: List.of(state.chats)
             .map((c) => c.id == chat.id
-                ? c.copyWith(updatedAt: DateTime.now(), messages: [
+                ? c.copyWith(messages: [
                     if (chat.messages.length != 1)
                       msg.copyWith(
                           content: msg.content.map((item) {
@@ -63,13 +68,13 @@ class ChatsCubit extends Cubit<ChatsState> {
                       }).toList()),
                     ...chat.messages,
                   ])
-                : c.copyWith(updatedAt: DateTime.now()))
+                : c)
             .toList(),
       ));
     });
 
     _wsService.socket.on('chat.read', (data) async {
-      final chat = await _findOrFetchChat(data['chatId']);
+      final chat = await _findOrFetchChat(id: data['chatId']);
 
       emit(state.copyWith(
         chats: List.of(state.chats)
@@ -114,7 +119,7 @@ class ChatsCubit extends Cubit<ChatsState> {
     });
 
     _wsService.socket.on('typing.start', (data) async {
-      final chat = await _findOrFetchChat(data['chatId']);
+      final chat = await _findOrFetchChat(id: data['chatId']);
 
       emit(state.copyWith(
         chats: List.of(state.chats)
@@ -128,7 +133,7 @@ class ChatsCubit extends Cubit<ChatsState> {
     });
 
     _wsService.socket.on('typing.stop', (data) async {
-      final chat = await _findOrFetchChat(data['chatId']);
+      final chat = await _findOrFetchChat(id: data['chatId']);
 
       emit(state.copyWith(
         chats: List.of(state.chats)
@@ -166,7 +171,7 @@ class ChatsCubit extends Cubit<ChatsState> {
     });
 
     _notificationService.notification.listen((event) async {
-      final chat = await _findOrFetchChat(event.data['chatId']);
+      final chat = await _findOrFetchChat(id: event.data['chatId']);
 
       if (chat.opened == false) {
         final sender = chat.participants.firstWhere(
@@ -191,7 +196,7 @@ class ChatsCubit extends Cubit<ChatsState> {
     });
 
     _notificationService.selectNotification.listen((chatId) async {
-      final chat = await _findOrFetchChat(chatId, true);
+      final chat = await _findOrFetchChat(id: chatId, insert: true, sort: true);
 
       emit(state.copyWith(nextChat: chat));
     });
@@ -205,29 +210,28 @@ class ChatsCubit extends Cubit<ChatsState> {
   final _userRepository = UserRepository();
   final _chatsRepository = ChatsRepository();
 
-  Future<Chat> _findOrFetchChat(String chatId, [bool insert = false]) async {
+  Future<Chat> _findOrFetchChat(
+      {required String id, bool insert = false, bool sort = false}) async {
     var chat = state.chats.firstWhereOrNull(
-      (c) => c.id == chatId,
+      (c) => c.id == id,
     );
 
     if (chat == null) {
-      chat = await _chatsRepository.getChat(chatId: chatId);
+      chat = await _chatsRepository.getChat(chatId: id);
 
       if (insert) {
         emit(state.copyWith(chats: List.of(state.chats)..insert(0, chat!)));
       }
     }
 
-    emit(state.copyWith(
-      chats: List.of(state.chats)
-          .map((c) => c.id == chatId
-              ? c.copyWith(
-                  updatedAt: DateTime.now(),
-                )
-              : c)
-          .toList()
-        ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),
-    ));
+    if (sort) {
+      emit(state.copyWith(
+        chats: List.of(state.chats)
+            .map((c) => c.id == id ? c.copyWith(updatedAt: DateTime.now()) : c)
+            .toList()
+          ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),
+      ));
+    }
 
     return chat!;
   }
@@ -294,6 +298,7 @@ class ChatsCubit extends Cubit<ChatsState> {
       emit(state.copyWith(
         chats: [chat, ...state.chats],
         selectedContacts: [],
+        formStatus: const FormStatus.success('Utworzono czat grupowy.'),
       ));
 
       return chat;
@@ -460,11 +465,20 @@ class ChatsCubit extends Cubit<ChatsState> {
   }
 
   leaveChat(String chatId) async {
-    emit(state.copyWith(
-      chats: List.of(state.chats)..removeWhere((chat) => chat.id == chatId),
-    ));
+    try {
+      emit(state.copyWith(formStatus: FormStatus.loading));
 
-    await _chatsRepository.leaveChat(chatId);
+      await _chatsRepository.leaveChat(chatId);
+
+      emit(state.copyWith(
+        chats: List.of(state.chats)..removeWhere((chat) => chat.id == chatId),
+        formStatus: const FormStatus.success('Opuszczono czat.'),
+      ));
+    } on DioError catch (e) {
+      emit(state.copyWith(
+        formStatus: FormStatus.failure(e.response!.data['message']),
+      ));
+    }
   }
 
   deleteChat(String id) async {

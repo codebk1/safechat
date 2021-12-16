@@ -15,13 +15,15 @@ class TextMessage extends StatelessWidget {
   }) : super(key: key);
 
   final String text;
-  final Contact sender;
+  final Contact? sender;
   final bool isGroupChat;
   final BorderRadius borderRadius;
 
   @override
   Widget build(BuildContext context) {
-    final isOwnMsg = sender.id == context.read<UserCubit>().state.user.id;
+    final isOwnMsg = sender == null
+        ? false
+        : sender!.id == context.read<UserCubit>().state.user.id;
 
     return Container(
       padding: isOwnMsg || !isGroupChat
@@ -34,12 +36,12 @@ class TextMessage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!isOwnMsg && isGroupChat)
+          if (!isOwnMsg && isGroupChat && sender != null)
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  sender.firstName,
+                  sender!.firstName,
                   style: Theme.of(context)
                       .textTheme
                       .subtitle2!
