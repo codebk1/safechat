@@ -40,7 +40,6 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
     }
 
     if (cachedFile != null) {
-      print('TEST');
       emit(state.copyWith(downloadedAttachment: cachedFile.file));
       return cachedFile.file;
     }
@@ -132,8 +131,6 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
     final attachment = await File(
       '/storage/emulated/0/Download/${getDecryptedName(attachmentName, chat.sharedKey)}',
     ).writeAsBytes(attachmentData);
-
-    print(attachment);
 
     emit(state.copyWith(
       attachments: List.of(state.attachments)

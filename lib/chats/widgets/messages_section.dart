@@ -270,9 +270,17 @@ class MessagesSection extends StatelessWidget {
                   ],
                 ),
               ),
-            MessageTextField(
-              chat: chat,
-            ),
+            chat.participants.isNotEmpty
+                ? MessageTextField(
+                    chat: chat,
+                  )
+                : Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 45),
+                    child: Text(
+                      'Czat został zarchiwizowany.',
+                      style: Theme.of(context).textTheme.subtitle2,
+                    ),
+                  ),
           ],
         );
       },

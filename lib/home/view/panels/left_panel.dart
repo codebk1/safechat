@@ -68,7 +68,7 @@ class LeftPanel extends StatelessWidget {
                   ),
                   IconButton(
                     onPressed: () async {
-                      await context.read<UserCubit>().unauthenticate();
+                      context.read<UserCubit>().unauthenticate();
                       Navigator.of(context).pushReplacementNamed('/login');
                     },
                     icon: const Icon(Icons.logout),

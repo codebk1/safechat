@@ -210,15 +210,21 @@ class CreateChatPage extends StatelessWidget {
                                     padding: const EdgeInsets.all(15.0),
                                     child: PrimaryButton(
                                       label: 'Utwórz czat',
-                                      onTap: () {
-                                        context.read<ChatsCubit>().createChat(
-                                              ChatType.group,
-                                              context
-                                                  .read<UserCubit>()
-                                                  .state
-                                                  .user,
-                                              state.selectedContacts,
-                                            );
+                                      onTap: () async {
+                                        final chat = await context
+                                            .read<ChatsCubit>()
+                                            .createChat(
+                                                ChatType.group,
+                                                context
+                                                    .read<UserCubit>()
+                                                    .state
+                                                    .user,
+                                                state.selectedContacts);
+
+                                        Navigator.of(context).popAndPushNamed(
+                                          '/chat',
+                                          arguments: chat,
+                                        );
                                       },
                                       isLoading: state.formStatus.isLoading,
                                     ),

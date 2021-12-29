@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safechat/profile/cubit/profile_cubit.dart';
 import 'package:safechat/user/user.dart';
+import 'package:safechat/utils/form_helper.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -168,10 +169,34 @@ class ProfilePage extends StatelessWidget {
                             overlayColor: MaterialStateColor.resolveWith(
                                 (states) => Colors.red.shade50),
                           ),
-                          onPressed: () {},
-                          icon: Icon(
-                            Icons.delete_forever,
-                            color: Colors.red.shade800,
+                          onPressed: () async {
+                            await context.read<UserCubit>().deleteAccount();
+
+                            context.read<UserCubit>().unauthenticate();
+
+                            Navigator.of(context).pushReplacementNamed(
+                              '/login',
+                            );
+                          },
+                          icon: BlocBuilder<UserCubit, UserState>(
+                            builder: (context, state) {
+                              return !state.formStatus.isLoading
+                                  ? Icon(
+                                      Icons.delete_forever,
+                                      color: Colors.red.shade800,
+                                    )
+                                  : SizedBox(
+                                      width: 23,
+                                      height: 23,
+                                      child: Transform.scale(
+                                        scale: 0.5,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.red.shade800,
+                                        ),
+                                      ),
+                                    );
+                            },
                           ),
                           label: Text(
                             'Usuń konto',

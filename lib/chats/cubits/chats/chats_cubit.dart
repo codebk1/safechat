@@ -27,6 +27,16 @@ part 'chats_state.dart';
 
 class ChatsCubit extends Cubit<ChatsState> {
   ChatsCubit() : super(const ChatsState()) {
+    _wsService.socket.on('chat.new', (data) async {
+      emit(state.copyWith(
+        chats: List.of(state.chats)
+          ..insert(
+            0,
+            data['chat'],
+          ),
+      ));
+    });
+
     _wsService.socket.on('message.new', (data) async {
       final chat = await _findOrFetchChat(
         id: data['chatId'],
@@ -105,8 +115,6 @@ class ChatsCubit extends Cubit<ChatsState> {
     });
 
     _wsService.socket.on('chat.leave', (data) {
-      print('CHAT LEAVE');
-
       emit(state.copyWith(
         chats: List.of(state.chats)
             .map((c) => c.id == data['chatId']
@@ -148,8 +156,6 @@ class ChatsCubit extends Cubit<ChatsState> {
     });
 
     _wsService.socket.on('activity', (data) {
-      print('activity chat');
-
       emit(state.copyWith(
         chats: state.chats
             .map((c) => c.participants.map((p) => p.id).contains(data['id'])
@@ -295,10 +301,19 @@ class ChatsCubit extends Cubit<ChatsState> {
         participants,
       );
 
+      if (chat.type.isGroup) {
+        _wsService.socket.emit('chat.new', {
+          'chatId': chat.id,
+        });
+      }
+
       emit(state.copyWith(
         chats: [chat, ...state.chats],
         selectedContacts: [],
-        formStatus: const FormStatus.success('Utworzono czat grupowy.'),
+        formStatus: FormStatus.init,
+        // formStatus: FormStatus.success(
+        //   'Utworzono czat${chat.type.isGroup ? ' grupowy' : ''}.',
+        // ),
       ));
 
       return chat;
@@ -439,9 +454,7 @@ class ChatsCubit extends Cubit<ChatsState> {
   }
 
   readChat(Chat chat, String currentUserId) async {
-    print('READ CHAT');
     if (chat.messages.any((msg) => msg.unreadBy.contains(currentUserId))) {
-      print("READ ALL MESSAGES");
       emit(state.copyWith(
         chats: List.of(state.chats)
             .map((c) => c.id == chat.id
@@ -547,7 +560,6 @@ class ChatsCubit extends Cubit<ChatsState> {
   }
 
   openChat(String chatId) {
-    print('OPEN CHAT');
     emit(state.copyWith(
         chats: List.of(state.chats)
             .map((chat) =>
@@ -556,7 +568,6 @@ class ChatsCubit extends Cubit<ChatsState> {
   }
 
   closeChat(String chatId) {
-    print('CLOSE CHAT');
     emit(state.copyWith(
         chats: List.of(state.chats)
             .map((chat) =>
@@ -565,8 +576,6 @@ class ChatsCubit extends Cubit<ChatsState> {
   }
 
   textMessageChanged(String chatId, String value) {
-    print(value);
-    print(value.trim().isNotEmpty);
     if (value.trim().isNotEmpty) {
       emit(state.copyWith(
         chats: List.of(state.chats)

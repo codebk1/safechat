@@ -14,8 +14,6 @@ class ContactsCubit extends Cubit<ContactsState> {
   ContactsCubit({List<Contact> contacts = const []})
       : super(ContactsState(contacts: contacts)) {
     _wsService.socket.on('activity', (data) {
-      print('ONLINE/OFFLINE');
-
       if (state.contacts.isNotEmpty) {
         final index = state.contacts.indexWhere((c) => c.id == data['id']);
 
@@ -35,8 +33,6 @@ class ContactsCubit extends Cubit<ContactsState> {
     });
 
     _wsService.socket.on('status', (data) {
-      print('STATUS');
-
       if (state.contacts.isNotEmpty) {
         final index = state.contacts.indexWhere((c) => c.id == data['id']);
 
@@ -53,15 +49,6 @@ class ContactsCubit extends Cubit<ContactsState> {
         }
       }
     });
-
-    // _wsService.socket.on('contact.delete', (data) {
-    //   print('DELETE CONTACT');
-    //   print(data['userId']);
-    //   emit(state.copyWith(
-    //     contacts: List.of(state.contacts)
-    //       ..removeWhere((c) => c.id == data['userId']),
-    //   ));
-    // });
   }
 
   final _wsService = SocketService();

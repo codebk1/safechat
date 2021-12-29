@@ -131,4 +131,10 @@ class UserCubit extends Cubit<UserState> {
       user: state.user.copyWith(avatar: () => null),
     ));
   }
+
+  deleteAccount() async {
+    emit(state.copyWith(formStatus: FormStatus.loading));
+
+    await _userRepository.deleteAccount();
+  }
 }

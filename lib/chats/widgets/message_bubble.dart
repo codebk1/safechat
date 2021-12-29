@@ -313,7 +313,6 @@ class _DelayedLoaderState extends State<_DelayedLoader> {
 
   @override
   Widget build(BuildContext context) {
-    print(showLoader);
     return showLoader
         ? SizedBox(
             width: 16,
