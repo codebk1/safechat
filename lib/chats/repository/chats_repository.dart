@@ -62,6 +62,8 @@ class ChatsRepository {
         final file = await _cacheManager.putFile(
           chat.avatar,
           await _getAvatar(chat.id, chat.sharedKey),
+          eTag: chat.avatar,
+          maxAge: const Duration(days: 14),
         );
 
         chat = chat.copyWith(
@@ -132,6 +134,8 @@ class ChatsRepository {
           final file = await _cacheManager.putFile(
             chat.avatar,
             await _getAvatar(chat.id, chat.sharedKey),
+            eTag: chat.avatar,
+            maxAge: const Duration(days: 14),
           );
 
           chat = chat.copyWith(

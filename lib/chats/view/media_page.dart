@@ -37,11 +37,11 @@ class MediaPage extends StatelessWidget {
                 if (state.downloadedAttachment != null)
                   IconButton(
                     onPressed: () async {
-                      if (state.downloadedAttachment!.existsSync()) {
+                      if (state.downloadedAttachment!.file.existsSync()) {
                         final attachment = await File(
-                          '/storage/emulated/0/Download/${state.downloadedAttachment!.uri.pathSegments.last}.jpg',
+                          '/storage/emulated/0/Download/${state.downloadedAttachment!.originalUrl}',
                         ).writeAsBytes(
-                          state.downloadedAttachment!.readAsBytesSync(),
+                          state.downloadedAttachment!.file.readAsBytesSync(),
                         );
 
                         ScaffoldMessenger.of(context)
@@ -119,20 +119,23 @@ class Photo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Image.file(
-        photo,
-        frameBuilder: (BuildContext context, Widget child, int? frame,
-            bool wasSynchronouslyLoaded) {
-          if (wasSynchronouslyLoaded) {
-            return child;
-          }
-          return AnimatedOpacity(
-            child: child,
-            opacity: frame == null ? 0 : 1,
-            duration: const Duration(seconds: 1),
-            curve: Curves.easeOut,
-          );
-        },
+      child: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
+        child: Image.file(
+          photo,
+          frameBuilder: (BuildContext context, Widget child, int? frame,
+              bool wasSynchronouslyLoaded) {
+            if (wasSynchronouslyLoaded) {
+              return child;
+            }
+            return AnimatedOpacity(
+              child: child,
+              opacity: frame == null ? 0 : 1,
+              duration: const Duration(seconds: 1),
+              curve: Curves.easeOut,
+            );
+          },
+        ),
       ),
     );
   }
@@ -157,7 +160,10 @@ class _VideoMessageThumbnailState extends State<Video> {
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.file(widget.video)..initialize();
+    _controller = VideoPlayerController.file(widget.video)
+      ..initialize().then((_) {
+        setState(() {});
+      });
   }
 
   @override
@@ -176,36 +182,41 @@ class _VideoMessageThumbnailState extends State<Video> {
         child: ValueListenableBuilder(
           valueListenable: _controller,
           builder: (context, VideoPlayerValue value, child) {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AspectRatio(
-                  aspectRatio: _controller.value.aspectRatio,
-                  child: Stack(children: [
-                    VideoPlayer(_controller),
-                    !_controller.value.isPlaying
-                        ? const Align(
-                            alignment: Alignment.center,
-                            child: Icon(
-                              Icons.play_circle,
-                              color: Colors.white,
-                              size: 55,
-                            ),
-                          )
-                        : const SizedBox.shrink(),
-                  ]),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Text(
-                    '${_formatDuration(_controller.value.position)} / ${_formatDuration(_controller.value.duration)}',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.6),
-                    ),
+            return SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AspectRatio(
+                    aspectRatio: _controller.value.aspectRatio <= 1
+                        ? 1
+                        : _controller.value.aspectRatio,
+                    child: Stack(children: [
+                      VideoPlayer(_controller),
+                      !_controller.value.isPlaying
+                          ? const Align(
+                              alignment: Alignment.center,
+                              child: Icon(
+                                Icons.play_circle,
+                                color: Colors.white,
+                                size: 55,
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ]),
                   ),
-                )
-              ],
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Text(
+                      '${_formatDuration(_controller.value.position)} / ${_formatDuration(_controller.value.duration)}',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.6),
+                      ),
+                    ),
+                  )
+                ],
+              ),
             );
           },
         ),

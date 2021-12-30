@@ -173,8 +173,14 @@ class MessageBubble extends StatelessWidget {
                               topRight: Radius.circular(
                                 photos.isNotEmpty ? 5 : 10,
                               ),
-                              bottomLeft: const Radius.circular(10),
-                              bottomRight: Radius.circular(isGroup ? 5 : 10),
+                              bottomLeft: Radius.circular(
+                                files.isNotEmpty ? 5 : 10,
+                              ),
+                              bottomRight: Radius.circular(
+                                files.isNotEmpty || textMessage.isNotEmpty
+                                    ? 5
+                                    : 10,
+                              ),
                             ),
                           ),
                         SizedBox(height: files.isNotEmpty ? 2 : 0),

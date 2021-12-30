@@ -88,12 +88,14 @@ class FilesMessage extends StatelessWidget {
                                   child: const Icon(Icons.download),
                                 ),
                           const SizedBox(width: 15.0),
-                          Text(
-                            context.read<AttachmentsCubit>().getDecryptedName(
-                                  state.attachments[index].name,
-                                  chat.sharedKey,
-                                ),
-                            overflow: TextOverflow.ellipsis,
+                          Flexible(
+                            child: Text(
+                              context.read<AttachmentsCubit>().getDecryptedName(
+                                    state.attachments[index].name,
+                                    chat.sharedKey,
+                                  ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ],
                       ),

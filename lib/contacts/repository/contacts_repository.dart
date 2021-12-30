@@ -123,7 +123,12 @@ class ContactsRepository {
             final avatar = await getAvatar(contact.avatar, contact.sharedKey!);
 
             contact = contact.copyWith(
-              avatar: await _cacheManager.putFile(contact.avatar, avatar),
+              avatar: await _cacheManager.putFile(
+                contact.avatar,
+                avatar,
+                eTag: contact.avatar,
+                maxAge: const Duration(days: 14),
+              ),
             );
           }
         }

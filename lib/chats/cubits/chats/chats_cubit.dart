@@ -21,7 +21,7 @@ import 'package:safechat/user/user.dart';
 import 'package:safechat/contacts/contacts.dart';
 import 'package:safechat/chats/chats.dart';
 
-import 'package:video_thumbnail/video_thumbnail.dart' as vt;
+import 'package:video_compress/video_compress.dart';
 
 part 'chats_state.dart';
 
@@ -340,10 +340,28 @@ class ChatsCubit extends Cubit<ChatsState> {
         (e) => describeEnum(e) == describeEnum(attachments[i].type),
       );
 
-      await cacheManager.putFile(
-        attachmentName,
-        File(attachments[i].name).readAsBytesSync(),
-      );
+      if (attachments[i].type.isVideo) {
+        final videoThumb = await VideoCompress.getByteThumbnail(
+          attachments[i].name,
+          quality: 80,
+        );
+
+        await cacheManager.putFile(
+          'thumb_$attachmentName',
+          videoThumb!,
+          eTag: 'thumb_$attachmentName',
+          maxAge: const Duration(days: 14),
+        );
+      }
+
+      if (!attachments[i].type.isFile) {
+        await cacheManager.putFile(
+          attachmentName,
+          File(attachments[i].name).readAsBytesSync(),
+          eTag: attachmentName,
+          maxAge: const Duration(days: 14),
+        );
+      }
 
       encryptedItems.add(MessageItem(
         type: messageType,
@@ -389,23 +407,22 @@ class ChatsCubit extends Cubit<ChatsState> {
     List<MultipartFile> encryptedAttachments = [];
 
     for (var i = 0; i < attachments.length; i++) {
-      if (!attachments[i].type.isFile) {
-        final file = File(attachments[i].name);
-        var attachmentName = attachments[i].name.split('/').last;
+      final file = File(attachments[i].name);
+      final attachmentName = attachments[i].name.split('/').last;
+      final encryptedName = encryptedItems[i].data;
 
-        final encryptedName = encryptedItems[i].data;
-
-        encryptedAttachments.add(MultipartFile.fromBytes(
-          await computeEncryptAttachment(
-            EncryptAttachmentProperties(
-              file.readAsBytesSync(),
-              chat.sharedKey,
-              _encryptionService,
-            ),
+      encryptedAttachments.add(MultipartFile.fromBytes(
+        await computeEncryptAttachment(
+          EncryptAttachmentProperties(
+            file.readAsBytesSync(),
+            chat.sharedKey,
+            _encryptionService,
           ),
-          filename: encryptedName,
-        ));
+        ),
+        filename: encryptedName,
+      ));
 
+      if (attachments[i].type.isPhoto) {
         Uint8List? thumb = await computeGenerateThumbnail(
           file,
           attachments[i].type.isVideo,
@@ -417,12 +434,31 @@ class ChatsCubit extends Cubit<ChatsState> {
         final cachedThumb = await cacheManager.putFile(
           'thumb_$attachmentName',
           thumb,
+          eTag: 'thumb_$attachmentName',
+          maxAge: const Duration(days: 14),
         );
 
         encryptedAttachments.add(MultipartFile.fromBytes(
           await computeEncryptAttachment(
             EncryptAttachmentProperties(
               cachedThumb.readAsBytesSync(),
+              chat.sharedKey,
+              _encryptionService,
+            ),
+          ),
+          filename: 'thumb_$encryptedName',
+        ));
+      }
+
+      if (attachments[i].type.isVideo) {
+        final videoThumb = await cacheManager.getFileFromCache(
+          'thumb_$attachmentName',
+        );
+
+        encryptedAttachments.add(MultipartFile.fromBytes(
+          await computeEncryptAttachment(
+            EncryptAttachmentProperties(
+              videoThumb!.file.readAsBytesSync(),
               chat.sharedKey,
               _encryptionService,
             ),
@@ -622,7 +658,7 @@ class ChatsCubit extends Cubit<ChatsState> {
                 ? chat.copyWith(name: state.name.value)
                 : chat)
             .toList(),
-        formStatus: const FormStatus.success(),
+        formStatus: const FormStatus.success('Zmieniono nazwę czatu.'),
       ));
     } on DioError catch (e) {
       emit(state.copyWith(
@@ -639,7 +675,10 @@ class ChatsCubit extends Cubit<ChatsState> {
     );
 
     if (pickedPhoto != null) {
-      emit(state.copyWith(loadingAvatar: true));
+      emit(state.copyWith(
+        formStatus: FormStatus.init,
+        loadingAvatar: true,
+      ));
 
       var data = await pickedPhoto.readAsBytes();
       var processedAvatar = await computeCropAvatar(data) as Uint8List;
@@ -656,8 +695,11 @@ class ChatsCubit extends Cubit<ChatsState> {
 
       emit(state.copyWith(
         chats: List.of(state.chats)
-            .map((chat) =>
-                chat.id == chatId ? chat.copyWith(avatar: () => avatar) : chat)
+            .map(
+              (chat) => chat.id == chatId
+                  ? chat.copyWith(avatar: () => avatar)
+                  : chat,
+            )
             .toList(),
         loadingAvatar: false,
       ));
@@ -742,12 +784,12 @@ class EncryptAttachmentProperties {
 
 Future<Uint8List?> generateThumbnail(GenerateThumbnailProperties data) async {
   if (data.isVideo) {
-    return await vt.VideoThumbnail.thumbnailData(
-      video: data.file.path,
-      imageFormat: vt.ImageFormat.JPEG,
-      maxWidth: 1024,
-      quality: 50,
-    );
+    // return await vt.VideoThumbnail.thumbnailData(
+    //   video: data.file.absolute.path,
+    //   imageFormat: vt.ImageFormat.JPEG,
+    //   maxWidth: 1024,
+    //   quality: 50,
+    // );
   } else {
     Image croppedPhoto = copyResizeCropSquare(
       decodeImage(data.file.readAsBytesSync())!,

@@ -48,7 +48,12 @@ class UserRepository {
         user = user.copyWith(avatar: () => cachedFile.file);
       } else {
         final avatar = await getAvatar(user.avatar);
-        final cachedAvatar = await _cacheManager.putFile(user.avatar, avatar);
+        final cachedAvatar = await _cacheManager.putFile(
+          user.avatar,
+          avatar,
+          eTag: user.avatar,
+          maxAge: const Duration(days: 14),
+        );
 
         user = user.copyWith(
           avatar: () => cachedAvatar,

@@ -15,7 +15,6 @@ class EmailInput extends StatelessWidget {
     return BlocBuilder<LoginCubit, LoginState>(
       builder: (context, state) {
         return TextFormField(
-          initialValue: 'bartek@gmail.com',
           onChanged: (value) => context.read<LoginCubit>().emailChanged(value),
           keyboardType: TextInputType.emailAddress,
           decoration: InputDecoration(

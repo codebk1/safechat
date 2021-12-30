@@ -41,7 +41,7 @@ class VideosMessage extends StatelessWidget {
                       .getAttachment(chat, videos[index]),
                   builder:
                       (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-                    if (snapshot.hasData) {
+                    if (snapshot.inState(ConnectionState.done).hasData) {
                       return GestureDetector(
                         onTap: () {
                           Navigator.of(context).pushNamed(

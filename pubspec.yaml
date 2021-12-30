@@ -43,8 +43,8 @@ dependencies:
   pointycastle: ^3.2.0
   rive: ^0.7.28
   socket_io_client: ^2.0.0-beta.4-nullsafety.0
+  video_compress: ^3.1.0
   video_player: ^2.1.14
-  video_thumbnail: ^0.4.3
 
 dev_dependencies:
   flutter_lints: ^1.0.4

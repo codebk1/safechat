@@ -40,7 +40,7 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
     }
 
     if (cachedFile != null) {
-      emit(state.copyWith(downloadedAttachment: cachedFile.file));
+      emit(state.copyWith(downloadedAttachment: cachedFile));
       return cachedFile.file;
     }
 
@@ -55,10 +55,15 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
       attachmentFile,
       key: decryptedName,
       eTag: decryptedName,
+      maxAge: const Duration(days: 14),
     );
 
     if (thumbnail == false) {
-      emit(state.copyWith(downloadedAttachment: file));
+      emit(state.copyWith(
+        downloadedAttachment: await cacheManager.getFileFromCache(
+          decryptedName,
+        ),
+      ));
     }
 
     return file;

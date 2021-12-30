@@ -83,7 +83,12 @@ class UserCubit extends Cubit<UserState> {
 
     final avatar = await _userRepository.getAvatar(name);
 
-    return await _cacheManager.putFile(name, avatar);
+    return await _cacheManager.putFile(
+      name,
+      avatar,
+      eTag: name,
+      maxAge: const Duration(days: 14),
+    );
   }
 
   Future<void> updateProfile(String firstName, String lastName) async {
@@ -101,8 +106,13 @@ class UserCubit extends Cubit<UserState> {
     final avatarName = '${state.user.id}.jpg';
 
     await _cacheManager.removeFile(avatarName);
-    final avatar = await _cacheManager.putFile(avatarName, processedAvatar,
-        key: 'avatar', eTag: 'avatar');
+    final avatar = await _cacheManager.putFile(
+      avatarName,
+      processedAvatar,
+      key: 'avatar',
+      eTag: avatarName,
+      maxAge: const Duration(days: 14),
+    );
 
     await _userRepository.updateAvatar(state.user.id, processedAvatar);
 

@@ -11,7 +11,7 @@ class AttachmentsState extends Equatable {
   final bool loading;
   final List<Attachment> attachments;
   final List<Attachment> selectedAttachments;
-  final File? downloadedAttachment;
+  final FileInfo? downloadedAttachment;
 
   @override
   List<Object?> get props => [
@@ -24,7 +24,7 @@ class AttachmentsState extends Equatable {
     bool? loading,
     List<Attachment>? attachments,
     List<Attachment>? selectedAttachments,
-    File? downloadedAttachment,
+    FileInfo? downloadedAttachment,
   }) {
     return AttachmentsState(
       loading: loading ?? this.loading,
