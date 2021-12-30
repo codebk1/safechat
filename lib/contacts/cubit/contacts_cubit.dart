@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:safechat/chats/chats.dart';
 
 import 'package:safechat/utils/utils.dart';
 import 'package:safechat/common/common.dart';
@@ -47,6 +48,15 @@ class ContactsCubit extends Cubit<ContactsState> {
 
           emit(state.copyWith(contacts: newContacts));
         }
+      }
+    });
+
+    _wsService.socket.on('contact.delete', (data) {
+      if (state.contacts.isNotEmpty) {
+        emit(state.copyWith(
+          contacts: List.of(state.contacts)
+            ..removeWhere((c) => c.id == data['userId']),
+        ));
       }
     });
   }
@@ -141,7 +151,7 @@ class ContactsCubit extends Cubit<ContactsState> {
     }
   }
 
-  Future<void> deleteContact(String contactId) async {
+  Future<void> deleteContact(String contactId, ChatsCubit chatsCubit) async {
     try {
       startLoading(contactId);
 
@@ -152,9 +162,14 @@ class ContactsCubit extends Cubit<ContactsState> {
           ..removeWhere((c) => c.id == contactId),
       ));
 
-      // _wsService.socket.emit('contact-delete', {
-      //   'contactId': contactId,
-      // });
+      chatsCubit.emit(chatsCubit.state.copyWith(
+        chats: chatsCubit.state.chats
+            .map((c) => c.participants.map((p) => p.id).contains(contactId) &&
+                    c.type.isDirect
+                ? c.copyWith(participants: [])
+                : c)
+            .toList(),
+      ));
     } on DioError catch (e) {
       emit(state.copyWith(
         formStatus: FormStatus.failure(e.response!.data['message']),

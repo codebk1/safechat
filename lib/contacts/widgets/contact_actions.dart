@@ -4,8 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:safechat/user/user.dart';
 import 'package:safechat/contacts/contacts.dart';
-import 'package:safechat/chats/cubits/chats/chats_cubit.dart';
-import 'package:safechat/chats/models/chat.dart';
+import 'package:safechat/chats/chats.dart';
 
 class ContactActions extends StatelessWidget {
   const ContactActions({
@@ -73,7 +72,8 @@ class ContactActions extends StatelessWidget {
                 children: [
                   IconButton(
                     onPressed: () {
-                      context.read<ContactsCubit>().deleteContact(contact.id);
+                      context.read<ContactsCubit>().deleteContact(
+                          contact.id, context.read<ChatsCubit>());
                     },
                     icon: Icon(
                       Icons.delete,
@@ -96,8 +96,9 @@ class ContactActions extends StatelessWidget {
                 onPressed: () async {
                   context.read<ContactsCubit>().startLoading(contact.id);
 
-                  var chat =
-                      await context.read<ChatsCubit>().findChatByParticipants([
+                  var chat = await context
+                      .read<ChatsCubit>()
+                      .findDirectChatByParticipants([
                     contact.id,
                     context.read<UserCubit>().state.user.id,
                   ]);

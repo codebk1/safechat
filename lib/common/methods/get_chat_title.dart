@@ -12,7 +12,7 @@ String getChatTitle(Chat chat, BuildContext context) {
   if (chat.name != null) return chat.name!;
 
   return otherParticipants.isEmpty
-      ? 'Brak członków w grupie'
+      ? 'Brak członków w czacie'
       : chat.type.isGroup
           ? otherParticipants.map((e) => e.firstName).join(', ')
           : '${otherParticipants.first.firstName} ${otherParticipants.first.lastName}';

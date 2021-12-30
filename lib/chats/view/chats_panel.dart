@@ -96,11 +96,23 @@ class MainPanel extends StatelessWidget {
                       child: RefreshIndicator(
                         onRefresh: () => context.read<ChatsCubit>().getChats(),
                         child: state.chats.isEmpty
-                            ? Center(
-                                child: Text(
-                                  'Brak konwersacji',
-                                  style: Theme.of(context).textTheme.subtitle2,
-                                ),
+                            ? Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Brak czatów',
+                                    style:
+                                        Theme.of(context).textTheme.subtitle2,
+                                  ),
+                                  IconButton(
+                                    onPressed: () =>
+                                        context.read<ChatsCubit>().getChats(),
+                                    icon: const Icon(
+                                      Icons.refresh_rounded,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
                               )
                             : ListView.builder(
                                 itemCount: state.chats.length,

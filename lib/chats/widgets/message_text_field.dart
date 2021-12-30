@@ -24,6 +24,8 @@ class _MessageTextFieldState extends State<MessageTextField> {
   final _messageController = TextEditingController();
   final _attachmentsCubit = AttachmentsCubit();
 
+  String _prevValue = '';
+
   @override
   void dispose() {
     _attachmentsCubit.close();
@@ -153,7 +155,7 @@ class _MessageTextFieldState extends State<MessageTextField> {
               Expanded(
                 child: Focus(
                   onFocusChange: (hasFocus) {
-                    if (hasFocus) {
+                    if (hasFocus && _messageController.value.text.isNotEmpty) {
                       context.read<ChatsCubit>().startTyping(widget.chat.id);
                     } else {
                       context.read<ChatsCubit>().stopTyping(widget.chat.id);
@@ -165,7 +167,10 @@ class _MessageTextFieldState extends State<MessageTextField> {
                       context.read<ChatsCubit>().textMessageChanged(
                             widget.chat.id,
                             value,
+                            _prevValue,
                           );
+
+                      _prevValue = value;
                     },
                     keyboardType: TextInputType.multiline,
                     minLines: 1,
@@ -188,6 +193,8 @@ class _MessageTextFieldState extends State<MessageTextField> {
                           if (_messageController.value.text.isNotEmpty ||
                               _attachmentsCubit
                                   .state.selectedAttachments.isNotEmpty) {
+                            _prevValue = '';
+
                             context.read<ChatsCubit>().sendMessage(
                                   widget.chat,
                                   context.read<UserCubit>().state.user.id,

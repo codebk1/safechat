@@ -66,13 +66,26 @@ class ContactsPanel extends StatelessWidget {
                                 onRefresh: () =>
                                     context.read<ContactsCubit>().getContacts(),
                                 child: state.contacts.isEmpty
-                                    ? Center(
-                                        child: Text(
-                                          'Brak kontaktów',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .subtitle2,
-                                        ),
+                                    ? Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            'Brak kontaktów',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .subtitle2,
+                                          ),
+                                          IconButton(
+                                            onPressed: () => context
+                                                .read<ContactsCubit>()
+                                                .getContacts(),
+                                            icon: const Icon(
+                                              Icons.refresh_rounded,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ],
                                       )
                                     : ContactsList(contacts: state.contacts),
                               ),

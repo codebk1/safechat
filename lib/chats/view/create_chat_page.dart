@@ -144,7 +144,7 @@ class CreateChatPage extends StatelessWidget {
                                     child: acceptedContacts.isEmpty
                                         ? Center(
                                             child: Text(
-                                              'Brak znajomych',
+                                              'Brak kontaktów',
                                               style: Theme.of(context)
                                                   .textTheme
                                                   .subtitle2,

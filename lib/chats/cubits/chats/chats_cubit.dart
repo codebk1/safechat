@@ -62,7 +62,7 @@ class ChatsCubit extends Cubit<ChatsState> {
         chats: List.of(state.chats)
             .map((c) => c.id == chat.id
                 ? c.copyWith(messages: [
-                    if (chat.messages.length != 1)
+                    if (chat.messages.last.id != msg.id)
                       msg.copyWith(
                           content: msg.content.map((item) {
                         if (item.type == MessageType.text) {
@@ -176,6 +176,20 @@ class ChatsCubit extends Cubit<ChatsState> {
       ));
     });
 
+    _wsService.socket.on('contact.delete', (data) {
+      if (state.chats.isNotEmpty) {
+        emit(state.copyWith(
+          chats: state.chats
+              .map((c) =>
+                  c.participants.map((p) => p.id).contains(data['userId']) &&
+                          c.type.isDirect
+                      ? c.copyWith(participants: [])
+                      : c)
+              .toList(),
+        ));
+      }
+    });
+
     _notificationService.notification.listen((event) async {
       final chat = await _findOrFetchChat(id: event.data['chatId']);
 
@@ -242,7 +256,7 @@ class ChatsCubit extends Cubit<ChatsState> {
     return chat!;
   }
 
-  Future<Chat?> findChatByParticipants(List<String> participants) async {
+  Future<Chat?> findDirectChatByParticipants(List<String> participants) async {
     Chat? chat = state.chats.firstWhereOrNull((c) =>
         c.participants.every((p) => participants.contains(p.id)) &&
         c.participants.length == participants.length &&
@@ -468,6 +482,8 @@ class ChatsCubit extends Cubit<ChatsState> {
       }
     }
 
+    stopTyping(chat.id);
+
     final message = await _chatsRepository.addMessage(
       chat.id,
       newMessage,
@@ -584,12 +600,14 @@ class ChatsCubit extends Cubit<ChatsState> {
   }
 
   startTyping(String chatId) {
+    print('start');
     _wsService.socket.emit('typing.start', {
       'chatId': chatId,
     });
   }
 
   stopTyping(String chatId) {
+    print('stop');
     _wsService.socket.emit('typing.stop', {
       'chatId': chatId,
     });
@@ -611,21 +629,34 @@ class ChatsCubit extends Cubit<ChatsState> {
             .toList()));
   }
 
-  textMessageChanged(String chatId, String value) {
-    if (value.trim().isNotEmpty) {
-      emit(state.copyWith(
-        chats: List.of(state.chats)
-            .map((c) => c.id == chatId
-                ? c.copyWith(
-                    message: c.message.copyWith(
-                    content: List.of(c.message.content)
-                      ..removeWhere((e) => e.type == MessageType.text)
-                      ..add(MessageItem(type: MessageType.text, data: value)),
-                  ))
-                : c)
-            .toList(),
-      ));
+  textMessageChanged(String chatId, String value, String prevValue) {
+    print({value, prevValue});
+    if (value.trim().isNotEmpty && prevValue.trim().isEmpty) {
+      startTyping(chatId);
     }
+
+    if (value.trim().isEmpty) {
+      stopTyping(chatId);
+    }
+
+    emit(state.copyWith(
+      chats: List.of(state.chats)
+          .map((c) => c.id == chatId
+              ? c.copyWith(
+                  message: value.trim().isEmpty
+                      ? c.message.copyWith(
+                          content: List.of(c.message.content)
+                            ..removeWhere((e) => e.type == MessageType.text),
+                        )
+                      : c.message.copyWith(
+                          content: List.of(c.message.content)
+                            ..removeWhere((e) => e.type == MessageType.text)
+                            ..add(MessageItem(
+                                type: MessageType.text, data: value)),
+                        ))
+              : c)
+          .toList(),
+    ));
   }
 
   toggleParticipant(Contact participant) {
