@@ -176,6 +176,26 @@ class ChatsCubit extends Cubit<ChatsState> {
       ));
     });
 
+    _wsService.socket.on('status', (data) {
+      emit(state.copyWith(
+        chats: state.chats
+            .map((c) => c.participants.map((p) => p.id).contains(data['id'])
+                ? c.copyWith(
+                    participants: List.of(c.participants)
+                        .map((p) => p.id == data['id']
+                            ? p.copyWith(
+                                status: Status.values.firstWhere(
+                                  (e) => describeEnum(e) == data['status']!,
+                                ),
+                              )
+                            : p)
+                        .toList(),
+                  )
+                : c)
+            .toList(),
+      ));
+    });
+
     _wsService.socket.on('contact.delete', (data) {
       if (state.chats.isNotEmpty) {
         emit(state.copyWith(
