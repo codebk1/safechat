@@ -52,7 +52,7 @@ class ContactsRepository {
     );
   }
 
-  Future<void> acceptInvitation(String contactId) async {
+  Future<dynamic> acceptInvitation(String contactId) async {
     final contactUser = await _apiService.get(
       '/user/key/public/id/$contactId',
     );
@@ -64,10 +64,13 @@ class ContactsRepository {
       ),
     );
 
-    await _apiService.post('/user/contacts/accept-invitation', data: {
+    final res =
+        await _apiService.post('/user/contacts/accept-invitation', data: {
       'contactId': contactId,
       'sharedKey': encryptedSharedKey,
     });
+
+    return res.data;
   }
 
   Future<void> cancelInvitation(String contactId) async {

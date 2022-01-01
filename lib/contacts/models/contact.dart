@@ -89,7 +89,7 @@ class Contact extends Equatable {
         status = Status.values.firstWhere(
           (e) => describeEnum(e) == json['profile']['status']!,
         ),
-        isOnline = json['isOnline']!,
+        isOnline = json['isOnline'] ?? false,
         lastSeen = DateTime.parse(json['lastSeen']!),
         currentState = CurrentState.values.firstWhere(
             (e) => describeEnum(e) == (json['state'] ?? 'accepted')),

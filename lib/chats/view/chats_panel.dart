@@ -125,6 +125,15 @@ class MainPanel extends StatelessWidget {
                                     ),
                                   );
 
+                                  final subtitleText = chat.messages.isNotEmpty
+                                      ? chat.messages.first.content.first
+                                                  .type ==
+                                              MessageType.text
+                                          ? chat
+                                              .messages.first.content.first.data
+                                          : '${chat.messages.first.senderId == context.read<UserCubit>().state.user.id ? 'Wysłałeś(aś)' : chat.participants.isEmpty ? 'Wysłano' : '${chat.participants.first.firstName} wysłał(a)'} załącznik(i)'
+                                      : 'Wyślij pierwszą wiadomość';
+
                                   return ListTile(
                                     onLongPress: () {
                                       SystemChrome.setSystemUIOverlayStyle(
@@ -270,14 +279,7 @@ class MainPanel extends StatelessWidget {
                                       ),
                                     ),
                                     subtitle: Text(
-                                      chat.messages.isNotEmpty
-                                          ? chat.messages.first.content.first
-                                                      .type ==
-                                                  MessageType.text
-                                              ? chat.messages.first.content
-                                                  .first.data
-                                              : '${chat.messages.first.senderId == context.read<UserCubit>().state.user.id ? 'Wysłałeś(aś)' : '${chat.participants.first.firstName} wysłał(a)'} załącznik(i).'
-                                          : 'Wyślij pierwszą wiadomość',
+                                      subtitleText,
                                       overflow: TextOverflow.ellipsis,
                                       maxLines: 1,
                                       style: TextStyle(

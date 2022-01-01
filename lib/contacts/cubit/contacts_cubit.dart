@@ -59,6 +59,43 @@ class ContactsCubit extends Cubit<ContactsState> {
         ));
       }
     });
+
+    _wsService.socket.on('invite.new', (data) async {
+      final decryptedContact =
+          (await _contactsRepository.getDecryptedContactsList([data['user']]))
+              .first;
+
+      emit(state.copyWith(
+        contacts: List.of(state.contacts)
+          ..add(decryptedContact)
+          ..sort(
+            (a, b) => a.currentState.index.compareTo(
+              b.currentState.index,
+            ),
+          ),
+      ));
+    });
+
+    _wsService.socket.on('invite.accept', (data) async {
+      final decryptedContact =
+          (await _contactsRepository.getDecryptedContactsList([data['user']]))
+              .first;
+
+      emit(state.copyWith(
+        contacts: List.of(state.contacts)
+          ..removeWhere((c) => c.id == decryptedContact.id)
+          ..add(decryptedContact),
+      ));
+    });
+
+    _wsService.socket.on('invite.cancel', (data) async {
+      emit(state.copyWith(
+        contacts: List.of(state.contacts)
+          ..removeWhere(
+            (c) => c.id == data['id'],
+          ),
+      ));
+    });
   }
 
   final _wsService = SocketService();
@@ -115,12 +152,13 @@ class ContactsCubit extends Cubit<ContactsState> {
     try {
       startLoading(contactId);
 
-      await _contactsRepository.acceptInvitation(contactId);
+      final contact = await _contactsRepository.acceptInvitation(contactId);
 
       emit(state.copyWith(
         contacts: List.of(state.contacts)
             .map((c) => c.id == contactId
                 ? c.copyWith(
+                    isOnline: contact['isOnline'],
                     currentState: CurrentState.accepted,
                     working: false,
                   )
