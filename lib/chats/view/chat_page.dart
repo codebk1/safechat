@@ -60,15 +60,16 @@ class ChatPage extends StatelessWidget {
                   statusBarIconBrightness: Brightness.dark,
                 ),
                 actions: [
-                  IconButton(
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(
-                        '/chat/info',
-                        arguments: chat,
-                      );
-                    },
-                    icon: const Icon(Icons.info),
-                  ),
+                  if (chat.participants.isNotEmpty)
+                    IconButton(
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          '/chat/info',
+                          arguments: chat,
+                        );
+                      },
+                      icon: const Icon(Icons.info),
+                    ),
                 ],
                 backgroundColor: Colors.white,
                 titleSpacing: 0,

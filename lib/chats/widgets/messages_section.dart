@@ -36,19 +36,21 @@ class MessagesSection extends StatelessWidget {
           children: [
             Expanded(
               child: chat.messages.isEmpty
-                  ? Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.forum,
-                          size: 100,
-                          color: Colors.grey.shade300,
-                        ),
-                        Text(
-                          'Brak wiadomości',
-                          style: Theme.of(context).textTheme.subtitle2,
-                        ),
-                      ],
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.forum,
+                            size: 100,
+                            color: Colors.grey.shade300,
+                          ),
+                          Text(
+                            'Brak wiadomości',
+                            style: Theme.of(context).textTheme.subtitle2,
+                          ),
+                        ],
+                      ),
                     )
                   : state.listStatus == ListStatus.loading
                       ? const Center(

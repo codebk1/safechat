@@ -22,7 +22,7 @@ class EmailInput extends StatelessWidget {
           ),
           autovalidateMode: AutovalidateMode.onUserInteraction,
           validator: (String? value) {
-            return state.email.error;
+            return !state.formStatus.isSuccess ? state.email.error : null;
           },
         );
       },
