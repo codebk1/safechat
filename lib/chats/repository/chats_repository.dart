@@ -61,7 +61,7 @@ class ChatsRepository {
       } else {
         final file = await _cacheManager.putFile(
           chat.avatar,
-          await _getAvatar(chat.id, chat.sharedKey),
+          await getAvatar(chat.id, chat.sharedKey),
           eTag: chat.avatar,
           maxAge: const Duration(days: 14),
         );
@@ -133,7 +133,7 @@ class ChatsRepository {
         } else {
           final file = await _cacheManager.putFile(
             chat.avatar,
-            await _getAvatar(chat.id, chat.sharedKey),
+            await getAvatar(chat.id, chat.sharedKey),
             eTag: chat.avatar,
             maxAge: const Duration(days: 14),
           );
@@ -379,7 +379,7 @@ class ChatsRepository {
     });
   }
 
-  Future<Uint8List> _getAvatar(String chatId, Uint8List sharedKey) async {
+  Future<Uint8List> getAvatar(String chatId, Uint8List sharedKey) async {
     final res = await _apiService.get('/chat/$chatId/avatar');
 
     return _encryptionService.chachaDecrypt(

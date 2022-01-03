@@ -176,6 +176,47 @@ class ChatsCubit extends Cubit<ChatsState> {
       ));
     });
 
+    _wsService.socket.on('chat.name', (data) {
+      emit(state.copyWith(
+        chats: state.chats
+            .map((c) => c.id == data['chatId']
+                ? c.copyWith(
+                    name: utf8.decode(
+                    _encryptionService.chachaDecrypt(
+                      data['name'],
+                      c.sharedKey,
+                    ),
+                  ))
+                : c)
+            .toList(),
+      ));
+    });
+
+    _wsService.socket.on('chat.avatar', (data) async {
+      final chat = state.chats.firstWhereOrNull((c) => c.id == data['chatId']);
+
+      if (chat != null) {
+        await _cacheManager.removeFile('${data['chatId']}.jpg');
+
+        final avatar = await _cacheManager.putFile(
+          '${data['chatId']}.jpg',
+          await _chatsRepository.getAvatar(data['chatId'], chat.sharedKey),
+          eTag: '${data['chatId']}-${Random(10)}',
+          maxAge: const Duration(days: 14),
+        );
+
+        emit(state.copyWith(
+          chats: state.chats
+              .map((c) => c.id == data['chatId']
+                  ? c.copyWith(
+                      avatar: () => avatar,
+                    )
+                  : c)
+              .toList(),
+        ));
+      }
+    });
+
     _wsService.socket.on('status', (data) {
       emit(state.copyWith(
         chats: state.chats
