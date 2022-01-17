@@ -503,12 +503,9 @@ class ChatsCubit extends Cubit<ChatsState> {
           attachments[i].type.isVideo,
         );
 
-        print(file.lengthSync());
-        print(thumb!.length);
-
         final cachedThumb = await cacheManager.putFile(
           'thumb_$attachmentName',
-          thumb,
+          thumb!,
           eTag: 'thumb_$attachmentName',
           maxAge: const Duration(days: 14),
         );
@@ -661,14 +658,12 @@ class ChatsCubit extends Cubit<ChatsState> {
   }
 
   startTyping(String chatId) {
-    print('start');
     _wsService.socket.emit('typing.start', {
       'chatId': chatId,
     });
   }
 
   stopTyping(String chatId) {
-    print('stop');
     _wsService.socket.emit('typing.stop', {
       'chatId': chatId,
     });
@@ -691,7 +686,6 @@ class ChatsCubit extends Cubit<ChatsState> {
   }
 
   textMessageChanged(String chatId, String value, String prevValue) {
-    print({value, prevValue});
     if (value.trim().isNotEmpty && prevValue.trim().isEmpty) {
       startTyping(chatId);
     }

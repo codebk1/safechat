@@ -12,12 +12,7 @@ class LoginCubit extends Cubit<LoginState> {
   LoginCubit(
     this._userCubit,
     this._authRepository,
-  ) : super(const LoginState()) {
-    // emit(state.copyWith(
-    //   email: const Email('bartek@gmail.com'),
-    //   password: const Password('Bartek123!'),
-    // ));
-  }
+  ) : super(const LoginState());
 
   final UserCubit _userCubit;
   final AuthRepository _authRepository;
