@@ -386,9 +386,6 @@ class ChatsCubit extends Cubit<ChatsState> {
         chats: [chat, ...state.chats],
         selectedContacts: [],
         formStatus: FormStatus.init,
-        // formStatus: FormStatus.success(
-        //   'Utworzono czat${chat.type.isGroup ? ' grupowy' : ''}.',
-        // ),
       ));
 
       return chat;
@@ -500,7 +497,6 @@ class ChatsCubit extends Cubit<ChatsState> {
       if (attachments[i].type.isPhoto) {
         Uint8List? thumb = await computeGenerateThumbnail(
           file,
-          attachments[i].type.isVideo,
         );
 
         final cachedThumb = await cacheManager.putFile(
@@ -824,11 +820,10 @@ class ChatsCubit extends Cubit<ChatsState> {
     ));
   }
 
-  Future<Uint8List?> computeGenerateThumbnail(File file,
-      [bool isVideo = false]) async {
+  Future<Uint8List?> computeGenerateThumbnail(File file) async {
     return await compute(
       generateThumbnail,
-      GenerateThumbnailProperties(file, isVideo),
+      file,
     );
   }
 
@@ -849,13 +844,6 @@ class ChatsCubit extends Cubit<ChatsState> {
   }
 }
 
-class GenerateThumbnailProperties {
-  GenerateThumbnailProperties(this.file, this.isVideo);
-
-  final File file;
-  final bool isVideo;
-}
-
 class EncryptAttachmentProperties {
   EncryptAttachmentProperties(
     this.data,
@@ -868,21 +856,12 @@ class EncryptAttachmentProperties {
   final EncryptionService encryptionService;
 }
 
-Future<Uint8List?> generateThumbnail(GenerateThumbnailProperties data) async {
-  if (data.isVideo) {
-    // return await vt.VideoThumbnail.thumbnailData(
-    //   video: data.file.absolute.path,
-    //   imageFormat: vt.ImageFormat.JPEG,
-    //   maxWidth: 1024,
-    //   quality: 50,
-    // );
-  } else {
-    Image croppedPhoto = copyResizeCropSquare(
-      decodeImage(data.file.readAsBytesSync())!,
-      500,
-    );
-    return encodeJpg(croppedPhoto) as Uint8List;
-  }
+Future<Uint8List?> generateThumbnail(File file) async {
+  Image croppedPhoto = copyResizeCropSquare(
+    decodeImage(file.readAsBytesSync())!,
+    500,
+  );
+  return encodeJpg(croppedPhoto) as Uint8List;
 }
 
 List<int> cropAvatar(Uint8List data) {

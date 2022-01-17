@@ -23,7 +23,7 @@ class MyHttpOverrides extends HttpOverrides {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  HttpOverrides.global = MyHttpOverrides(); // błąd z certyfikatem
+  HttpOverrides.global = MyHttpOverrides();
 
   FlutterError.onError = (details) {
     log(details.exceptionAsString(), stackTrace: details.stack);

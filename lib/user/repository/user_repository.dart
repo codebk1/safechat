@@ -161,10 +161,6 @@ class UserRepository {
 
     final currentPrivateKey = await _storage.read(key: 'privateKey');
 
-    // if (base64.encode(decryptedPrivateKey) != currentPrivateKey) {
-    //   throw 'Aktualne hasło jest błędne.';
-    // }
-
     final encryptedPrivateKey = _encryptionService.chachaEncrypt(
       base64.decode(currentPrivateKey!),
       _encryptionService.argon2DeriveKey(newPassword, salt),

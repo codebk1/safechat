@@ -75,9 +75,7 @@ class SidePanelsState extends State<SidePanels>
   }
 
   void _animationChanged() {
-    setState(() {
-      // State animacji to state widgetu, który już się zmienił.
-    });
+    setState(() {});
   }
 
   LocalHistoryEntry? _historyEntry;
@@ -303,14 +301,6 @@ class SidePanelsState extends State<SidePanels>
             child: RepaintBoundary(
               child: Stack(
                 children: <Widget>[
-                  // Container(
-                  //   width: _controller.value == 0 ? 0 : null,
-                  //   color: _controller.value != 1
-                  //       ? ColorTween(
-                  //               begin: Colors.transparent, end: Colors.black54)
-                  //           .evaluate(_controller)
-                  //       : null,
-                  // ),
                   Align(
                     alignment: _mainPanelAlignment,
                     child: Align(

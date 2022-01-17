@@ -33,9 +33,6 @@ class MessageBubble extends StatelessWidget {
       builder: (context, state) {
         final currentUser = context.read<UserCubit>().state.user;
 
-        // final participants = List.of(chat.participants)
-        //   ..removeWhere((p) => p.id == currentUser.id);
-
         final isSender = message.senderId == currentUser.id;
 
         final sender = chat.participants.firstWhereOrNull(

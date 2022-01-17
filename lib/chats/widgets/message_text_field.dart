@@ -120,8 +120,6 @@ class _MessageTextFieldState extends State<MessageTextField> {
                                       ),
                                     ),
                                   ),
-                                  // if (state.selectedAttachments.contains(
-                                  //     state.selectedAttachments[index]))
                                   Align(
                                     alignment: Alignment.topRight,
                                     child: GestureDetector(
