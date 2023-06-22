@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -57,7 +56,7 @@ class UserCubit extends Cubit<UserState> {
           authState: AuthState.unauthenticated,
         ));
       }
-    } on DioError catch (_) {
+    } on DioException catch (_) {
       emit(state.copyWith(
         authState: AuthState.unauthenticated,
       ));

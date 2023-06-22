@@ -59,30 +59,32 @@ class FilesMessage extends StatelessWidget {
                                         );
 
                                     if (attachment.existsSync()) {
-                                      ScaffoldMessenger.of(context)
-                                        ..hideCurrentSnackBar()
-                                        ..showSnackBar(
-                                          SnackBar(
-                                            action: SnackBarAction(
-                                              onPressed: () => OpenFile.open(
-                                                attachment.path,
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context)
+                                          ..hideCurrentSnackBar()
+                                          ..showSnackBar(
+                                            SnackBar(
+                                              action: SnackBarAction(
+                                                onPressed: () => OpenFile.open(
+                                                  attachment.path,
+                                                ),
+                                                label: 'Wyświetl',
                                               ),
-                                              label: 'Wyświetl',
+                                              content: const Row(
+                                                children: <Widget>[
+                                                  Icon(
+                                                    Icons.error,
+                                                    color: Colors.white,
+                                                  ),
+                                                  SizedBox(
+                                                    width: 10.0,
+                                                  ),
+                                                  Text('Pobrano załącznik'),
+                                                ],
+                                              ),
                                             ),
-                                            content: Row(
-                                              children: const <Widget>[
-                                                Icon(
-                                                  Icons.error,
-                                                  color: Colors.white,
-                                                ),
-                                                SizedBox(
-                                                  width: 10.0,
-                                                ),
-                                                Text('Pobrano załącznik'),
-                                              ],
-                                            ),
-                                          ),
-                                        );
+                                          );
+                                      }
                                     }
                                   },
                                   child: const Icon(Icons.download),

@@ -11,8 +11,8 @@ class AddContactPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool _keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
-    final Orientation _orientation = MediaQuery.of(context).orientation;
+    final bool keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+    final Orientation orientation = MediaQuery.of(context).orientation;
 
     return BlocConsumer<ContactsCubit, ContactsState>(
       listenWhen: (prev, curr) => prev.formStatus != curr.formStatus,
@@ -46,7 +46,7 @@ class AddContactPage extends StatelessWidget {
               padding: const EdgeInsets.all(15.0),
               child: Column(
                 children: [
-                  if (!_keyboardOpen && _orientation == Orientation.portrait)
+                  if (!keyboardOpen && orientation == Orientation.portrait)
                     Icon(
                       Icons.person_add_alt_1,
                       size: 150.0,
@@ -54,14 +54,14 @@ class AddContactPage extends StatelessWidget {
                     ),
                   Text(
                     'Dodaj nowy kontakt',
-                    style: Theme.of(context).textTheme.headline5,
+                    style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(
                     height: 15.0,
                   ),
                   Text(
                     'Podaj adres email kontaktu, a następnie wyślij zaproszenie.',
-                    style: Theme.of(context).textTheme.subtitle2,
+                    style: Theme.of(context).textTheme.titleSmall,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(

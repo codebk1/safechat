@@ -23,7 +23,7 @@ class FilesList extends StatelessWidget {
         BuildContext context,
         int index,
       ) {
-        final _file = File(attachments[index].name);
+        final file = File(attachments[index].name);
 
         return ListTile(
           onTap: () => context
@@ -33,30 +33,30 @@ class FilesList extends StatelessWidget {
             builder: (context, state) {
               return state.selectedAttachments.contains(attachments[index])
                   ? CircleAvatar(
+                      backgroundColor: Colors.blue.shade800,
                       child: const Icon(
                         Icons.check,
                         color: Colors.white,
                       ),
-                      backgroundColor: Colors.blue.shade800,
                     )
                   : CircleAvatar(
+                      backgroundColor: Colors.grey.shade300,
                       child: const Icon(
                         Icons.text_snippet,
                         color: Colors.white,
                       ),
-                      backgroundColor: Colors.grey.shade300,
                     );
             },
           ),
           title: Text(
-            _file.path.split('/').last,
-            style: Theme.of(context).textTheme.subtitle2!.copyWith(
+            file.path.split('/').last,
+            style: Theme.of(context).textTheme.titleSmall!.copyWith(
                   color: Colors.grey.shade900,
                 ),
           ),
           subtitle: Text(
-            _formatBytes(_file.lengthSync()),
-            style: Theme.of(context).textTheme.subtitle2!.copyWith(
+            _formatBytes(file.lengthSync()),
+            style: Theme.of(context).textTheme.titleSmall!.copyWith(
                   color: Colors.grey.shade500,
                 ),
           ),

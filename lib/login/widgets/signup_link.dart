@@ -12,7 +12,7 @@ class SignupLink extends StatelessWidget {
       children: [
         Text(
           'Nie masz konta?',
-          style: Theme.of(context).textTheme.subtitle2,
+          style: Theme.of(context).textTheme.titleSmall,
         ),
         TextButton(
           onPressed: () {

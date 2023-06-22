@@ -47,7 +47,7 @@ class MessagesSection extends StatelessWidget {
                           ),
                           Text(
                             'Brak wiadomości',
-                            style: Theme.of(context).textTheme.subtitle2,
+                            style: Theme.of(context).textTheme.titleSmall,
                           ),
                         ],
                       ),
@@ -144,7 +144,7 @@ class MessagesSection extends StatelessWidget {
                                                             style: Theme.of(
                                                                     context)
                                                                 .textTheme
-                                                                .headline5,
+                                                                .headlineSmall,
                                                           ),
                                                           if (state.formStatus
                                                               .isLoading)
@@ -256,7 +256,7 @@ class MessagesSection extends StatelessWidget {
                       maxLines: 1,
                       style: Theme.of(context)
                           .textTheme
-                          .subtitle2!
+                          .titleSmall!
                           .copyWith(fontSize: 12.0),
                     ),
                     const SizedBox(
@@ -280,7 +280,7 @@ class MessagesSection extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 45),
                     child: Text(
                       'Czat został zarchiwizowany.',
-                      style: Theme.of(context).textTheme.subtitle2,
+                      style: Theme.of(context).textTheme.titleSmall,
                     ),
                   ),
           ],

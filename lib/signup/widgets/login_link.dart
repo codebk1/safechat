@@ -12,7 +12,7 @@ class LoginLink extends StatelessWidget {
       children: [
         Text(
           'Masz konto?',
-          style: Theme.of(context).textTheme.subtitle2,
+          style: Theme.of(context).textTheme.titleSmall,
         ),
         TextButton(
           onPressed: () {

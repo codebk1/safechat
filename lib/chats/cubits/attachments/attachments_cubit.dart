@@ -73,39 +73,39 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
     if (await Permission.storage.request().isGranted) {
       emit(state.copyWith(loading: true));
 
-      List<Attachment> _attachments = [];
+      List<Attachment> attachments = [];
 
-      var _downloadDirFiles = await _listDirectory(
+      var downloadDirFiles = await _listDirectory(
         Directory('/storage/emulated/0/Download'),
       );
-      var _dcimDirFiles = await _listDirectory(
+      var dcimDirFiles = await _listDirectory(
         Directory('/storage/emulated/0/DCIM'),
       );
 
-      for (var entity in [..._downloadDirFiles, ..._dcimDirFiles]) {
-        var _mime = lookupMimeType(entity.path);
-        AttachmentType _type;
+      for (var entity in [...downloadDirFiles, ...dcimDirFiles]) {
+        var mime = lookupMimeType(entity.path);
+        AttachmentType type;
 
-        if (_mime != null) {
-          switch (_mime.split('/')[0]) {
+        if (mime != null) {
+          switch (mime.split('/')[0]) {
             case 'image':
-              _type = AttachmentType.photo;
+              type = AttachmentType.photo;
               break;
             case 'video':
-              _type = AttachmentType.video;
+              type = AttachmentType.video;
               break;
             default:
-              _type = AttachmentType.file;
+              type = AttachmentType.file;
           }
 
-          _attachments.add(Attachment(
+          attachments.add(Attachment(
             name: entity.absolute.path,
-            type: _type,
+            type: type,
           ));
         }
       }
 
-      _attachments.sort(
+      attachments.sort(
         (a, b) => FileStat.statSync(b.name)
             .changed
             .compareTo(FileStat.statSync(a.name).changed),
@@ -113,7 +113,7 @@ class AttachmentsCubit extends Cubit<AttachmentsState> {
 
       emit(state.copyWith(
         loading: false,
-        attachments: _attachments,
+        attachments: attachments,
       ));
     }
   }

@@ -13,10 +13,10 @@ class VideoThumbnail extends StatefulWidget {
   final File video;
 
   @override
-  _VideoThumbnailState createState() => _VideoThumbnailState();
+  VideoThumbnailState createState() => VideoThumbnailState();
 }
 
-class _VideoThumbnailState extends State<VideoThumbnail> {
+class VideoThumbnailState extends State<VideoThumbnail> {
   late VideoPlayerController _controller;
 
   @override

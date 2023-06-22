@@ -40,14 +40,14 @@ class SRP {
 
   Future<BigInt> x(String I, String P, BigInt s) async {
     final digest = SHA512Digest();
-    final data = I + ':' + P;
+    final data = '$I:$P';
     var out = Uint8List(digest.digestSize);
 
     digest.update(Uint8List.fromList(data.codeUnits), 0, data.length);
     digest.doFinal(out, 0);
 
-    final _s = bigIntToBytesArray(s);
-    digest.update(_s, 0, _s.length);
+    final s0 = bigIntToBytesArray(s);
+    digest.update(s0, 0, s0.length);
     digest.update(out, 0, out.length);
     digest.doFinal(out, 0);
 
@@ -87,11 +87,11 @@ class SRP {
     final digest = SHA512Digest();
     var out = Uint8List(digest.digestSize);
 
-    final _bytesN = bigIntToBytesArray(N);
-    final _padgN = _pad(g, N);
+    final bytesN = bigIntToBytesArray(N);
+    final padgN = _pad(g, N);
 
-    digest.update(_bytesN, 0, _bytesN.length);
-    digest.update(_padgN, 0, _padgN.length);
+    digest.update(bytesN, 0, bytesN.length);
+    digest.update(padgN, 0, padgN.length);
     digest.doFinal(out, 0);
 
     return bytesArrayToBigInt(out);

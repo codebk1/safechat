@@ -13,9 +13,9 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
-    final _orientation = MediaQuery.of(context).orientation;
-    final _showHero = !_keyboardOpen && _orientation == Orientation.portrait;
+    final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+    final orientation = MediaQuery.of(context).orientation;
+    final showHero = !keyboardOpen && orientation == Orientation.portrait;
 
     return BlocConsumer<LoginCubit, LoginState>(
       listenWhen: (prev, curr) => prev.formStatus != curr.formStatus,
@@ -50,7 +50,7 @@ class LoginPage extends StatelessWidget {
                     hasScrollBody: false,
                     child: Column(
                       children: [
-                        if (_showHero) const HeroSection(),
+                        if (showHero) const HeroSection(),
                         const Divider(
                           height: 0,
                           thickness: 1,
@@ -66,7 +66,7 @@ class LoginPage extends StatelessWidget {
                                 alignment: Alignment.centerLeft,
                                 child: Text(
                                   'Zaloguj się.',
-                                  style: Theme.of(context).textTheme.headline5,
+                                  style: Theme.of(context).textTheme.headlineSmall,
                                 ),
                               ),
                               const SizedBox(height: 5),
@@ -74,7 +74,7 @@ class LoginPage extends StatelessWidget {
                                 alignment: Alignment.centerLeft,
                                 child: Text(
                                   'Twoje wiadomości są zawsze bezpieczne.',
-                                  style: Theme.of(context).textTheme.subtitle2,
+                                  style: Theme.of(context).textTheme.titleSmall,
                                 ),
                               ),
                               ...const [

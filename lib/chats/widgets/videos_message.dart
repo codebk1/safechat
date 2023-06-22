@@ -68,10 +68,10 @@ class VideosMessage extends StatelessWidget {
                                   return child;
                                 }
                                 return AnimatedOpacity(
-                                  child: child,
                                   opacity: frame == null ? 0 : 1,
                                   duration: const Duration(seconds: 1),
                                   curve: Curves.easeOut,
+                                  child: child,
                                 );
                               },
                             ),

@@ -35,7 +35,7 @@ class PrimaryButton extends StatelessWidget {
                   )
                 : Text(
                     label,
-                    style: Theme.of(context).textTheme.headline6!.copyWith(
+                    style: Theme.of(context).textTheme.titleLarge!.copyWith(
                           color: Colors.white,
                         ),
                   ),

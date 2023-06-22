@@ -103,18 +103,22 @@ class ContactActions extends StatelessWidget {
                     context.read<UserCubit>().state.user.id,
                   ]);
 
-                  chat ??= await context.read<ChatsCubit>().createChat(
-                    ChatType.direct,
-                    context.read<UserCubit>().state.user,
-                    [contact],
-                  );
+                  if (context.mounted) {
+                    chat ??= await context.read<ChatsCubit>().createChat(
+                      ChatType.direct,
+                      context.read<UserCubit>().state.user,
+                      [contact],
+                    );
+                  }
 
-                  context.read<ContactsCubit>().stopLoading(contact.id);
+                  if (context.mounted) {
+                    context.read<ContactsCubit>().stopLoading(contact.id);
 
-                  Navigator.of(context).pushNamed(
-                    '/chat',
-                    arguments: chat!,
-                  );
+                    Navigator.of(context).pushNamed(
+                      '/chat',
+                      arguments: chat!,
+                    );
+                  }
                 },
                 icon: const Icon(
                   Icons.chat,

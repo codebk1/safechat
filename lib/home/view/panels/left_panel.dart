@@ -112,7 +112,7 @@ class LeftPanel extends StatelessWidget {
                                         'Ustaw status',
                                         style: Theme.of(context)
                                             .textTheme
-                                            .headline5,
+                                            .headlineSmall,
                                       ),
                                     ),
                                     for (Status value in Status.values)
@@ -151,7 +151,7 @@ class LeftPanel extends StatelessWidget {
                           const SizedBox(width: 10.0),
                           Text(
                             "Bartek Kaczmarek",
-                            style: Theme.of(context).textTheme.subtitle2,
+                            style: Theme.of(context).textTheme.titleSmall,
                           ),
                         ],
                       ),

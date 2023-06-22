@@ -94,6 +94,7 @@ class MessageBubble extends StatelessWidget {
                               children: [
                                 CircleAvatar(
                                   radius: 14,
+                                  backgroundColor: Colors.grey.shade300,
                                   child: sender.avatar != null
                                       ? ClipOval(
                                           child: Image.file(
@@ -104,7 +105,6 @@ class MessageBubble extends StatelessWidget {
                                           Icons.person,
                                           color: Colors.grey.shade50,
                                         ),
-                                  backgroundColor: Colors.grey.shade300,
                                 ),
                                 Positioned(
                                   right: 0,
@@ -230,6 +230,8 @@ class MessageBubble extends StatelessWidget {
                                             ),
                                             child: CircleAvatar(
                                               radius: 8,
+                                              backgroundColor:
+                                                  Colors.grey.shade300,
                                               child: e.avatar != null
                                                   ? ClipOval(
                                                       child:
@@ -241,14 +243,13 @@ class MessageBubble extends StatelessWidget {
                                                       color:
                                                           Colors.grey.shade50,
                                                     ),
-                                              backgroundColor:
-                                                  Colors.grey.shade300,
                                             ),
                                           ))
                                       .toList(),
                                 )
                               : CircleAvatar(
                                   radius: 8,
+                                  backgroundColor: Colors.grey.shade300,
                                   child: readBy.first.avatar != null
                                       ? ClipOval(
                                           child:
@@ -259,7 +260,6 @@ class MessageBubble extends StatelessWidget {
                                           size: 12,
                                           color: Colors.grey.shade50,
                                         ),
-                                  backgroundColor: Colors.grey.shade300,
                                 )
                           : message.status == MessageStatus.sending
                               ? const _DelayedLoader(

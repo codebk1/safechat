@@ -43,31 +43,32 @@ class MediaPage extends StatelessWidget {
                         ).writeAsBytes(
                           state.downloadedAttachment!.file.readAsBytesSync(),
                         );
-
-                        ScaffoldMessenger.of(context)
-                          ..hideCurrentSnackBar()
-                          ..showSnackBar(
-                            SnackBar(
-                              action: SnackBarAction(
-                                onPressed: () => OpenFile.open(
-                                  attachment.path,
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context)
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(
+                              SnackBar(
+                                action: SnackBarAction(
+                                  onPressed: () => OpenFile.open(
+                                    attachment.path,
+                                  ),
+                                  label: 'Wyświetl',
                                 ),
-                                label: 'Wyświetl',
+                                content: const Row(
+                                  children: <Widget>[
+                                    Icon(
+                                      Icons.error,
+                                      color: Colors.white,
+                                    ),
+                                    SizedBox(
+                                      width: 10.0,
+                                    ),
+                                    Text('Pobrano załącznik'),
+                                  ],
+                                ),
                               ),
-                              content: Row(
-                                children: const <Widget>[
-                                  Icon(
-                                    Icons.error,
-                                    color: Colors.white,
-                                  ),
-                                  SizedBox(
-                                    width: 10.0,
-                                  ),
-                                  Text('Pobrano załącznik'),
-                                ],
-                              ),
-                            ),
-                          );
+                            );
+                        }
                       }
                     },
                     icon: const Icon(Icons.download),
@@ -129,10 +130,10 @@ class Photo extends StatelessWidget {
               return child;
             }
             return AnimatedOpacity(
-              child: child,
               opacity: frame == null ? 0 : 1,
               duration: const Duration(seconds: 1),
               curve: Curves.easeOut,
+              child: child,
             );
           },
         ),
@@ -150,10 +151,10 @@ class Video extends StatefulWidget {
   final File video;
 
   @override
-  _VideoMessageThumbnailState createState() => _VideoMessageThumbnailState();
+  VideoMessageThumbnailState createState() => VideoMessageThumbnailState();
 }
 
-class _VideoMessageThumbnailState extends State<Video> {
+class VideoMessageThumbnailState extends State<Video> {
   late VideoPlayerController _controller;
   var isPlaying = false;
 

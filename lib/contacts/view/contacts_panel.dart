@@ -74,7 +74,7 @@ class ContactsPanel extends StatelessWidget {
                                             'Brak kontaktów',
                                             style: Theme.of(context)
                                                 .textTheme
-                                                .subtitle2,
+                                                .titleSmall,
                                           ),
                                           IconButton(
                                             onPressed: () => context

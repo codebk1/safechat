@@ -21,6 +21,7 @@ class ContactListTile extends StatelessWidget {
       leading: Stack(
         children: [
           CircleAvatar(
+            backgroundColor: Colors.grey.shade300,
             child: contact.avatar != null
                 ? ClipOval(
                     child: Image.file(
@@ -31,7 +32,6 @@ class ContactListTile extends StatelessWidget {
                     Icons.person,
                     color: Colors.grey.shade50,
                   ),
-            backgroundColor: Colors.grey.shade300,
           ),
           if (!contact.currentState.isInviting &&
               !contact.currentState.isPending)

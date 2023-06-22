@@ -104,7 +104,7 @@ class ChatPage extends StatelessWidget {
                           Text(
                             getChatTitle(chat, context),
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.headline6,
+                            style: Theme.of(context).textTheme.titleLarge,
                           ),
                           if (participants.isNotEmpty)
                             Text(
@@ -112,7 +112,7 @@ class ChatPage extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                               style: Theme.of(context)
                                   .textTheme
-                                  .subtitle2!
+                                  .titleSmall!
                                   .copyWith(fontSize: 12),
                             ),
                         ],

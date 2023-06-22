@@ -147,7 +147,7 @@ class CreateChatPage extends StatelessWidget {
                                               'Brak kontaktów',
                                               style: Theme.of(context)
                                                   .textTheme
-                                                  .subtitle2,
+                                                  .titleSmall,
                                             ),
                                           )
                                         : ListView.builder(
@@ -172,6 +172,8 @@ class CreateChatPage extends StatelessWidget {
                                                 secondary: Stack(
                                                   children: [
                                                     CircleAvatar(
+                                                      backgroundColor:
+                                                          Colors.grey.shade300,
                                                       child: contact.avatar !=
                                                               null
                                                           ? ClipOval(
@@ -184,8 +186,6 @@ class CreateChatPage extends StatelessWidget {
                                                               color: Colors
                                                                   .grey.shade50,
                                                             ),
-                                                      backgroundColor:
-                                                          Colors.grey.shade300,
                                                     ),
                                                     Positioned(
                                                       right: 0,
@@ -221,10 +221,12 @@ class CreateChatPage extends StatelessWidget {
                                                     .user,
                                                 state.selectedContacts);
 
-                                        Navigator.of(context).popAndPushNamed(
-                                          '/chat',
-                                          arguments: chat,
-                                        );
+                                        if (context.mounted) {
+                                          Navigator.of(context).popAndPushNamed(
+                                            '/chat',
+                                            arguments: chat,
+                                          );
+                                        }
                                       },
                                       isLoading: state.formStatus.isLoading,
                                     ),

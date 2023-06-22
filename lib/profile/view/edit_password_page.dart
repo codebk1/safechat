@@ -71,7 +71,7 @@ class EditPasswordPage extends StatelessWidget {
                         ),
                         Text(
                           'Zapamietaj nowe hasło, ponieważ bez niego Twoje dane zostaną bezpowrotnie utracone.',
-                          style: Theme.of(context).textTheme.subtitle2,
+                          style: Theme.of(context).textTheme.titleSmall,
                         ),
                         const SizedBox(
                           height: 15.0,

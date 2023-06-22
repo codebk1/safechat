@@ -28,10 +28,10 @@ class MainPanel extends StatelessWidget {
         onPressed: () {
           Navigator.of(context).pushNamed('/chats/create');
         },
-        child: const Icon(Icons.add_comment),
         backgroundColor: Colors.blue.shade800,
         elevation: 0,
         focusElevation: 0,
+        child: const Icon(Icons.add_comment),
       ),
       body: Column(
         children: [
@@ -102,7 +102,7 @@ class MainPanel extends StatelessWidget {
                                   Text(
                                     'Brak czatów',
                                     style:
-                                        Theme.of(context).textTheme.subtitle2,
+                                        Theme.of(context).textTheme.titleSmall,
                                   ),
                                   IconButton(
                                     onPressed: () =>
@@ -181,7 +181,7 @@ class MainPanel extends StatelessWidget {
                                                                 style: Theme.of(
                                                                         context)
                                                                     .textTheme
-                                                                    .headline5,
+                                                                    .headlineSmall,
                                                               ),
                                                               if (state
                                                                   .formStatus

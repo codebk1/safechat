@@ -59,9 +59,9 @@ class NotificationService {
     );
 
     await _flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        onSelectNotification: (String? payload) async {
-      if (payload != null) {
-        _selectNotificationStreamController.add(payload);
+        onDidReceiveNotificationResponse: (NotificationResponse? res) async {
+      if (res != null) {
+        _selectNotificationStreamController.add(res.payload!);
       }
     });
   }

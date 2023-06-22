@@ -125,7 +125,7 @@ class SidePanelsState extends State<SidePanels>
   }
 
   void _updateWidth() {
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       final RenderBox? box =
           _panelKey.currentContext?.findRenderObject() as RenderBox?;
 

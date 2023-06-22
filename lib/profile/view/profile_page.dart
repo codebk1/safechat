@@ -81,8 +81,9 @@ class ProfilePage extends StatelessWidget {
                                   children: [
                                     Text(
                                       'Imię',
-                                      style:
-                                          Theme.of(context).textTheme.subtitle2,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleSmall,
                                     ),
                                     Text(
                                       state.user.firstName,
@@ -96,8 +97,9 @@ class ProfilePage extends StatelessWidget {
                                   children: [
                                     Text(
                                       'Nazwisko',
-                                      style:
-                                          Theme.of(context).textTheme.subtitle2,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleSmall,
                                     ),
                                     Text(
                                       state.user.lastName,
@@ -113,7 +115,7 @@ class ProfilePage extends StatelessWidget {
                               children: [
                                 Text(
                                   'Email',
-                                  style: Theme.of(context).textTheme.subtitle2,
+                                  style: Theme.of(context).textTheme.titleSmall,
                                 ),
                                 Text(
                                   state.user.email,
@@ -172,11 +174,13 @@ class ProfilePage extends StatelessWidget {
                           onPressed: () async {
                             await context.read<UserCubit>().deleteAccount();
 
-                            context.read<UserCubit>().unauthenticate();
+                            if (context.mounted) {
+                              context.read<UserCubit>().unauthenticate();
 
-                            Navigator.of(context).pushReplacementNamed(
-                              '/login',
-                            );
+                              Navigator.of(context).pushReplacementNamed(
+                                '/login',
+                              );
+                            }
                           },
                           icon: BlocBuilder<UserCubit, UserState>(
                             builder: (context, state) {

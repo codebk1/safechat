@@ -4,15 +4,15 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiService {
   Dio init() {
-    Dio _dio = Dio();
+    Dio dio = Dio();
 
-    _dio.interceptors.add(
+    dio.interceptors.add(
       ApiInterceptors(),
     );
 
-    _dio.options.baseUrl = dotenv.env['BASE_URL']!;
+    dio.options.baseUrl = dotenv.env['BASE_URL']!;
 
-    return _dio;
+    return dio;
   }
 }
 

@@ -11,9 +11,9 @@ class SignupPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
-    final _orientation = MediaQuery.of(context).orientation;
-    final _showHero = !_keyboardOpen && _orientation == Orientation.portrait;
+    final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+    final orientation = MediaQuery.of(context).orientation;
+    final showHero = !keyboardOpen && orientation == Orientation.portrait;
 
     return BlocConsumer<SignupCubit, SignupState>(
       listenWhen: (prev, curr) => prev.formStatus != curr.formStatus,
@@ -58,7 +58,7 @@ class SignupPage extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (_showHero) const HeroSection(),
+                        if (showHero) const HeroSection(),
                         Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 20.0,
@@ -71,7 +71,7 @@ class SignupPage extends StatelessWidget {
                                 alignment: Alignment.centerLeft,
                                 child: Text(
                                   'Zarejestruj się.',
-                                  style: Theme.of(context).textTheme.headline5,
+                                  style: Theme.of(context).textTheme.headlineSmall,
                                 ),
                               ),
                               const SizedBox(height: 5),
@@ -79,13 +79,13 @@ class SignupPage extends StatelessWidget {
                                 alignment: Alignment.centerLeft,
                                 child: Text(
                                   'Utwórz konto i ciesz się bezpieczną komunikacją.',
-                                  style: Theme.of(context).textTheme.subtitle2,
+                                  style: Theme.of(context).textTheme.titleSmall,
                                 ),
                               ),
                               const SizedBox(height: 25),
-                              Row(
+                              const Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                children: const [
+                                children: [
                                   Flexible(
                                     child: FirstNameInput(),
                                   ),

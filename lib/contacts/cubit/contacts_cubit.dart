@@ -112,7 +112,7 @@ class ContactsCubit extends Cubit<ContactsState> {
           ));
 
       emit(state.copyWith(contacts: contacts, listStatus: ListStatus.success));
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       emit(state.copyWith(
         formStatus: FormStatus.failure(e.response!.data['message']),
       ));
@@ -140,7 +140,7 @@ class ContactsCubit extends Cubit<ContactsState> {
           formStatus: const FormStatus.success(),
           contacts: contacts,
         ));
-      } on DioError catch (e) {
+      } on DioException catch (e) {
         emit(state.copyWith(
           formStatus: FormStatus.failure(e.response!.data['message']),
         ));
@@ -165,7 +165,7 @@ class ContactsCubit extends Cubit<ContactsState> {
                 : c)
             .toList(),
       ));
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       emit(state.copyWith(
         formStatus: FormStatus.failure(e.response!.data['message']),
       ));
@@ -182,7 +182,7 @@ class ContactsCubit extends Cubit<ContactsState> {
         contacts: List.of(state.contacts)
           ..removeWhere((e) => e.id == contactId),
       ));
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       emit(state.copyWith(
         formStatus: FormStatus.failure(e.response!.data['message']),
       ));
@@ -208,7 +208,7 @@ class ContactsCubit extends Cubit<ContactsState> {
                 : c)
             .toList(),
       ));
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       emit(state.copyWith(
         formStatus: FormStatus.failure(e.response!.data['message']),
       ));

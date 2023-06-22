@@ -54,7 +54,7 @@ class ChatInfoPage extends StatelessWidget {
             padding: const EdgeInsets.all(15.0),
             child: Text(
               'Członkowie:',
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
           ),
           BlocBuilder<ChatsCubit, ChatsState>(
@@ -77,6 +77,7 @@ class ChatInfoPage extends StatelessWidget {
                               leading: Stack(
                                 children: [
                                   CircleAvatar(
+                                    backgroundColor: Colors.grey.shade300,
                                     child: contact.avatar != null
                                         ? ClipOval(
                                             child: Image.file(
@@ -87,7 +88,6 @@ class ChatInfoPage extends StatelessWidget {
                                             Icons.person,
                                             color: Colors.grey.shade50,
                                           ),
-                                    backgroundColor: Colors.grey.shade300,
                                   ),
                                   if (contact.currentState !=
                                           CurrentState.inviting &&

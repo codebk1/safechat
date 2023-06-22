@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:collection/collection.dart';
@@ -353,7 +352,7 @@ class ChatsCubit extends Cubit<ChatsState> {
         chats: chats..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),
         listStatus: ListStatus.success,
       ));
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       emit(state.copyWith(
         formStatus: FormStatus.failure(e.response!.data['message']),
       ));
@@ -389,11 +388,12 @@ class ChatsCubit extends Cubit<ChatsState> {
       ));
 
       return chat;
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       emit(state.copyWith(
         formStatus: FormStatus.failure(e.response!.data['message']),
       ));
     }
+    return null;
   }
 
   sendMessage(Chat chat, String senderId, List<Attachment> attachments) async {
@@ -593,7 +593,7 @@ class ChatsCubit extends Cubit<ChatsState> {
         chats: List.of(state.chats)..removeWhere((chat) => chat.id == chatId),
         formStatus: const FormStatus.success('Opuszczono czat.'),
       ));
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       emit(state.copyWith(
         formStatus: FormStatus.failure(e.response!.data['message']),
       ));
@@ -610,7 +610,7 @@ class ChatsCubit extends Cubit<ChatsState> {
         chats: List.of(state.chats)..removeWhere((chat) => chat.id == id),
         formStatus: const FormStatus.success('Usunięto czat.'),
       ));
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       emit(state.copyWith(
         formStatus: FormStatus.failure(e.response!.data['message']),
       ));
@@ -742,7 +742,7 @@ class ChatsCubit extends Cubit<ChatsState> {
             .toList(),
         formStatus: const FormStatus.success('Zmieniono nazwę czatu.'),
       ));
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       emit(state.copyWith(
         formStatus: FormStatus.failure(e.response!.data['message']),
       ));
@@ -859,15 +859,15 @@ class EncryptAttachmentProperties {
 Future<Uint8List?> generateThumbnail(File file) async {
   Image croppedPhoto = copyResizeCropSquare(
     decodeImage(file.readAsBytesSync())!,
-    500,
+    size: 500,
   );
-  return encodeJpg(croppedPhoto) as Uint8List;
+  return encodeJpg(croppedPhoto);
 }
 
 List<int> cropAvatar(Uint8List data) {
   Image croppedPhoto = copyResizeCropSquare(
     decodeImage(data)!,
-    150,
+    size: 150,
   );
 
   return encodeJpg(croppedPhoto);

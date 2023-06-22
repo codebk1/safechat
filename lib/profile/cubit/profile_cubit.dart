@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 
@@ -44,6 +43,7 @@ class ProfileCubit extends Cubit<ProfileState> {
 
       emit(state.copyWith(loadingAvatar: false));
     }
+    return null;
   }
 
   removeAvatar() async {
@@ -69,7 +69,7 @@ class ProfileCubit extends Cubit<ProfileState> {
         emit(state.copyWith(
           formStatus: const FormStatus.success('Zaktualizowano dane.'),
         ));
-      } on DioError catch (e) {
+      } on DioException catch (e) {
         emit(state.copyWith(
           formStatus: FormStatus.failure(e.response!.data['message']),
         ));
@@ -94,7 +94,7 @@ class ProfileCubit extends Cubit<ProfileState> {
         emit(state.copyWith(
           formStatus: const FormStatus.success('Zmieniono hasło.'),
         ));
-      } on DioError catch (e) {
+      } on DioException catch (e) {
         emit(state.copyWith(
           formStatus: FormStatus.failure(e.response!.data['message']),
         ));
@@ -149,13 +149,14 @@ Future<List<int>> cropAvatar(Uint8List data) async {
 
   Image resizedPhoto = copyResizeCropSquare(
     decodedImage!,
-    300,
+    size: 300,
   );
 
   Image croppedPhoto = copyCropCircle(
     resizedPhoto,
     radius: 150,
-    center: Point(150, 150),
+    centerX: 150,
+    centerY: 150
   );
 
   return encodePng(croppedPhoto);

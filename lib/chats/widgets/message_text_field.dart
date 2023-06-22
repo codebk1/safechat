@@ -17,10 +17,10 @@ class MessageTextField extends StatefulWidget {
   final Chat chat;
 
   @override
-  _MessageTextFieldState createState() => _MessageTextFieldState();
+  MessageTextFieldState createState() => MessageTextFieldState();
 }
 
-class _MessageTextFieldState extends State<MessageTextField> {
+class MessageTextFieldState extends State<MessageTextField> {
   final _messageController = TextEditingController();
   final _attachmentsCubit = AttachmentsCubit();
 
@@ -57,7 +57,7 @@ class _MessageTextFieldState extends State<MessageTextField> {
                             BuildContext context,
                             int index,
                           ) {
-                            Widget _attachmentThumbnail(Attachment attachment) {
+                            Widget attachmentThumbnail(Attachment attachment) {
                               final file = File(attachment.name);
 
                               switch (attachment.type) {
@@ -115,7 +115,7 @@ class _MessageTextFieldState extends State<MessageTextField> {
                                     scale: 0.9,
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(10),
-                                      child: _attachmentThumbnail(
+                                      child: attachmentThumbnail(
                                         state.selectedAttachments[index],
                                       ),
                                     ),
@@ -298,16 +298,16 @@ class _MessageTextFieldState extends State<MessageTextField> {
                                         onPressed: () {
                                           Navigator.pop(context);
                                         },
-                                        child: const Icon(Icons.add,
-                                            color: Colors.white),
                                         style: ElevatedButton.styleFrom(
                                           shape: const CircleBorder(),
+                                          backgroundColor: Colors.blue.shade800,
                                           padding: const EdgeInsets.all(
                                             15,
                                           ),
-                                          primary: Colors.blue.shade800,
                                           elevation: 0,
                                         ),
+                                        child: const Icon(Icons.add,
+                                            color: Colors.white),
                                       ),
                                     ),
                                 ],

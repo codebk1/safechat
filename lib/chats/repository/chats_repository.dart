@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
@@ -25,7 +24,7 @@ class ChatsRepository {
           : '/chat/participants/${participants!.join(',')}',
     );
 
-    if (res.data?.isEmpty) return null;
+    if (res.data == null) return null;
 
     return await _decryptChat(res.data);
   }

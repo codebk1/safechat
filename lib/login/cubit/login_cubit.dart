@@ -28,7 +28,8 @@ class LoginCubit extends Cubit<LoginState> {
         await _userCubit.authenticate();
 
         emit(state.copyWith(formStatus: const FormStatus.success()));
-      } on DioError catch (e) {
+      } on DioException catch (e) {
+        print(e.response);
         emit(state.copyWith(
           formStatus: FormStatus.failure(e.response!.data['message']),
         ));

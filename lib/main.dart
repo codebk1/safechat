@@ -39,8 +39,6 @@ void main() async {
   await dotenv.load(fileName: ".env");
   await NotificationService().init();
 
-  BlocOverrides.runZoned(
-    () => runApp(const App()),
-    blocObserver: AppBlocObserver(),
-  );
+  Bloc.observer = AppBlocObserver();
+  runApp(const App());
 }

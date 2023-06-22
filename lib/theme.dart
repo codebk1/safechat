@@ -7,15 +7,15 @@ class AppTheme {
     scaffoldBackgroundColor: Colors.white,
     dividerColor: Colors.blueGrey.shade50,
     textTheme: const TextTheme(
-      headline5: TextStyle(
+      headlineSmall: TextStyle(
         fontSize: 26,
         fontWeight: FontWeight.bold,
       ),
-      headline6: TextStyle(
+      titleLarge: TextStyle(
         fontWeight: FontWeight.w600,
         fontSize: 16.0,
       ),
-      subtitle2: TextStyle(
+      titleSmall: TextStyle(
         color: Colors.grey,
         fontSize: 14,
         fontWeight: FontWeight.w300,

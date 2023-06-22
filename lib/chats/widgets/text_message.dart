@@ -44,7 +44,7 @@ class TextMessage extends StatelessWidget {
                   sender!.firstName,
                   style: Theme.of(context)
                       .textTheme
-                      .subtitle2!
+                      .titleSmall!
                       .copyWith(fontSize: 10),
                 ),
               ],
