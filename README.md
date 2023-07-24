@@ -1,8 +1,8 @@
-![safechat](https://github.com/codebk1/safechat/assets/20027710/eb3982be-2f21-4697-8bc9-2c59a4fee97a)
+![logo](https://github.com/codebk1/safechat-api/assets/20027710/b27d72a9-c4c2-4d33-b7c2-a59a097ffdcc)
 
 Mobile chat application with **end-to-end** encryption and **SRP** (Secure Remote Password) authentication. Created in Flutter :blue_heart:
 
-https://github.com/codebk1/safechat/assets/20027710/c9b571d6-0f06-43e9-8b15-f18e933fcbd8
+https://github.com/codebk1/safechat-api/assets/20027710/4628c95a-37e9-469e-b72d-55be40230eab
 
 ## Encryption    
 Used algorithms:
@@ -22,7 +22,7 @@ The registration process in accordance with the SRP-6a specification, involves c
 - **x** - H(s | H(I | ":" | P)), where | is strings concatenation,
 - **v** - g^x % N.
 
-<img width="477" alt="srp-registration" src="https://github.com/codebk1/safechat/assets/20027710/f1057362-208c-43c7-b915-43a41628c464">
+<img width="477" alt="srp-registration" src="https://github.com/codebk1/safechat/assets/20027710/21fece47-680a-422a-94d3-4bdf6978a978">
 
 ### Login flow
 1. Collect a unique identifier **I** from the user (such as email) and a password **P**.
@@ -51,9 +51,4 @@ The registration process in accordance with the SRP-6a specification, involves c
 
 At the end of the authentication sequence, each party has an identical key (K), which can be used to encrypt further communication between client and server.
 
-<img width="448" alt="srp-login" src="https://github.com/codebk1/safechat/assets/20027710/1cd01e9b-2526-461c-ae79-d74a9d4fdc9b">
-
-
-
-
-
+<img width="448" alt="srp-login" src="https://github.com/codebk1/safechat/assets/20027710/23dc556c-323b-4a69-bd37-8e1b86158bca">
